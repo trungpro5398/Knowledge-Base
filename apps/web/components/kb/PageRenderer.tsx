@@ -1,0 +1,36 @@
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css";
+
+interface PageRendererProps {
+  content: string;
+}
+
+export function PageRenderer({ content }: PageRendererProps) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      rehypePlugins={[rehypeHighlight]}
+      components={{
+        h2: ({ children }) => {
+          const text = Array.isArray(children) ? children.join("") : String(children ?? "");
+          const id = text.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+          return <h2 id={id}>{children}</h2>;
+        },
+        h3: ({ children }) => {
+          const text = Array.isArray(children) ? children.join("") : String(children ?? "");
+          const id = text.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+          return <h3 id={id}>{children}</h3>;
+        },
+        a: ({ href, children }) => (
+          <a href={href} className="text-primary underline hover:no-underline" target={href?.startsWith("http") ? "_blank" : undefined} rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}>
+            {children}
+          </a>
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+}

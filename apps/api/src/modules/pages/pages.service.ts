@@ -1,0 +1,85 @@
+import * as pagesRepo from "./pages.repo.js";
+import { NotFoundError, ValidationError } from "../../utils/errors.js";
+import type { PageRow } from "./pages.repo.js";
+
+function buildTree(pages: PageRow[], parentId: string | null = null): (PageRow & { children: (PageRow & { children: unknown[] })[] })[] {
+  return pages
+    .filter((p) => p.parent_id === parentId)
+    .map((p) => ({
+      ...p,
+      children: buildTree(pages, p.id),
+    }));
+}
+
+export async function getPagesTree(spaceId: string) {
+  const pages = await pagesRepo.getPagesTree(spaceId);
+  return buildTree(pages);
+}
+
+export async function getPage(id: string) {
+  const page = await pagesRepo.getPageById(id);
+  if (!page) throw new NotFoundError("Page not found");
+  return page;
+}
+
+export async function getPageByPath(spaceId: string, path: string) {
+  const page = await pagesRepo.getPageByPath(spaceId, path);
+  if (!page) throw new NotFoundError("Page not found");
+  return page;
+}
+
+export async function createPage(
+  data: { spaceId: string; parentId?: string | null; title: string; slug: string },
+  userId: string
+) {
+  return pagesRepo.createPage({
+    ...data,
+    parentId: data.parentId ?? null,
+    createdBy: userId,
+  });
+}
+
+export async function updatePage(
+  id: string,
+  data: { title?: string; slug?: string; parent_id?: string | null; status?: string }
+) {
+  const updated = await pagesRepo.updatePage(id, data);
+  if (!updated) throw new NotFoundError("Page not found");
+  return updated;
+}
+
+export async function createVersion(
+  pageId: string,
+  data: { contentMd?: string; contentJson?: Record<string, unknown>; summary?: string },
+  userId: string
+) {
+  return pagesRepo.createVersion({
+    pageId,
+    contentMd: data.contentMd ?? null,
+    contentJson: data.contentJson ?? null,
+    summary: data.summary ?? null,
+    createdBy: userId,
+  });
+}
+
+export async function publishPage(pageId: string, versionId: string) {
+  const page = await pagesRepo.getPageById(pageId);
+  if (!page) throw new NotFoundError("Page not found");
+  await pagesRepo.setCurrentVersion(pageId, versionId);
+  await pagesRepo.updatePage(pageId, { status: "published" });
+  return pagesRepo.getPageById(pageId);
+}
+
+export async function listVersions(pageId: string) {
+  return pagesRepo.listVersions(pageId);
+}
+
+export async function softDeletePage(pageId: string, userId: string) {
+  const page = await pagesRepo.getPageById(pageId);
+  if (!page) throw new NotFoundError("Page not found");
+  await pagesRepo.softDeletePage(pageId, userId);
+}
+
+export async function restorePage(pageId: string) {
+  await pagesRepo.restoreFromTrash(pageId);
+}

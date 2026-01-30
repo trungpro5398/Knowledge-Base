@@ -63,3 +63,19 @@ pnpm dev
 └── supabase/
     └── migrations/
 ```
+
+## Deployment
+
+### Vercel (Web)
+
+1. Connect GitHub repo to Vercel
+2. Set root directory to `apps/web` or use monorepo detection
+3. Add environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_API_URL`
+4. Build command: `cd ../.. && pnpm build --filter web`
+
+### Fly.io (API)
+
+1. Run migrations on Supabase first
+2. From `apps/api`: `fly launch` (creates app) or `fly deploy` - use parent directory as build context
+3. Or from repo root with fly.toml at root
+4. Set secrets: `fly secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... DATABASE_URL=... CORS_ORIGINS=https://your-vercel-app.vercel.app`

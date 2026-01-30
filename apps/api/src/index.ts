@@ -20,6 +20,8 @@ await fastify.register(rateLimit, {
 });
 
 await fastify.register(authPlugin);
+const { rbacPlugin } = await import("./plugins/rbac.js");
+await fastify.register(rbacPlugin);
 await registerRoutes(fastify);
 
 const start = async () => {
