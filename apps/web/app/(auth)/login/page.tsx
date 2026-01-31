@@ -2,34 +2,28 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/auth/supabase-browser";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { BookOpen, LogIn } from "lucide-react";
+import { signInWithPassword } from "@/lib/auth/actions";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/admin";
+  const redirectTo = searchParams.get("redirect") || "/admin";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      router.push(redirect);
-      router.refresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Đăng nhập thất bại");
-    } finally {
+    const result = await signInWithPassword({ email, password, redirectTo });
+    if (result?.error) {
+      setError(result.error);
       setLoading(false);
     }
+    // Nếu thành công, signInWithPassword sẽ redirect — không cần làm gì thêm
   };
 
   return (
