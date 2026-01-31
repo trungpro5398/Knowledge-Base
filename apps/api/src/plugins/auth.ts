@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { config } from "../config/env.js";
 
 declare module "fastify" {
@@ -14,12 +14,24 @@ declare module "fastify" {
 }
 
 export async function authPlugin(fastify: FastifyInstance) {
-  let supabase: ReturnType<typeof createClient> | null = null;
-  const getSupabase = () => {
-    if (!supabase) supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
+  // Validate required env vars
+  if (!config.supabaseUrl || !config.supabaseAnonKey) {
+    fastify.log.warn("SUPABASE_URL or SUPABASE_ANON_KEY not set. Auth will fail.");
+  }
+
+  let supabase: SupabaseClient | null = null;
+
+  const getSupabase = (): SupabaseClient => {
+    if (!supabase) {
+      if (!config.supabaseUrl || !config.supabaseAnonKey) {
+        throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY are required");
+      }
+      supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
+    }
     return supabase;
   };
-  // Decorate first so route registration never sees undefined preHandler (e.g. if createClient fails later on missing env)
+
+  // Decorate authenticate function
   fastify.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
     const authHeader = request.headers.authorization;
     const token = authHeader?.replace(/^Bearer\s+/i, "");
@@ -31,11 +43,13 @@ export async function authPlugin(fastify: FastifyInstance) {
     try {
       const { data: { user }, error } = await getSupabase().auth.getUser(token);
       if (error || !user) {
+        request.log.debug({ error }, "Auth failed");
         return reply.status(401).send({ status: "error", message: "Invalid token" });
       }
-      request.user = { id: user.id, email: user.email };
-    } catch {
-      return reply.status(401).send({ status: "error", message: "Invalid token" });
+      request.user = { id: user.id, email: user.email ?? undefined };
+    } catch (err) {
+      request.log.error({ err }, "Auth error");
+      return reply.status(401).send({ status: "error", message: "Authentication failed" });
     }
   });
 }

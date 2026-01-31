@@ -5,9 +5,6 @@ type Role = "viewer" | "editor" | "admin";
 const ROLE_HIERARCHY: Record<Role, number> = { viewer: 0, editor: 1, admin: 2 };
 
 async function getMemberRole(userId: string, spaceId: string): Promise<Role | null> {
-  if (!pool) {
-    throw new Error("Database connection not available");
-  }
   const { rows } = await pool.query<{ role: Role }>(
     "SELECT role FROM memberships WHERE user_id = $1 AND space_id = $2",
     [userId, spaceId]
@@ -16,9 +13,6 @@ async function getMemberRole(userId: string, spaceId: string): Promise<Role | nu
 }
 
 async function getPageSpaceId(pageId: string): Promise<string | null> {
-  if (!pool) {
-    throw new Error("Database connection not available");
-  }
   const { rows } = await pool.query<{ space_id: string }>(
     "SELECT space_id FROM pages WHERE id = $1",
     [pageId]
