@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/auth/supabase-browser";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BookOpen, LogIn } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -25,59 +26,79 @@ export default function LoginPage() {
       router.push(redirect);
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
-        <h1 className="text-2xl font-bold text-center">Sign in</h1>
-        {error && (
-          <p className="text-sm text-red-500 text-center">{error}</p>
-        )}
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-3 py-2 border rounded-md bg-background"
-          />
-        </div>
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-1">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full px-3 py-2 border rounded-md bg-background"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 disabled:opacity-50"
+    <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
+      <div className="w-full max-w-md">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
         >
-          {loading ? "Signing in..." : "Sign in"}
-        </button>
-        <p className="text-sm text-center text-muted-foreground">
-          Chưa có tài khoản?{" "}
-          <Link href="/register" className="text-primary hover:underline">
-            Đăng ký
-          </Link>
-        </p>
-      </form>
+          <BookOpen className="h-5 w-5" />
+          <span className="font-medium">Knowledge Base</span>
+        </Link>
+        <div className="card">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
+              <LogIn className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Đăng nhập</h1>
+              <p className="text-sm text-muted-foreground">Chào mừng quay trở lại</p>
+            </div>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-5">
+            {error && (
+              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+                {error}
+              </div>
+            )}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium mb-2">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@tet-edu.com"
+                required
+                autoComplete="email"
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium mb-2">
+                Mật khẩu
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                className="w-full"
+              />
+            </div>
+            <button type="submit" disabled={loading} className="btn-primary w-full py-3">
+              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+            </button>
+          </form>
+          <p className="text-sm text-center text-muted-foreground mt-6 pt-6 border-t">
+            Chưa có tài khoản?{" "}
+            <Link href="/register" className="font-medium text-primary hover:underline">
+              Đăng ký
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
