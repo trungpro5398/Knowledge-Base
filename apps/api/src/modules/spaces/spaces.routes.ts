@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import * as spacesService from "./spaces.service.js";
+import * as pagesService from "../pages/pages.service.js";
 import { createSpaceSchema } from "@kb/shared";
 
 export async function spacesRoutes(fastify: FastifyInstance) {
@@ -36,6 +37,18 @@ export async function spacesRoutes(fastify: FastifyInstance) {
       const page = await import("../pages/pages.repo.js").then((m) => m.getPageByPath(space.id, path));
       if (!page) return reply.status(404).send({ status: "error", message: "Page not found" });
       return { data: page };
+    }
+  );
+
+  fastify.get(
+    "/spaces/by-slug/:slug/pages/tree",
+    { preHandler: [] },
+    async (request, reply) => {
+      const { slug } = request.params as { slug: string };
+      const space = await spacesService.getSpaceBySlug(slug);
+      if (!space) return reply.status(404).send({ status: "error", message: "Space not found" });
+      const tree = await pagesService.getPagesTree(space.id, { publishedOnly: true });
+      return { data: tree };
     }
   );
 

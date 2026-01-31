@@ -39,30 +39,35 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
       });
       router.push(`/admin/spaces/${spaceId}/pages/${res.data.id}/edit`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create");
+      setError(err instanceof Error ? err.message : "Tạo thất bại");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md space-y-4">
-      <h1 className="text-xl font-bold">New page</h1>
-      {error && <p className="text-sm text-red-500">{error}</p>}
+    <form onSubmit={handleSubmit} className="card max-w-lg space-y-5">
+      <h1 className="text-xl font-bold">Trang mới</h1>
+      {error && (
+        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          {error}
+        </div>
+      )}
       {templates.length > 0 && (
         <div>
-          <label className="block text-sm font-medium mb-1">From template (optional)</label>
+          <label className="block text-sm font-medium mb-2">Từ template (tùy chọn)</label>
           <select
             value={templateId}
             onChange={(e) => {
               setTemplateId(e.target.value);
               const t = templates.find((x) => x.id === e.target.value);
               if (t && !title) setTitle(t.name);
-              if (t && !slug) setSlug(t.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-_/]/g, ""));
+              if (t && !slug)
+                setSlug(t.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-_/]/g, ""));
             }}
-            className="w-full px-3 py-2 border rounded bg-background"
+            className="w-full"
           >
-            <option value="">— None —</option>
+            <option value="">— Không dùng —</option>
             {templates.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -72,31 +77,28 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
         </div>
       )}
       <div>
-        <label className="block text-sm font-medium mb-1">Title</label>
+        <label className="block text-sm font-medium mb-2">Tiêu đề</label>
         <input
           value={title}
           onChange={(e) => {
             setTitle(e.target.value);
             if (!slug) setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"));
           }}
-          className="w-full px-3 py-2 border rounded bg-background"
+          placeholder="Tiêu đề trang"
+          className="w-full"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Slug</label>
+        <label className="block text-sm font-medium mb-2">Slug</label>
         <input
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
-          className="w-full px-3 py-2 border rounded bg-background font-mono"
+          className="w-full font-mono"
           placeholder="page-slug"
         />
       </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="px-4 py-2 bg-primary text-primary-foreground rounded hover:opacity-90 disabled:opacity-50"
-      >
-        {loading ? "Creating..." : "Create"}
+      <button type="submit" disabled={loading} className="btn-primary">
+        {loading ? "Đang tạo..." : "Tạo trang"}
       </button>
     </form>
   );

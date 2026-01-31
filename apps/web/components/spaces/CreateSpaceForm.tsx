@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
+import { Plus } from "lucide-react";
 
 export function CreateSpaceForm() {
   const [name, setName] = useState("");
@@ -24,38 +25,41 @@ export function CreateSpaceForm() {
       setName("");
       setSlug("");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create");
+      setError(err instanceof Error ? err.message : "Tạo thất bại");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border rounded mb-6">
-      <h2 className="font-semibold mb-2">Create space</h2>
-      {error && <p className="text-sm text-red-500 mb-2">{error}</p>}
-      <div className="flex gap-2">
+    <form onSubmit={handleSubmit} className="card">
+      <h2 className="font-semibold mb-4 flex items-center gap-2">
+        <Plus className="h-4 w-4" />
+        Tạo space mới
+      </h2>
+      {error && (
+        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm mb-4">
+          {error}
+        </div>
+      )}
+      <div className="flex flex-col sm:flex-row gap-3">
         <input
           value={name}
           onChange={(e) => {
             setName(e.target.value);
             if (!slug) setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"));
           }}
-          placeholder="Space name"
-          className="px-2 py-1 border rounded bg-background flex-1"
+          placeholder="Tên space"
+          className="flex-1"
         />
         <input
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
           placeholder="slug"
-          className="px-2 py-1 border rounded bg-background w-32 font-mono"
+          className="sm:w-40 font-mono"
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-1 bg-primary text-primary-foreground rounded hover:opacity-90 disabled:opacity-50"
-        >
-          Create
+        <button type="submit" disabled={loading} className="btn-primary shrink-0">
+          {loading ? "Đang tạo..." : "Tạo"}
         </button>
       </div>
     </form>

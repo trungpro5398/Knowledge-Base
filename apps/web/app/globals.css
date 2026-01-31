@@ -55,4 +55,17 @@
   .card {
     @apply rounded-xl border bg-card p-6 shadow-sm;
   }
+  .prose-kb {
+    @apply text-foreground;
+  }
+  .prose-kb h1 { @apply text-2xl font-bold mt-8 mb-4 first:mt-0; }
+  .prose-kb h2 { @apply text-xl font-semibold mt-6 mb-3; }
+  .prose-kb h3 { @apply text-lg font-medium mt-4 mb-2; }
+  .prose-kb p { @apply my-3 leading-relaxed; }
+  .prose-kb ul { @apply list-disc pl-6 my-3; }
+  .prose-kb ol { @apply list-decimal pl-6 my-3; }
+  .prose-kb a { @apply text-primary underline hover:no-underline; }
+  .prose-kb code { @apply px-1.5 py-0.5 rounded bg-muted text-sm font-mono; }
+  .prose-kb pre { @apply p-4 rounded-lg bg-muted overflow-x-auto my-4; }
+  .prose-kb pre code { @apply p-0 bg-transparent; }
 }

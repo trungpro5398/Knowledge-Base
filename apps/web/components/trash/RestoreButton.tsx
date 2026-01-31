@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
+import { RotateCcw } from "lucide-react";
 
 export function RestoreButton({ pageId }: { pageId: string }) {
   const [loading, setLoading] = useState(false);
@@ -22,9 +23,10 @@ export function RestoreButton({ pageId }: { pageId: string }) {
     <button
       onClick={restore}
       disabled={loading}
-      className="px-2 py-1 text-sm border rounded hover:bg-muted disabled:opacity-50"
+      className="btn-primary text-sm py-2 px-3 inline-flex items-center gap-2 shrink-0"
     >
-      {loading ? "Restoring..." : "Restore"}
+      <RotateCcw className="h-3.5 w-3.5" />
+      {loading ? "Đang khôi phục..." : "Khôi phục"}
     </button>
   );
 }

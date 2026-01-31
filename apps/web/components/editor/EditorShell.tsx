@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { AttachmentUpload } from "./AttachmentUpload";
 import { apiClient } from "@/lib/api/client";
+import { Save, Send } from "lucide-react";
 
 interface EditorShellProps {
   pageId: string;
@@ -64,29 +65,33 @@ export function EditorShell({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2">
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-3 items-start">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="text-xl font-bold px-2 py-1 border rounded bg-background flex-1"
-          placeholder="Title"
+          className="text-xl font-bold flex-1 min-w-[200px]"
+          placeholder="Tiêu đề trang"
         />
-        <button
-          onClick={saveDraft}
-          disabled={saving}
-          className="px-4 py-2 border rounded hover:bg-muted disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save draft"}
-        </button>
-        <button
-          onClick={publish}
-          disabled={publishing || initialStatus === "published"}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded hover:opacity-90 disabled:opacity-50"
-        >
-          {publishing ? "Publishing..." : "Publish"}
-        </button>
-        <AttachmentUpload pageId={pageId} />
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={saveDraft}
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium hover:bg-muted disabled:opacity-50 transition-colors"
+          >
+            <Save className="h-4 w-4" />
+            {saving ? "Đang lưu..." : "Lưu nháp"}
+          </button>
+          <button
+            onClick={publish}
+            disabled={publishing || initialStatus === "published"}
+            className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
+          >
+            <Send className="h-4 w-4" />
+            {publishing ? "Đang xuất bản..." : "Xuất bản"}
+          </button>
+          <AttachmentUpload pageId={pageId} />
+        </div>
       </div>
       <MarkdownEditor
         value={content}

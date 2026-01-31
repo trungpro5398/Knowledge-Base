@@ -3,6 +3,7 @@ import { PageTree } from "@/components/kb/PageTree";
 import type { TreeNode } from "@/components/kb/PageTree";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
+import { Plus } from "lucide-react";
 
 async function getSpace(spaceId: string, token: string) {
   try {
@@ -37,24 +38,26 @@ export default async function TreePage({
     getTree(spaceId, token),
   ]);
 
-  if (!space) return <div>Space not found</div>;
+  if (!space) return <div className="p-8">Space không tồn tại</div>;
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{space.name}</h1>
+    <div className="p-8 max-w-4xl">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold">{space.name}</h1>
+          <p className="text-muted-foreground text-sm font-mono mt-0.5">{space.slug}</p>
+        </div>
         <Link
           href={`/admin/spaces/${spaceId}/pages/new`}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90"
+          className="btn-primary inline-flex items-center gap-2 shrink-0"
         >
-          New page
+          <Plus className="h-4 w-4" />
+          Trang mới
         </Link>
       </div>
-      <PageTree
-        spaceId={spaceId}
-        spaceSlug={space.slug}
-        nodes={tree}
-      />
+      <div className="card">
+        <PageTree spaceId={spaceId} spaceSlug={space.slug} nodes={tree} />
+      </div>
     </div>
   );
 }

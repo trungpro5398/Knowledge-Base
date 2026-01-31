@@ -43,11 +43,11 @@ export function MarkdownEditor({
       <textarea
         value={local}
         onChange={handleChange}
-        className="font-mono text-sm p-4 border rounded bg-background resize-none"
+        className="font-mono text-sm p-4 border rounded-lg bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
         placeholder="Write markdown..."
         spellCheck={false}
       />
-      <div className="p-4 border rounded overflow-auto prose prose-sm dark:prose-invert max-w-none">
+      <div className="p-4 border rounded-lg overflow-auto prose-kb text-sm max-w-none">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{local}</ReactMarkdown>
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { apiClient } from "@/lib/api/client";
+import { Paperclip } from "lucide-react";
 
 interface AttachmentUploadProps {
   pageId: string;
@@ -49,9 +49,10 @@ export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) 
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        className="text-sm px-2 py-1 border rounded hover:bg-muted disabled:opacity-50"
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium hover:bg-muted disabled:opacity-50 transition-colors"
       >
-        {uploading ? "Uploading..." : "Upload file"}
+        <Paperclip className="h-4 w-4" />
+        {uploading ? "Đang tải..." : "Đính kèm"}
       </button>
     </div>
   );

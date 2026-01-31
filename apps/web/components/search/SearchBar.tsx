@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
+import { Search } from "lucide-react";
 
 export function SearchBar() {
   const [q, setQ] = useState("");
@@ -23,17 +24,19 @@ export function SearchBar() {
 
   return (
     <div className="relative">
-      <input
-        type="search"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && search()}
-        placeholder="Search..."
-        className="w-48 px-2 py-1 text-sm border rounded bg-background"
-      />
-      <button onClick={search} className="ml-1 text-sm">Search</button>
+      <div className="relative flex items-center">
+        <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground shrink-0" />
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), search())}
+          placeholder="Tìm trang... (Enter)"
+          className="w-full pl-9 pr-3 py-2 text-sm"
+        />
+      </div>
       {open && results.length > 0 && (
-        <div className="absolute top-full left-0 mt-1 w-64 max-h-60 overflow-auto border rounded bg-background shadow-lg z-10">
+        <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-20 overflow-hidden">
           {results.map((r) => (
             <button
               key={r.page_id}
@@ -41,7 +44,7 @@ export function SearchBar() {
                 router.push(`/admin/spaces/${r.space_id}/pages/${r.page_id}/edit`);
                 setOpen(false);
               }}
-              className="block w-full text-left px-3 py-2 hover:bg-muted text-sm"
+              className="block w-full text-left px-3 py-2.5 text-sm hover:bg-muted transition-colors border-b last:border-0"
             >
               {r.title}
             </button>

@@ -25,12 +25,17 @@ export interface PageVersionRow {
   created_at: Date;
 }
 
-export async function getPagesTree(spaceId: string): Promise<PageRow[]> {
+export async function getPagesTree(
+  spaceId: string,
+  options?: { publishedOnly?: boolean }
+): Promise<PageRow[]> {
   if (!pool) return [];
+  const publishedOnly = options?.publishedOnly === true;
   const { rows } = await pool.query<PageRow>(
     `SELECT * FROM pages
      WHERE space_id = $1
      AND id NOT IN (SELECT page_id FROM trash)
+     ${publishedOnly ? "AND status = 'published'" : ""}
      ORDER BY path`,
     [spaceId]
   );

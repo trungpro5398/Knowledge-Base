@@ -12,8 +12,11 @@ function buildTree(pages: PageRow[], parentId: string | null = null): (PageRow &
     }));
 }
 
-export async function getPagesTree(spaceId: string) {
-  const pages = await pagesRepo.getPagesTree(spaceId);
+export async function getPagesTree(
+  spaceId: string,
+  options?: { publishedOnly?: boolean }
+) {
+  const pages = await pagesRepo.getPagesTree(spaceId, options);
   return buildTree(pages);
 }
 
