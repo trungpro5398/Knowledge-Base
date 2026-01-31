@@ -4,7 +4,7 @@ Internal knowledge base application - Confluence alternative. Built with Next.js
 
 ## Architecture
 
-- **Web** (Vercel): Next.js App Router - SSR/ISR for KB pages, Admin UI
+- **Web** (Vercel): Next.js App Router - SSR/ISR for KB pages, Admin UI, Đăng ký/Đăng nhập (chỉ @tet-edu.com)
 - **API** (Fly.io): Fastify Node.js - CRUD, RBAC, search, audit
 - **DB/Auth** (Supabase): PostgreSQL, Auth, Storage
 

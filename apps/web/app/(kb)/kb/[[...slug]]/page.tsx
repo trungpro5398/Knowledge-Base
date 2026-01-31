@@ -16,26 +16,33 @@ async function getPage(spaceSlug: string, path: string) {
   return json.data;
 }
 
+const DEFAULT_SPACE_SLUG = "tet-prosys";
+
 export default async function KbPage({
   params,
 }: {
   params: Promise<{ slug?: string[] }>;
 }) {
   const { slug } = await params;
-  if (!slug || slug.length < 2) {
-    const [spaceSlug] = slug || [];
-    if (spaceSlug) {
-      return (
-        <div className="container max-w-4xl py-8">
-          <h1 className="text-2xl font-bold">Space: {spaceSlug}</h1>
-          <p className="text-muted-foreground">Select a page from the sidebar.</p>
-        </div>
-      );
-    }
-    return notFound();
+  const segments = slug ?? [];
+
+  // /kb with no path → redirect to default space so /kb always resolves
+  if (segments.length === 0) {
+    const { redirect } = await import("next/navigation");
+    redirect(`/kb/${DEFAULT_SPACE_SLUG}`);
   }
 
-  const [spaceSlug, ...pathParts] = slug;
+  if (segments.length < 2) {
+    const [spaceSlug] = segments;
+    return (
+      <div className="container max-w-4xl py-8">
+        <h1 className="text-2xl font-bold">Space: {spaceSlug}</h1>
+        <p className="text-muted-foreground">Select a page from the sidebar.</p>
+      </div>
+    );
+  }
+
+  const [spaceSlug, ...pathParts] = segments;
   const path = slugToPath(pathParts);
   const page = await getPage(spaceSlug!, path);
 

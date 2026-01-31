@@ -4,28 +4,55 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --border: 214.3 31.8% 91.4%;
-    --radius: 0.5rem;
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 94%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --border: 214 32% 91%;
+    --ring: 160 84% 39%;
+    --radius: 0.625rem;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
   }
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222 47% 7%;
     --foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --border: 217.2 32.6% 17.5%;
+    --primary: 160 70% 45%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --border: 217 33% 17%;
+    --ring: 160 70% 45%;
+    --card: 222 47% 10%;
+    --card-foreground: 210 40% 98%;
   }
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
   body {
     @apply bg-background text-foreground;
+  }
+  input, textarea, select {
+    @apply rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  button:not([type="submit"]):not(.btn-primary) {
+    @apply rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .card {
+    @apply rounded-xl border bg-card p-6 shadow-sm;
   }
 }
