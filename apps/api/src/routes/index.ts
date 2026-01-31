@@ -22,22 +22,14 @@ export async function registerRoutes(fastify: FastifyInstance) {
   });
 
   fastify.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
-  // Copy auth decorators to child context (encapsulation can block inheritance)
-  await fastify.register(
-    async (child) => {
-      child.decorate("authenticate", fastify.authenticate);
-      child.decorate("requireSpaceRole", fastify.requireSpaceRole);
-      child.decorate("requirePageRole", fastify.requirePageRole);
-      await child.register(spacesRoutes);
-      await child.register(pagesRoutes);
-      await child.register(searchRoutes);
-      await child.register(auditRoutes);
-      await child.register(commentsRoutes);
-      await child.register(watchersRoutes);
-      await child.register(labelsRoutes);
-      await child.register(trashRoutes);
-      await child.register(attachmentsRoutes);
-    },
-    { prefix: "/api" }
-  );
+  // Register API routes on root so they see authenticate/requireSpaceRole/requirePageRole
+  await fastify.register(spacesRoutes, { prefix: "/api" });
+  await fastify.register(pagesRoutes, { prefix: "/api" });
+  await fastify.register(searchRoutes, { prefix: "/api" });
+  await fastify.register(auditRoutes, { prefix: "/api" });
+  await fastify.register(commentsRoutes, { prefix: "/api" });
+  await fastify.register(watchersRoutes, { prefix: "/api" });
+  await fastify.register(labelsRoutes, { prefix: "/api" });
+  await fastify.register(trashRoutes, { prefix: "/api" });
+  await fastify.register(attachmentsRoutes, { prefix: "/api" });
 }
