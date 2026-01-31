@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/auth/supabase-browser";
 import Link from "next/link";
-import { BookOpen, UserPlus, Mail } from "lucide-react";
+import { BookOpen, UserPlus } from "lucide-react";
 
 const ALLOWED_DOMAIN = "@tet-edu.com";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -42,7 +44,10 @@ export default function RegisterPage() {
         options: { emailRedirectTo: `${window.location.origin}/callback?next=/admin` },
       });
       if (error) throw error;
-      setSuccess(true);
+      // Tạm thời tắt confirm email: đăng ký xong redirect luôn vào app (cần tắt "Confirm email" trong Supabase → Auth → Providers → Email)
+      router.push("/admin");
+      return;
+      // setSuccess(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Đăng ký thất bại");
     } finally {
@@ -50,34 +55,21 @@ export default function RegisterPage() {
     }
   };
 
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
-        <div className="w-full max-w-md">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
-          >
-            <BookOpen className="h-5 w-5" />
-            <span className="font-medium">Knowledge Base</span>
-          </Link>
-          <div className="card text-center">
-            <div className="inline-flex p-4 rounded-full bg-primary/10 text-primary mb-4">
-              <Mail className="h-12 w-12" />
-            </div>
-            <h1 className="text-2xl font-bold mb-2">Kiểm tra email</h1>
-            <p className="text-muted-foreground text-sm mb-6">
-              Chúng tôi đã gửi link xác nhận tới <strong className="text-foreground">{email}</strong>.
-              Vui lòng kiểm tra và nhấp link để kích hoạt tài khoản.
-            </p>
-            <Link href="/login" className="btn-primary inline-block w-full py-3">
-              Đăng nhập
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Tạm thời comment: không bắt confirm email, đăng ký xong redirect /admin luôn
+  // if (success) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
+  //       <div className="w-full max-w-md">
+  //         <Link href="/" className="...">...</Link>
+  //         <div className="card text-center">
+  //           <h1>Kiểm tra email</h1>
+  //           <p>Chúng tôi đã gửi link xác nhận tới {email}. Vui lòng kiểm tra và nhấp link để kích hoạt tài khoản.</p>
+  //           <Link href="/login">Đăng nhập</Link>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
