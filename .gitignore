@@ -52,3 +52,4 @@ coverage
 .codex
 .cursor
 .gemini
+.env*.local

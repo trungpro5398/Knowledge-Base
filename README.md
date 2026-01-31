@@ -30,6 +30,7 @@ Create `.env` in `apps/web` and `apps/api`:
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
+# Local: http://localhost:3001 | Production: https://knowledge-base-api.fly.dev
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
@@ -70,7 +71,10 @@ pnpm dev
 
 1. Connect GitHub repo to Vercel
 2. Set root directory to `apps/web` or use monorepo detection
-3. Add environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_API_URL`
+3. Add environment variables:
+   - `NEXT_PUBLIC_SUPABASE_URL` – your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` – Supabase anon key
+   - `NEXT_PUBLIC_API_URL` = `https://knowledge-base-api.fly.dev`
 4. Build command: `cd ../.. && pnpm build --filter web`
 
 ### Fly.io (API)

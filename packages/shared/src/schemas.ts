@@ -12,6 +12,7 @@ export const createPageSchema = z.object({
   parent_id: z.string().uuid().optional().nullable(),
   title: z.string().min(1).max(500),
   slug: z.string().min(1).max(200).regex(/^[a-z0-9-_/]+$/),
+  template_id: z.string().uuid().optional().nullable(),
 });
 
 export const updatePageSchema = z.object({

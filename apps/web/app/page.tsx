@@ -24,6 +24,12 @@ export default function HomePage() {
         >
           Login
         </Link>
+        <Link
+          href="/register"
+          className="px-4 py-2 border rounded-md hover:bg-muted"
+        >
+          Đăng ký
+        </Link>
       </div>
     </main>
   );

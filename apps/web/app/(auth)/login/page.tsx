@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/auth/supabase-browser";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -70,6 +71,12 @@ export default function LoginPage() {
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
+        <p className="text-sm text-center text-muted-foreground">
+          Chưa có tài khoản?{" "}
+          <Link href="/register" className="text-primary hover:underline">
+            Đăng ký
+          </Link>
+        </p>
       </form>
     </div>
   );

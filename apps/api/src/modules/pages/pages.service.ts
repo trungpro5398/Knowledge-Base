@@ -1,4 +1,5 @@
 import * as pagesRepo from "./pages.repo.js";
+import * as templatesRepo from "./templates.repo.js";
 import { NotFoundError, ValidationError } from "../../utils/errors.js";
 import type { PageRow } from "./pages.repo.js";
 
@@ -29,14 +30,31 @@ export async function getPageByPath(spaceId: string, path: string) {
 }
 
 export async function createPage(
-  data: { spaceId: string; parentId?: string | null; title: string; slug: string },
+  data: { spaceId: string; parentId?: string | null; title: string; slug: string; templateId?: string | null },
   userId: string
 ) {
-  return pagesRepo.createPage({
-    ...data,
+  const page = await pagesRepo.createPage({
+    spaceId: data.spaceId,
     parentId: data.parentId ?? null,
+    title: data.title,
+    slug: data.slug,
     createdBy: userId,
   });
+  if (data.templateId) {
+    const template = await templatesRepo.getTemplateById(data.templateId);
+    if (template && template.space_id === data.spaceId && template.content_md) {
+      const version = await pagesRepo.createVersion({
+        pageId: page.id,
+        contentMd: template.content_md,
+        contentJson: null,
+        summary: null,
+        createdBy: userId,
+      });
+      await pagesRepo.setCurrentVersion(page.id, version.id);
+      return pagesRepo.getPageById(page.id) as Promise<PageRow & { version?: unknown }>;
+    }
+  }
+  return page;
 }
 
 export async function updatePage(

@@ -9,7 +9,8 @@
     "build": "pnpm -r build",
     "build:web": "pnpm --filter web build",
     "build:api": "pnpm --filter api build",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "deploy:web": "vercel deploy --prod"
   },
   "engines": {
     "node": ">=18"

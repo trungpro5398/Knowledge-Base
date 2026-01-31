@@ -1,9 +1,20 @@
 import { FastifyInstance } from "fastify";
 import * as pagesService from "./pages.service.js";
+import * as templatesRepo from "./templates.repo.js";
 import { createPageSchema, updatePageSchema, createVersionSchema, publishSchema } from "@kb/shared";
 import { pool } from "../../db/pool.js";
 
 export async function pagesRoutes(fastify: FastifyInstance) {
+  fastify.get(
+    "/spaces/:spaceId/templates",
+    { preHandler: [fastify.authenticate, fastify.requireSpaceRole("viewer")] },
+    async (request, reply) => {
+      const { spaceId } = request.params as { spaceId: string };
+      const templates = await templatesRepo.getTemplatesBySpaceId(spaceId);
+      return { data: templates };
+    }
+  );
+
   fastify.get(
     "/spaces/:spaceId/pages/tree",
     { preHandler: [fastify.authenticate, fastify.requireSpaceRole("viewer")] },
@@ -52,6 +63,7 @@ export async function pagesRoutes(fastify: FastifyInstance) {
           parentId: parsed.data.parent_id ?? null,
           title: parsed.data.title,
           slug: parsed.data.slug,
+          templateId: parsed.data.template_id ?? null,
         },
         userId
       );
