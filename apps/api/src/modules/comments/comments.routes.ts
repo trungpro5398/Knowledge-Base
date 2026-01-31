@@ -1,11 +1,13 @@
 import { FastifyInstance } from "fastify";
+import type { AuthHandlers } from "../../routes/auth-types.js";
 import * as commentsRepo from "./comments.repo.js";
 import { createCommentSchema } from "@kb/shared";
 
-export async function commentsRoutes(fastify: FastifyInstance) {
+export async function commentsRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
+  const { authenticate, requirePageRole } = auth;
   fastify.get(
     "/pages/:id/comments",
-    { preHandler: [fastify.authenticate, fastify.requirePageRole("viewer")] },
+    { preHandler: [authenticate, requirePageRole("viewer")] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
       const comments = await commentsRepo.listByPage(id);
@@ -15,7 +17,7 @@ export async function commentsRoutes(fastify: FastifyInstance) {
 
   fastify.post(
     "/pages/:id/comments",
-    { preHandler: [fastify.authenticate, fastify.requirePageRole("viewer")] },
+    { preHandler: [authenticate, requirePageRole("viewer")] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
       const parsed = createCommentSchema.safeParse(request.body);

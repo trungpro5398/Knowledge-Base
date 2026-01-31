@@ -80,6 +80,5 @@ pnpm dev
 ### Fly.io (API)
 
 1. Run migrations on Supabase first
-2. From `apps/api`: `fly launch` (creates app) or `fly deploy` - use parent directory as build context
-3. Or from repo root with fly.toml at root
-4. Set secrets: `fly secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... DATABASE_URL=... CORS_ORIGINS=https://your-vercel-app.vercel.app`
+2. From **repo root**: `fly launch` (first time) or `fly deploy --app knowledge-base-api`
+3. Set secrets: `fly secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... DATABASE_URL=... CORS_ORIGINS=https://your-vercel-app.vercel.app --app knowledge-base-api`

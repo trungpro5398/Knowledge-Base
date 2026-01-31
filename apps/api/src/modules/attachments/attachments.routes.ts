@@ -2,17 +2,21 @@ import { FastifyInstance } from "fastify";
 import multipart from "@fastify/multipart";
 import { createClient } from "@supabase/supabase-js";
 import { config } from "../../config/env.js";
+import type { AuthHandlers } from "../../routes/auth-types.js";
 import * as attachmentsRepo from "./attachments.repo.js";
 import { pool } from "../../db/pool.js";
 
-export async function attachmentsRoutes(fastify: FastifyInstance) {
+export async function attachmentsRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   await fastify.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB
 
-  const supabase = createClient(config.supabaseUrl, config.supabaseServiceRoleKey || config.supabaseAnonKey);
+  const supabase = createClient(
+    config.supabaseUrl,
+    config.supabaseServiceRoleKey || config.supabaseAnonKey
+  );
 
   fastify.post(
     "/pages/:id/attachments",
-    { preHandler: [fastify.authenticate, fastify.requirePageRole("editor")] },
+    { preHandler: [auth.authenticate, auth.requirePageRole("editor")] },
     async (request, reply) => {
       const { id: pageId } = request.params as { id: string };
       const userId = request.user!.id;
@@ -21,7 +25,6 @@ export async function attachmentsRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ status: "error", message: "No file uploaded" });
       }
       const buffer = await data.toBuffer();
-      const ext = data.filename.split(".").pop() || "bin";
       const filePath = `${pageId}/${Date.now()}-${data.filename}`;
 
       const { error: uploadError } = await supabase.storage
@@ -46,26 +49,29 @@ export async function attachmentsRoutes(fastify: FastifyInstance) {
 
   fastify.get(
     "/attachments/:id/signed-url",
-    { preHandler: [fastify.authenticate] },
+    { preHandler: [auth.authenticate] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
       const attachment = await attachmentsRepo.getById(id);
       if (!attachment) {
         return reply.status(404).send({ status: "error", message: "Attachment not found" });
       }
+
       const pageId = attachment.page_id;
       const userId = request.user!.id;
-      if (pool) {
-        const { rows } = await pool.query(
-          `SELECT 1 FROM pages p
-           JOIN memberships m ON m.space_id = p.space_id AND m.user_id = $1
-           WHERE p.id = $2`,
-          [userId, pageId]
-        );
-        if (rows.length === 0) {
-          return reply.status(403).send({ status: "error", message: "Access denied" });
-        }
+
+      // Check user has access to the page's space
+      const { rows } = await pool.query(
+        `SELECT 1 FROM pages p
+         JOIN memberships m ON m.space_id = p.space_id AND m.user_id = $1
+         WHERE p.id = $2`,
+        [userId, pageId]
+      );
+
+      if (rows.length === 0) {
+        return reply.status(403).send({ status: "error", message: "Access denied" });
       }
+
       const { data, error } = await supabase.storage
         .from("attachments")
         .createSignedUrl(attachment.file_path, 3600);

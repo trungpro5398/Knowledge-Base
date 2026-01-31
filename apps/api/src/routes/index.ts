@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import fp from "fastify-plugin";
+import type { AuthHandlers } from "./auth-types.js";
 import { spacesRoutes } from "../modules/spaces/spaces.routes.js";
 import { pagesRoutes } from "../modules/pages/pages.routes.js";
 import { searchRoutes } from "../modules/search/search.routes.js";
@@ -24,26 +24,26 @@ export async function registerRoutes(fastify: FastifyInstance) {
 
   fastify.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
 
-  // Capture auth handlers from root (encapsulated child does not inherit decorators)
-  const authenticate = fastify.authenticate;
-  const requireSpaceRole = fastify.requireSpaceRole;
-  const requirePageRole = fastify.requirePageRole;
+  if (typeof fastify.authenticate !== "function") {
+    throw new Error("Auth plugin must be registered before routes. Ensure authPlugin runs and decorates fastify.authenticate.");
+  }
+  const auth: AuthHandlers = {
+    authenticate: fastify.authenticate,
+    requireSpaceRole: fastify.requireSpaceRole,
+    requirePageRole: fastify.requirePageRole,
+  };
 
   await fastify.register(
     async (api) => {
-      api.decorate("authenticate", authenticate);
-      api.decorate("requireSpaceRole", requireSpaceRole);
-      api.decorate("requirePageRole", requirePageRole);
-      // Use fastify-plugin so route plugins run in same context and see the decorators
-      await api.register(fp(spacesRoutes));
-      await api.register(fp(pagesRoutes));
-      await api.register(fp(searchRoutes));
-      await api.register(fp(auditRoutes));
-      await api.register(fp(commentsRoutes));
-      await api.register(fp(watchersRoutes));
-      await api.register(fp(labelsRoutes));
-      await api.register(fp(trashRoutes));
-      await api.register(fp(attachmentsRoutes));
+      await api.register(async (instance) => { await spacesRoutes(instance, auth); });
+      await api.register(async (instance) => { await pagesRoutes(instance, auth); });
+      await api.register(async (instance) => { await searchRoutes(instance, auth); });
+      await api.register(async (instance) => { await auditRoutes(instance, auth); });
+      await api.register(async (instance) => { await commentsRoutes(instance, auth); });
+      await api.register(async (instance) => { await watchersRoutes(instance, auth); });
+      await api.register(async (instance) => { await labelsRoutes(instance, auth); });
+      await api.register(async (instance) => { await trashRoutes(instance, auth); });
+      await api.register(async (instance) => { await attachmentsRoutes(instance, auth); });
     },
     { prefix: "/api" }
   );

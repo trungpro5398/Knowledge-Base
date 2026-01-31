@@ -1,10 +1,11 @@
 import { FastifyInstance } from "fastify";
+import type { AuthHandlers } from "../../routes/auth-types.js";
 import * as watchersRepo from "./watchers.repo.js";
 
-export async function watchersRoutes(fastify: FastifyInstance) {
+export async function watchersRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   fastify.post(
     "/pages/:id/watchers",
-    { preHandler: [fastify.authenticate, fastify.requirePageRole("viewer")] },
+    { preHandler: [auth.authenticate, auth.requirePageRole("viewer")] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
       const body = request.body as { watch?: boolean };

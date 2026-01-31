@@ -2,19 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiClient } from "@/lib/api/client";
+import { api } from "@/lib/api/client";
 import { Search } from "lucide-react";
+import type { PaginatedResponse, SearchResult } from "@/lib/api/types";
 
 export function SearchBar() {
   const [q, setQ] = useState("");
-  const [results, setResults] = useState<{ page_id: string; title: string; space_id: string }[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
   const search = async () => {
     if (!q.trim()) return;
     try {
-      const res = await apiClient(`/api/search?q=${encodeURIComponent(q)}&limit=10`);
+      const res = await api.get<PaginatedResponse<SearchResult>>(
+        `/api/search?q=${encodeURIComponent(q)}&limit=10`
+      );
       setResults(res.data ?? []);
       setOpen(true);
     } catch {
@@ -39,9 +42,9 @@ export function SearchBar() {
         <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-20 overflow-hidden">
           {results.map((r) => (
             <button
-              key={r.page_id}
+              key={r.id}
               onClick={() => {
-                router.push(`/admin/spaces/${r.space_id}/pages/${r.page_id}/edit`);
+                router.push(`/admin/spaces/${r.space_id}/pages/${r.id}/edit`);
                 setOpen(false);
               }}
               className="block w-full text-left px-3 py-2.5 text-sm hover:bg-muted transition-colors border-b last:border-0"

@@ -3,11 +3,12 @@ import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
 import { CreateSpaceForm } from "@/components/spaces/CreateSpaceForm";
 import { FolderOpen } from "lucide-react";
+import type { ApiResponse, Space } from "@/lib/api/types";
 
-async function getSpaces(token: string) {
+async function getSpaces(token: string): Promise<Space[]> {
   try {
-    const res = await apiClient("/api/spaces", { token });
-    return res.data as { id: string; name: string; slug: string }[];
+    const res = await apiClient<ApiResponse<Space[]>>("/api/spaces", { token });
+    return res.data;
   } catch {
     return [];
   }

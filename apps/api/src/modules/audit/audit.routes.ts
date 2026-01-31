@@ -1,20 +1,18 @@
 import { FastifyInstance } from "fastify";
+import type { AuthHandlers } from "../../routes/auth-types.js";
 import * as auditRepo from "./audit.repo.js";
 
-export async function auditRoutes(fastify: FastifyInstance) {
+export async function auditRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
+  const { authenticate, requireSpaceRole } = auth;
   fastify.get(
     "/audit",
     {
       preHandler: [
-        fastify.authenticate,
+        authenticate,
         async (req, res) => {
           const spaceId = (req.query as { space?: string }).space;
           if (!spaceId) return res.status(400).send({ status: "error", message: "space is required" });
-          await fastify.requireSpaceRole("admin").call(
-            fastify,
-            Object.assign(req, { params: { ...(req.params as object || {}), spaceId } }),
-            res
-          );
+          await requireSpaceRole("admin")(Object.assign(req, { params: { ...(req.params as object || {}), spaceId } }) as any, res);
         },
       ],
     },

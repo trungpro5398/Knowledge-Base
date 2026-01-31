@@ -1,11 +1,12 @@
 import { FastifyInstance } from "fastify";
+import type { AuthHandlers } from "../../routes/auth-types.js";
 import * as searchRepo from "./search.repo.js";
 import { searchQuerySchema } from "@kb/shared";
 
-export async function searchRoutes(fastify: FastifyInstance) {
+export async function searchRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   fastify.get(
     "/search",
-    { preHandler: [fastify.authenticate] },
+    { preHandler: [auth.authenticate] },
     async (request, reply) => {
       const parsed = searchQuerySchema.safeParse(request.query);
       if (!parsed.success) {

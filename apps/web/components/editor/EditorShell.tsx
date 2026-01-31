@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { AttachmentUpload } from "./AttachmentUpload";
-import { apiClient } from "@/lib/api/client";
+import { api } from "@/lib/api/client";
 import { Save, Send } from "lucide-react";
+import type { ApiResponse, PageVersion } from "@/lib/api/types";
 
 interface EditorShellProps {
   pageId: string;
@@ -29,13 +30,10 @@ export function EditorShell({
   const saveDraft = async () => {
     setSaving(true);
     try {
-      await apiClient(`/api/pages/${pageId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ title }),
-      });
-      await apiClient(`/api/pages/${pageId}/versions`, {
-        method: "POST",
-        body: JSON.stringify({ content_md: content, summary: "Auto-save" }),
+      await api.patch(`/api/pages/${pageId}`, { title });
+      await api.post(`/api/pages/${pageId}/versions`, {
+        content_md: content,
+        summary: "Auto-save",
       });
     } catch (e) {
       console.error(e);
@@ -47,15 +45,12 @@ export function EditorShell({
   const publish = async () => {
     setPublishing(true);
     try {
-      const versionRes = await apiClient(`/api/pages/${pageId}/versions`, {
-        method: "POST",
-        body: JSON.stringify({ content_md: content, summary: "Published" }),
-      });
+      const versionRes = await api.post<ApiResponse<PageVersion>>(
+        `/api/pages/${pageId}/versions`,
+        { content_md: content, summary: "Published" }
+      );
       const versionId = versionRes.data.id;
-      await apiClient(`/api/pages/${pageId}/publish`, {
-        method: "POST",
-        body: JSON.stringify({ version_id: versionId }),
-      });
+      await api.post(`/api/pages/${pageId}/publish`, { version_id: versionId });
       window.location.reload();
     } catch (e) {
       console.error(e);

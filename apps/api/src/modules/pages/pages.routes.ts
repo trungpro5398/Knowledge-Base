@@ -1,14 +1,16 @@
 import { FastifyInstance } from "fastify";
+import type { AuthHandlers } from "../../routes/auth-types.js";
 import * as pagesService from "./pages.service.js";
 import * as templatesRepo from "./templates.repo.js";
 import { createPageSchema, updatePageSchema, createVersionSchema, publishSchema } from "@kb/shared";
-import { pool } from "../../db/pool.js";
 
-export async function pagesRoutes(fastify: FastifyInstance) {
+export async function pagesRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
+  const { authenticate, requireSpaceRole, requirePageRole } = auth;
+
   fastify.get(
     "/spaces/:spaceId/templates",
-    { preHandler: [fastify.authenticate, fastify.requireSpaceRole("viewer")] },
-    async (request, reply) => {
+    { preHandler: [authenticate, requireSpaceRole("viewer")] },
+    async (request) => {
       const { spaceId } = request.params as { spaceId: string };
       const templates = await templatesRepo.getTemplatesBySpaceId(spaceId);
       return { data: templates };
@@ -17,8 +19,8 @@ export async function pagesRoutes(fastify: FastifyInstance) {
 
   fastify.get(
     "/spaces/:spaceId/pages/tree",
-    { preHandler: [fastify.authenticate, fastify.requireSpaceRole("viewer")] },
-    async (request, reply) => {
+    { preHandler: [authenticate, requireSpaceRole("viewer")] },
+    async (request) => {
       const { spaceId } = request.params as { spaceId: string };
       const tree = await pagesService.getPagesTree(spaceId);
       return { data: tree };
@@ -27,8 +29,8 @@ export async function pagesRoutes(fastify: FastifyInstance) {
 
   fastify.get(
     "/pages/:id",
-    { preHandler: [fastify.authenticate, fastify.requirePageRole("viewer")] },
-    async (request, reply) => {
+    { preHandler: [authenticate, requirePageRole("viewer")] },
+    async (request) => {
       const { id } = request.params as { id: string };
       const page = await pagesService.getPage(id);
       return { data: page };
@@ -37,7 +39,7 @@ export async function pagesRoutes(fastify: FastifyInstance) {
 
   fastify.post(
     "/pages",
-    { preHandler: [fastify.authenticate] },
+    { preHandler: [authenticate, requireSpaceRole("editor")] },
     async (request, reply) => {
       const parsed = createPageSchema.safeParse(request.body);
       if (!parsed.success) {
@@ -48,15 +50,6 @@ export async function pagesRoutes(fastify: FastifyInstance) {
         });
       }
       const userId = request.user!.id;
-      if (pool) {
-        const { rows } = await pool.query(
-          "SELECT 1 FROM memberships WHERE user_id = $1 AND space_id = $2 AND role IN ('editor','admin')",
-          [userId, parsed.data.space_id]
-        );
-        if (rows.length === 0) {
-          return reply.status(403).send({ status: "error", message: "Not allowed to create pages in this space" });
-        }
-      }
       const page = await pagesService.createPage(
         {
           spaceId: parsed.data.space_id,
@@ -73,7 +66,7 @@ export async function pagesRoutes(fastify: FastifyInstance) {
 
   fastify.patch(
     "/pages/:id",
-    { preHandler: [fastify.authenticate, fastify.requirePageRole("editor")] },
+    { preHandler: [authenticate, requirePageRole("editor")] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
       const parsed = updatePageSchema.safeParse(request.body);
@@ -91,7 +84,7 @@ export async function pagesRoutes(fastify: FastifyInstance) {
 
   fastify.delete(
     "/pages/:id",
-    { preHandler: [fastify.authenticate, fastify.requirePageRole("editor")] },
+    { preHandler: [authenticate, requirePageRole("editor")] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
       const userId = request.user!.id;
@@ -102,7 +95,7 @@ export async function pagesRoutes(fastify: FastifyInstance) {
 
   fastify.post(
     "/pages/:id/versions",
-    { preHandler: [fastify.authenticate, fastify.requirePageRole("editor")] },
+    { preHandler: [authenticate, requirePageRole("editor")] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
       const parsed = createVersionSchema.safeParse(request.body);
@@ -129,7 +122,7 @@ export async function pagesRoutes(fastify: FastifyInstance) {
 
   fastify.post(
     "/pages/:id/publish",
-    { preHandler: [fastify.authenticate, fastify.requirePageRole("editor")] },
+    { preHandler: [authenticate, requirePageRole("editor")] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
       const parsed = publishSchema.safeParse(request.body);
@@ -147,8 +140,8 @@ export async function pagesRoutes(fastify: FastifyInstance) {
 
   fastify.get(
     "/pages/:id/versions",
-    { preHandler: [fastify.authenticate, fastify.requirePageRole("viewer")] },
-    async (request, reply) => {
+    { preHandler: [authenticate, requirePageRole("viewer")] },
+    async (request) => {
       const { id } = request.params as { id: string };
       const versions = await pagesService.listVersions(id);
       return { data: versions };

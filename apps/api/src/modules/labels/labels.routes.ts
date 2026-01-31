@@ -1,10 +1,12 @@
 import { FastifyInstance } from "fastify";
+import type { AuthHandlers } from "../../routes/auth-types.js";
 import * as labelsRepo from "./labels.repo.js";
 
-export async function labelsRoutes(fastify: FastifyInstance) {
+export async function labelsRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
+  const { authenticate, requireSpaceRole } = auth;
   fastify.get(
     "/spaces/:spaceId/labels",
-    { preHandler: [fastify.authenticate, fastify.requireSpaceRole("viewer")] },
+    { preHandler: [authenticate, requireSpaceRole("viewer")] },
     async (request, reply) => {
       const { spaceId } = request.params as { spaceId: string };
       const labels = await labelsRepo.listBySpace(spaceId);
@@ -14,7 +16,7 @@ export async function labelsRoutes(fastify: FastifyInstance) {
 
   fastify.post(
     "/spaces/:spaceId/labels",
-    { preHandler: [fastify.authenticate, fastify.requireSpaceRole("editor")] },
+    { preHandler: [authenticate, requireSpaceRole("editor")] },
     async (request, reply) => {
       const { spaceId } = request.params as { spaceId: string };
       const body = request.body as { name: string; color?: string };

@@ -4,19 +4,20 @@ import type { TreeNode } from "@/components/kb/PageTree";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
 import { Plus } from "lucide-react";
+import type { ApiResponse, Space, PageNode } from "@/lib/api/types";
 
-async function getSpace(spaceId: string, token: string) {
+async function getSpace(spaceId: string, token: string): Promise<Space | null> {
   try {
-    const res = await apiClient(`/api/spaces/${spaceId}`, { token });
-    return res.data as { id: string; name: string; slug: string };
+    const res = await apiClient<ApiResponse<Space>>(`/api/spaces/${spaceId}`, { token });
+    return res.data;
   } catch {
     return null;
   }
 }
 
-async function getTree(spaceId: string, token: string) {
+async function getTree(spaceId: string, token: string): Promise<TreeNode[]> {
   try {
-    const res = await apiClient(`/api/spaces/${spaceId}/pages/tree`, { token });
+    const res = await apiClient<ApiResponse<PageNode[]>>(`/api/spaces/${spaceId}/pages/tree`, { token });
     return res.data as TreeNode[];
   } catch {
     return [];

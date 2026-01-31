@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { apiClient } from "@/lib/api/client";
+import { api } from "@/lib/api/client";
 import { getTemplates, type PageTemplate } from "@/lib/api/pages";
+import type { ApiResponse, Page } from "@/lib/api/types";
 
 interface NewPageFormProps {
   spaceId: string;
@@ -33,10 +34,7 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
         slug: slug || "untitled",
       };
       if (templateId) body.template_id = templateId;
-      const res = await apiClient("/api/pages", {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
+      const res = await api.post<ApiResponse<Page>>("/api/pages", body);
       router.push(`/admin/spaces/${spaceId}/pages/${res.data.id}/edit`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Tạo thất bại");

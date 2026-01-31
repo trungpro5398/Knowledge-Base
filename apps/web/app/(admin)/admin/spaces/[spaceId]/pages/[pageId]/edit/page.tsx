@@ -1,10 +1,11 @@
 import { EditorShell } from "@/components/editor/EditorShell";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
+import type { ApiResponse, Page } from "@/lib/api/types";
 
-async function getPage(pageId: string, token: string) {
+async function getPage(pageId: string, token: string): Promise<Page | null> {
   try {
-    const res = await apiClient(`/api/pages/${pageId}`, { token });
+    const res = await apiClient<ApiResponse<Page>>(`/api/pages/${pageId}`, { token });
     return res.data;
   } catch {
     return null;

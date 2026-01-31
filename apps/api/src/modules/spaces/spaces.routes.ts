@@ -6,69 +6,64 @@ import { createSpaceSchema } from "@kb/shared";
 
 export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   const { authenticate } = auth;
-  fastify.get(
-    "/spaces",
-    { preHandler: [authenticate] },
-    async (request, reply) => {
-      const userId = request.user!.id;
-      const spaces = await spacesService.listSpaces(userId);
-      return { data: spaces };
-    }
-  );
 
-  fastify.get(
-    "/spaces/:id",
-    { preHandler: [authenticate] },
-    async (request, reply) => {
-      const { id } = request.params as { id: string };
-      const userId = request.user!.id;
-      const space = await spacesService.getSpace(id, userId);
-      return { data: space };
-    }
-  );
+  fastify.get("/spaces", { preHandler: [authenticate] }, async (request) => {
+    const userId = request.user!.id;
+    const spaces = await spacesService.listSpaces(userId);
+    return { data: spaces };
+  });
 
-  fastify.get(
-    "/spaces/by-slug/:slug/pages/by-path",
-    { preHandler: [] },
-    async (request, reply) => {
-      const { slug } = request.params as { slug: string };
-      const path = (request.query as { path?: string }).path;
-      if (!path) return reply.status(400).send({ status: "error", message: "path query required" });
-      const space = await spacesService.getSpaceBySlug(slug);
-      if (!space) return reply.status(404).send({ status: "error", message: "Space not found" });
-      const page = await import("../pages/pages.repo.js").then((m) => m.getPageByPath(space.id, path));
-      if (!page) return reply.status(404).send({ status: "error", message: "Page not found" });
-      return { data: page };
+  fastify.get("/spaces/:id", { preHandler: [authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const userId = request.user!.id;
+    const space = await spacesService.getSpace(id, userId);
+    if (!space) {
+      return reply.status(404).send({ status: "error", message: "Space not found" });
     }
-  );
+    return { data: space };
+  });
 
-  fastify.get(
-    "/spaces/by-slug/:slug/pages/tree",
-    { preHandler: [] },
-    async (request, reply) => {
-      const { slug } = request.params as { slug: string };
-      const space = await spacesService.getSpaceBySlug(slug);
-      if (!space) return reply.status(404).send({ status: "error", message: "Space not found" });
-      const tree = await pagesService.getPagesTree(space.id, { publishedOnly: true });
-      return { data: tree };
+  // Public endpoints for published content
+  fastify.get("/spaces/by-slug/:slug/pages/by-path", async (request, reply) => {
+    const { slug } = request.params as { slug: string };
+    const path = (request.query as { path?: string }).path;
+    if (!path) {
+      return reply.status(400).send({ status: "error", message: "path query required" });
     }
-  );
+    const space = await spacesService.getSpaceBySlug(slug);
+    if (!space) {
+      return reply.status(404).send({ status: "error", message: "Space not found" });
+    }
+    const page = await import("../pages/pages.repo.js").then((m) =>
+      m.getPageByPath(space.id, path)
+    );
+    if (!page) {
+      return reply.status(404).send({ status: "error", message: "Page not found" });
+    }
+    return { data: page };
+  });
 
-  fastify.post(
-    "/spaces",
-    { preHandler: [authenticate] },
-    async (request, reply) => {
-      const parsed = createSpaceSchema.safeParse(request.body);
-      if (!parsed.success) {
-        return reply.status(400).send({
-          status: "error",
-          message: "Validation failed",
-          errors: parsed.error.errors,
-        });
-      }
-      const userId = request.user!.id;
-      const space = await spacesService.createSpace(parsed.data, userId);
-      return reply.status(201).send({ data: space });
+  fastify.get("/spaces/by-slug/:slug/pages/tree", async (request, reply) => {
+    const { slug } = request.params as { slug: string };
+    const space = await spacesService.getSpaceBySlug(slug);
+    if (!space) {
+      return reply.status(404).send({ status: "error", message: "Space not found" });
     }
-  );
+    const tree = await pagesService.getPagesTree(space.id, { publishedOnly: true });
+    return { data: tree };
+  });
+
+  fastify.post("/spaces", { preHandler: [authenticate] }, async (request, reply) => {
+    const parsed = createSpaceSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        status: "error",
+        message: "Validation failed",
+        errors: parsed.error.errors,
+      });
+    }
+    const userId = request.user!.id;
+    const space = await spacesService.createSpace(parsed.data, userId);
+    return reply.status(201).send({ data: space });
+  });
 }

@@ -2,11 +2,12 @@ import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
 import { RestoreButton } from "@/components/trash/RestoreButton";
 import { Trash2 } from "lucide-react";
+import type { ApiResponse, TrashItem } from "@/lib/api/types";
 
-async function getTrash(token: string) {
+async function getTrash(token: string): Promise<TrashItem[]> {
   try {
-    const res = await apiClient("/api/trash", { token });
-    return res.data as { page_id: string; deleted_at: string }[];
+    const res = await apiClient<ApiResponse<TrashItem[]>>("/api/trash", { token });
+    return res.data;
   } catch {
     return [];
   }

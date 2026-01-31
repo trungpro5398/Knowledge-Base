@@ -14,8 +14,12 @@ declare module "fastify" {
 }
 
 export async function authPlugin(fastify: FastifyInstance) {
-  const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
-
+  let supabase: ReturnType<typeof createClient> | null = null;
+  const getSupabase = () => {
+    if (!supabase) supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
+    return supabase;
+  };
+  // Decorate first so route registration never sees undefined preHandler (e.g. if createClient fails later on missing env)
   fastify.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
     const authHeader = request.headers.authorization;
     const token = authHeader?.replace(/^Bearer\s+/i, "");
@@ -25,7 +29,7 @@ export async function authPlugin(fastify: FastifyInstance) {
     }
 
     try {
-      const { data: { user }, error } = await supabase.auth.getUser(token);
+      const { data: { user }, error } = await getSupabase().auth.getUser(token);
       if (error || !user) {
         return reply.status(401).send({ status: "error", message: "Invalid token" });
       }
