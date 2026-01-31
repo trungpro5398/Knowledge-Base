@@ -4,8 +4,8 @@ import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import { config } from "./config/env.js";
 import { logger } from "./config/logger.js";
-import { authPlugin } from "./plugins/auth.js";
-import { rbacPlugin } from "./plugins/rbac.js";
+import authPlugin from "./plugins/auth.js";
+import rbacPlugin from "./plugins/rbac.js";
 import { registerRoutes } from "./routes/index.js";
 
 const fastify = Fastify({ logger: logger as any });
@@ -20,13 +20,9 @@ await fastify.register(rateLimit, {
   timeWindow: "15 minutes",
 });
 
-// Auth, RBAC and routes must run on the same encapsulated instance so
-// fastify.authenticate / requireSpaceRole / requirePageRole are available to routes.
-await fastify.register(async (instance) => {
-  await instance.register(authPlugin);
-  await instance.register(rbacPlugin);
-  await registerRoutes(instance);
-});
+await fastify.register(authPlugin);
+await fastify.register(rbacPlugin);
+await registerRoutes(fastify);
 
 const start = async () => {
   try {

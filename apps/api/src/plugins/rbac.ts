@@ -1,3 +1,4 @@
+import fp from "fastify-plugin";
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { pool } from "../db/pool.js";
 
@@ -40,7 +41,7 @@ async function checkRole(
   return true;
 }
 
-export async function rbacPlugin(fastify: FastifyInstance) {
+async function rbacPlugin(fastify: FastifyInstance) {
   fastify.decorate("requireSpaceRole", (minRole: Role) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
       const userId = request.user?.id;
@@ -83,3 +84,5 @@ export async function rbacPlugin(fastify: FastifyInstance) {
     };
   });
 }
+
+export default fp(rbacPlugin, { name: "rbac", dependencies: ["auth"] });

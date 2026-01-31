@@ -1,3 +1,4 @@
+import fp from "fastify-plugin";
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { config } from "../config/env.js";
@@ -13,7 +14,7 @@ declare module "fastify" {
   }
 }
 
-export async function authPlugin(fastify: FastifyInstance) {
+async function authPlugin(fastify: FastifyInstance) {
   // Validate required env vars
   if (!config.supabaseUrl || !config.supabaseAnonKey) {
     fastify.log.warn("SUPABASE_URL or SUPABASE_ANON_KEY not set. Auth will fail.");
@@ -53,3 +54,5 @@ export async function authPlugin(fastify: FastifyInstance) {
     }
   });
 }
+
+export default fp(authPlugin, { name: "auth" });
