@@ -12,10 +12,21 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet: { name: string; value: string }[]) {
-          cookiesToSet.forEach(({ name, value }) =>
-            response.cookies.set(name, value, { path: "/" })
-          );
+        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+          const isProd = process.env.NODE_ENV === "production";
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const opts = options
+              ? {
+                path: (options.path as string) ?? "/",
+                maxAge: options.maxAge as number | undefined,
+                expires: options.expires as Date | undefined,
+                httpOnly: options.httpOnly as boolean | undefined,
+                secure: (options.secure as boolean) ?? isProd,
+                sameSite: (options.sameSite as "lax" | "strict" | "none") ?? "lax",
+              }
+              : { path: "/", sameSite: "lax" as const, secure: isProd };
+            response.cookies.set(name, value, opts);
+          });
         },
       },
     }
