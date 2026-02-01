@@ -3,8 +3,10 @@
 import { useState, useRef } from "react";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { AttachmentUpload } from "./AttachmentUpload";
+import { VersionHistoryModal } from "./version-history-modal";
 import { api } from "@/lib/api/client";
-import { Save, Send, Check } from "lucide-react";
+import { Save, Send, Check, History } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { ApiResponse, PageVersion } from "@/lib/api/types";
 
 function contentHash(s: string): string {
@@ -31,6 +33,7 @@ export function EditorShell({
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const lastSavedContentHash = useRef(contentHash(initialContent));
 
   const saveDraft = async () => {
@@ -110,6 +113,13 @@ export function EditorShell({
             <Send className="h-4 w-4" />
             {publishing ? "Đang xuất bản..." : "Xuất bản"}
           </button>
+          <button
+            onClick={() => setShowHistory(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium hover:bg-muted transition-colors"
+          >
+            <History className="h-4 w-4" />
+            History
+          </button>
           <AttachmentUpload pageId={pageId} />
         </div>
       </div>
@@ -118,7 +128,19 @@ export function EditorShell({
         onChange={setContent}
         onDebouncedSave={saveDraft}
         debounceMs={1200}
+        pageId={pageId}
       />
+      {showHistory && (
+        <VersionHistoryModal
+          pageId={pageId}
+          currentContent={content}
+          onRestore={(restoredContent) => {
+            setContent(restoredContent);
+            setShowHistory(false);
+          }}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
     </div>
   );
 }

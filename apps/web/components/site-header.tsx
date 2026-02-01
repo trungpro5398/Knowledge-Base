@@ -2,10 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Search, LogIn, UserPlus, Settings } from "lucide-react";
+import { BookOpen, Search, LogIn, UserPlus, Settings, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-export function SiteHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
+type SignOutAction = () => Promise<void>;
+
+export function SiteHeader({
+  isLoggedIn,
+  signOutAction,
+}: {
+  isLoggedIn: boolean;
+  signOutAction: SignOutAction;
+}) {
   const pathname = usePathname() ?? "";
   if (pathname.startsWith("/admin")) return null;
 
@@ -27,29 +35,43 @@ export function SiteHeader({ isLoggedIn }: { isLoggedIn: boolean }) {
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Tìm kiếm / Xem KB</span>
           </Link>
-          <Link
-            href="/login"
-            className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          >
-            <LogIn className="h-4 w-4" />
-            <span className="hidden sm:inline">Đăng nhập</span>
-          </Link>
-          <Link
-            href="/register"
-            className="flex items-center gap-1.5 rounded-md px-2 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            title="Chỉ email @tet-edu.com"
-          >
-            <UserPlus className="h-4 w-4" />
-            <span className="hidden md:inline text-xs">Đăng ký (@tet-edu.com)</span>
-          </Link>
-          {isLoggedIn && (
-            <Link
-              href="/admin"
-              className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-            >
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Admin</span>
-            </Link>
+          {isLoggedIn ? (
+            <>
+              <Link
+                href="/admin"
+                className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </Link>
+              <form action={signOutAction} className="inline">
+                <button
+                  type="submit"
+                  className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Đăng xuất</span>
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+              >
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Đăng nhập</span>
+              </Link>
+              <Link
+                href="/register"
+                className="flex items-center gap-1.5 rounded-md px-2 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                title="Chỉ email @tet-edu.com"
+              >
+                <UserPlus className="h-4 w-4" />
+                <span className="hidden md:inline text-xs">Đăng ký (@tet-edu.com)</span>
+              </Link>
+            </>
           )}
           <ThemeToggle />
         </nav>

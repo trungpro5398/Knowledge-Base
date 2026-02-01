@@ -69,3 +69,74 @@
   .prose-kb pre { @apply p-4 rounded-lg bg-muted overflow-x-auto my-4; }
   .prose-kb pre code { @apply p-0 bg-transparent; }
 }
+
+/* Command Palette (cmdk) */
+[cmdk-root] {
+  @apply rounded-lg border bg-card text-card-foreground shadow-lg;
+}
+
+[cmdk-input] {
+  @apply flex h-11 w-full rounded-md bg-transparent px-3 py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+[cmdk-list] {
+  @apply max-h-[400px] overflow-y-auto overflow-x-hidden p-1;
+}
+
+[cmdk-item] {
+  @apply relative flex cursor-pointer select-none items-center rounded-md px-2 py-2 text-sm outline-none hover:bg-muted data-[selected=true]:bg-muted transition-colors;
+}
+
+[cmdk-group-heading] {
+  @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
+}
+
+[cmdk-separator] {
+  @apply -mx-1 h-px bg-border my-1;
+}
+
+[cmdk-empty] {
+  @apply py-6 text-center text-sm text-muted-foreground;
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out;
+}

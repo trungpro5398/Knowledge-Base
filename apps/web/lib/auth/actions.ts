@@ -18,3 +18,9 @@ export async function signInWithPassword(formData: {
   }
   redirect(formData.redirectTo ?? "/admin");
 }
+
+export async function signOut() {
+  const supabase = await createServerSupabaseClient();
+  await supabase.auth.signOut();
+  redirect("/");
+}

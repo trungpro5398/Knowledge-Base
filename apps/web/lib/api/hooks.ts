@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { api } from "./client";
 import type { ApiResponse, Space, PageNode, Page, PageVersion } from "./types";
 
@@ -39,12 +40,35 @@ export function usePage(pageId: string, enabled = true) {
 export function useUpdatePage(pageId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { title?: string; slug?: string; parent_id?: string | null }) => {
+    mutationFn: async (data: { title?: string; slug?: string; parent_id?: string | null; sort_order?: number }) => {
       return api.patch<ApiResponse<Page>>(`/api/pages/${pageId}`, data);
     },
-    onSuccess: (_, __, ___) => {
+    onMutate: async (newData) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["pages", pageId] });
+      
+      // Snapshot previous value
+      const previousPage = queryClient.getQueryData(["pages", pageId]);
+      
+      // Optimistically update
+      queryClient.setQueryData(["pages", pageId], (old: any) => ({
+        ...old,
+        data: { ...old?.data, ...newData },
+      }));
+      
+      return { previousPage };
+    },
+    onError: (err, newData, context) => {
+      // Rollback on error
+      if (context?.previousPage) {
+        queryClient.setQueryData(["pages", pageId], context.previousPage);
+      }
+      toast.error("Cập nhật thất bại", { description: (err as Error).message });
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pages", pageId] });
       queryClient.invalidateQueries({ queryKey: ["pages", "tree"] });
+      toast.success("Đã cập nhật trang");
     },
   });
 }
@@ -57,6 +81,10 @@ export function useCreateVersion(pageId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pages", pageId] });
+      toast.success("Đã lưu version mới");
+    },
+    onError: (error: Error) => {
+      toast.error("Lưu thất bại", { description: error.message });
     },
   });
 }
@@ -75,6 +103,21 @@ export function usePublishPage(pageId: string) {
       if (res?.data?.space_id) {
         queryClient.invalidateQueries({ queryKey: ["pages", "tree", res.data.space_id] });
       }
+      toast.success("Đã xuất bản trang", { description: "Nội dung đã được cập nhật lên KB" });
     },
+    onError: (error: Error) => {
+      toast.error("Xuất bản thất bại", { description: error.message });
+    },
+  });
+}
+
+export function useVersionHistory(pageId: string) {
+  return useQuery({
+    queryKey: ["pages", pageId, "versions"],
+    queryFn: async () => {
+      const res = await api.get<ApiResponse<PageVersion[]>>(`/api/pages/${pageId}/versions`);
+      return res.data || [];
+    },
+    enabled: !!pageId,
   });
 }

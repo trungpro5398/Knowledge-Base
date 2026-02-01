@@ -4,7 +4,9 @@ import { PageRenderer } from "@/components/kb/PageRenderer";
 import { Breadcrumbs } from "@/components/kb/Breadcrumbs";
 import { Toc } from "@/components/kb/Toc";
 import { PageTree } from "@/components/kb/PageTree";
+import { MobileSidebar } from "@/components/kb/mobile-sidebar";
 import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
+import { CopyLinkButton } from "@/components/ui/copy-link-button";
 import type { TreeNode } from "@/components/kb/PageTree";
 import { slugToPath } from "@/lib/routing/slug";
 import { TET_PROSYS_GROUPS } from "@/lib/kb/sidebar-groups";
@@ -59,8 +61,8 @@ export default async function KbPage({
     const tree = await getTreeOnly(spaceSlug);
     const useGroupedSidebar = spaceSlug === "tet-prosys";
     return (
-      <div className="flex gap-6 py-8">
-        <aside className="w-56 shrink-0">
+      <div className="flex gap-6 py-4 md:py-8">
+        <aside className="hidden md:block w-56 shrink-0">
           <nav className="sticky top-8">
             <PageTree
               spaceId=""
@@ -71,13 +73,20 @@ export default async function KbPage({
             />
           </nav>
         </aside>
-        <main className="min-w-0 flex-1">
-          <div className="container max-w-4xl py-8">
+        <main className="min-w-0 flex-1 px-4 md:px-0">
+          <div className="container max-w-4xl py-4 md:py-8">
             {spaceSlug === "tet-prosys" && <ReadThisFirst spaceSlug={spaceSlug} />}
-            <h1 className="text-2xl font-bold">Space: {spaceSlug}</h1>
+            <h1 className="text-xl md:text-2xl font-bold">Space: {spaceSlug}</h1>
             <p className="text-muted-foreground">Select a page from the sidebar.</p>
           </div>
         </main>
+        <MobileSidebar
+          spaceId=""
+          spaceSlug={spaceSlug}
+          nodes={tree}
+          showEditLink={false}
+          groupConfig={useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
+        />
       </div>
     );
   }
@@ -93,8 +102,8 @@ export default async function KbPage({
   const useGroupedSidebar = spaceSlug === "tet-prosys";
 
   return (
-    <div className="flex gap-6 py-8">
-      <aside className="w-56 shrink-0">
+    <div className="flex gap-6 py-4 md:py-8">
+      <aside className="hidden md:block w-56 shrink-0">
         <nav className="sticky top-8">
           <PageTree
             spaceId=""
@@ -105,8 +114,8 @@ export default async function KbPage({
           />
         </nav>
       </aside>
-      <main className="min-w-0 flex-1">
-        <div className="container max-w-4xl py-8">
+      <main className="min-w-0 flex-1 px-4 md:px-0">
+        <div className="container max-w-4xl py-4 md:py-8">
           {spaceSlug === "tet-prosys" && (
             <p className="text-sm text-muted-foreground mb-3">
               <Link href={`/kb/${spaceSlug}`} className="hover:text-foreground underline">
@@ -117,7 +126,7 @@ export default async function KbPage({
           <Breadcrumbs spaceSlug={spaceSlug} path={path} title={page.title} items={breadcrumb} />
           <article className="prose-kb max-w-none">
             <div className="flex flex-wrap items-center gap-2 mb-4">
-              <h1 className="text-3xl font-bold">{page.title}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold">{page.title}</h1>
               <span
                 className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
                   page.status === "published"
@@ -127,6 +136,7 @@ export default async function KbPage({
               >
                 {page.status === "published" ? "OFFICIAL" : "DRAFT"}
               </span>
+              <CopyLinkButton />
             </div>
             <div className="prose-kb">
               <PageRenderer
@@ -142,6 +152,13 @@ export default async function KbPage({
           )}
         </div>
       </main>
+      <MobileSidebar
+        spaceId=""
+        spaceSlug={spaceSlug}
+        nodes={tree}
+        showEditLink={false}
+        groupConfig={useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
+      />
     </div>
   );
 }

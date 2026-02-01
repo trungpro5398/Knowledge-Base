@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FileText, Pencil, FolderOpen } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface TreeNode {
   id: string;
@@ -22,6 +23,7 @@ interface PageTreeProps {
   spaceSlug: string;
   nodes: TreeNode[];
   showEditLink?: boolean;
+  isLoading?: boolean;
   /** When set (e.g. tet-prosys), sidebar renders as collapsible groups */
   groupConfig?: readonly SidebarGroupConfig[];
 }
@@ -48,6 +50,7 @@ function TreeNodeItem({
         <Link
           href={href}
           className="text-sm font-medium hover:text-primary transition-colors flex-1 truncate"
+          prefetch={true}
         >
           {node.title}
         </Link>
@@ -86,7 +89,19 @@ function getGroupId(title: string, config: readonly SidebarGroupConfig[]): strin
   return null;
 }
 
-export function PageTree({ spaceId, spaceSlug, nodes, showEditLink = true, groupConfig }: PageTreeProps) {
+export function PageTree({ spaceId, spaceSlug, nodes, showEditLink = true, isLoading = false, groupConfig }: PageTreeProps) {
+  if (isLoading) {
+    return (
+      <div className="space-y-3 py-4">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-6 w-3/4 ml-4" />
+        <Skeleton className="h-6 w-2/3 ml-8" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-6 w-4/5 ml-4" />
+      </div>
+    );
+  }
+
   if (nodes.length === 0) {
     return (
       <div className="py-8 text-center">

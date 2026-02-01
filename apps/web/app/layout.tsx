@@ -3,7 +3,11 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
+import { Toaster } from "@/components/ui/toaster";
+import { CommandProvider } from "@/components/command/command-provider";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
+import { signOut } from "@/lib/auth/actions";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -21,16 +25,21 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const isLoggedIn = !!session?.user;
+  const { data: { user } } = await supabase.auth.getUser();
+  const isLoggedIn = !!user;
 
   return (
     <html lang="vi" suppressHydrationWarning>
       <body className={`${jakarta.variable} font-sans antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <SiteHeader isLoggedIn={isLoggedIn} />
-          {children}
-        </ThemeProvider>
+        <ErrorBoundary>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <CommandProvider>
+              <SiteHeader isLoggedIn={isLoggedIn} signOutAction={signOut} />
+              {children}
+              <Toaster />
+            </CommandProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
