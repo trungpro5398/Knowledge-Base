@@ -50,3 +50,28 @@ export async function createSpace(data: {
   );
   return rows[0]!;
 }
+
+export interface SpaceStats {
+  space_id: string;
+  total_pages: number;
+  published_pages: number;
+  draft_pages: number;
+}
+
+export async function getSpacesStats(userId: string): Promise<SpaceStats[]> {
+  if (!pool) return [];
+  const { rows } = await pool.query<SpaceStats>(
+    `SELECT 
+       s.id as space_id,
+       COUNT(p.id)::int as total_pages,
+       COUNT(CASE WHEN p.status = 'published' THEN 1 END)::int as published_pages,
+       COUNT(CASE WHEN p.status = 'draft' THEN 1 END)::int as draft_pages
+     FROM spaces s
+     JOIN memberships m ON m.space_id = s.id
+     LEFT JOIN pages p ON s.id = p.space_id AND p.deleted_at IS NULL
+     WHERE m.user_id = $1
+     GROUP BY s.id`,
+    [userId]
+  );
+  return rows;
+}

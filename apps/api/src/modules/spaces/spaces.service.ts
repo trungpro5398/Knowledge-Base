@@ -5,6 +5,10 @@ export async function listSpaces(userId: string) {
   return spacesRepo.listSpacesForUser(userId);
 }
 
+export async function getSpacesStats(userId: string) {
+  return spacesRepo.getSpacesStats(userId);
+}
+
 export async function getSpaceBySlug(slug: string) {
   return spacesRepo.getSpaceBySlug(slug);
 }

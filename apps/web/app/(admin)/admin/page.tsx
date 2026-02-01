@@ -2,12 +2,28 @@ import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
 import { CreateSpaceForm } from "@/components/spaces/CreateSpaceForm";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, FileText, ExternalLink, Edit } from "lucide-react";
 import type { ApiResponse, Space } from "@/lib/api/types";
+
+interface SpaceStats {
+  space_id: string;
+  total_pages: number;
+  published_pages: number;
+  draft_pages: number;
+}
 
 async function getSpaces(token: string): Promise<Space[]> {
   try {
     const res = await apiClient<ApiResponse<Space[]>>("/api/spaces", { token });
+    return res.data;
+  } catch {
+    return [];
+  }
+}
+
+async function getSpacesStats(token: string): Promise<SpaceStats[]> {
+  try {
+    const res = await apiClient<ApiResponse<SpaceStats[]>>("/api/spaces/stats", { token });
     return res.data;
   } catch {
     return [];
@@ -19,7 +35,14 @@ export default async function AdminDashboard() {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token ?? "";
 
-  const spaces = await getSpaces(token);
+  const [spaces, stats] = await Promise.all([
+    getSpaces(token),
+    getSpacesStats(token),
+  ]);
+
+  const getSpaceStats = (spaceId: string) => {
+    return stats.find((s) => s.space_id === spaceId);
+  };
 
   return (
     <div className="p-8 max-w-4xl">
@@ -39,24 +62,70 @@ export default async function AdminDashboard() {
             <p className="text-sm text-muted-foreground">Tạo space mới bằng form bên trên</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {spaces.map((space) => (
-              <Link
-                key={space.id}
-                href={`/admin/spaces/${space.id}/tree`}
-                className="card flex items-start gap-4 p-5 hover:border-primary/30 hover:shadow-md transition-all group"
-              >
-                <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20">
-                  <FolderOpen className="h-5 w-5" />
+          <div className="grid gap-4">
+            {spaces.map((space) => {
+              const spaceStats = getSpaceStats(space.id);
+              return (
+                <div
+                  key={space.id}
+                  className="card p-5 hover:border-primary/30 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
+                      <FolderOpen className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold mb-1">{space.name}</h3>
+                      <p className="text-sm text-muted-foreground font-mono mb-3">
+                        {space.slug}
+                      </p>
+
+                      {/* Stats */}
+                      {spaceStats && (
+                        <div className="flex items-center gap-3 mb-4 text-sm">
+                          <div className="flex items-center gap-1.5">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">{spaceStats.total_pages}</span>
+                            <span className="text-muted-foreground">trang</span>
+                          </div>
+                          {spaceStats.total_pages > 0 && (
+                            <>
+                              <div className="text-muted-foreground">•</div>
+                              <div className="text-muted-foreground">
+                                {spaceStats.published_pages} published
+                              </div>
+                              <div className="text-muted-foreground">•</div>
+                              <div className="text-muted-foreground">
+                                {spaceStats.draft_pages} draft
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Quick Actions */}
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/admin/spaces/${space.id}/tree`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-md hover:bg-muted transition-colors"
+                        >
+                          <Edit className="h-3.5 w-3.5" />
+                          Quản lý pages
+                        </Link>
+                        <Link
+                          href={`/kb/${space.slug}`}
+                          target="_blank"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-md hover:bg-muted transition-colors"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          Xem KB
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
-                    {space.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground font-mono">{space.slug}</p>
-                </div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

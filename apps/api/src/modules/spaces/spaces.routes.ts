@@ -13,6 +13,12 @@ export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers)
     return { data: spaces };
   });
 
+  fastify.get("/spaces/stats", { preHandler: [authenticate] }, async (request) => {
+    const userId = request.user!.id;
+    const stats = await spacesService.getSpacesStats(userId);
+    return { data: stats };
+  });
+
   fastify.get("/spaces/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const userId = request.user!.id;
