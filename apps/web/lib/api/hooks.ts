@@ -121,3 +121,19 @@ export function useVersionHistory(pageId: string) {
     enabled: !!pageId,
   });
 }
+
+export function useReorderPages(spaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (updates: Array<{ id: string; sort_order: number; parent_id?: string | null }>) => {
+      return api.post(`/api/spaces/${spaceId}/pages/reorder`, { updates });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pages", "tree", spaceId] });
+      toast.success("Đã cập nhật thứ tự trang");
+    },
+    onError: (error: Error) => {
+      toast.error("Cập nhật thất bại", { description: error.message });
+    },
+  });
+}

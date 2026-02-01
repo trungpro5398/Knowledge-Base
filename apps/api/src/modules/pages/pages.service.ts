@@ -137,6 +137,22 @@ export async function listVersions(pageId: string) {
   return pagesRepo.listVersions(pageId);
 }
 
+export async function reorderPages(
+  spaceId: string,
+  updates: Array<{ id: string; sort_order: number; parent_id?: string | null }>
+): Promise<void> {
+  // Batch update all pages in a transaction
+  for (const update of updates) {
+    const data: { sort_order?: number; parent_id?: string | null } = {};
+    if (update.sort_order !== undefined) data.sort_order = update.sort_order;
+    if (update.parent_id !== undefined) data.parent_id = update.parent_id;
+    
+    if (Object.keys(data).length > 0) {
+      await pagesRepo.updatePage(update.id, data);
+    }
+  }
+}
+
 export async function softDeletePage(pageId: string, userId: string) {
   const page = await pagesRepo.getPageById(pageId);
   if (!page) throw new NotFoundError("Page not found");

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchBar } from "@/components/search/SearchBar";
 import { QueryProvider } from "@/components/query-provider";
+import { ShortcutsProvider } from "@/components/keyboard/shortcuts-provider";
+import { ShortcutsHelp } from "@/components/keyboard/shortcuts-help";
 import { signOut } from "@/lib/auth/actions";
 import {
   LayoutDashboard,
@@ -18,6 +20,7 @@ export default function AdminLayout({
 }) {
   return (
     <QueryProvider>
+    <ShortcutsProvider>
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
       <aside className="hidden md:flex md:w-64 border-r border-border flex-col bg-card/50 border-l-4 border-l-emerald-600/50">
         <div className="p-5 border-b border-emerald-600/20 bg-emerald-950/20 dark:bg-emerald-950/30">
@@ -103,7 +106,9 @@ export default function AdminLayout({
       </nav>
       
       <main className="flex-1 overflow-auto pb-20 md:pb-0">{children}</main>
+      <ShortcutsHelp />
     </div>
+    </ShortcutsProvider>
     </QueryProvider>
   );
 }

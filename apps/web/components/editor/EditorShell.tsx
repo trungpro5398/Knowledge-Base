@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { AttachmentUpload } from "./AttachmentUpload";
 import { VersionHistoryModal } from "./version-history-modal";
 import { api } from "@/lib/api/client";
 import { Save, Send, Check, History } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useShortcuts } from "@/components/keyboard/shortcuts-provider";
 import type { ApiResponse, PageVersion } from "@/lib/api/types";
 
 function contentHash(s: string): string {
@@ -35,6 +36,7 @@ export function EditorShell({
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const lastSavedContentHash = useRef(contentHash(initialContent));
+  const { registerShortcut, unregisterShortcut } = useShortcuts();
 
   const saveDraft = async () => {
     const hash = contentHash(content);
@@ -86,6 +88,32 @@ export function EditorShell({
       setPublishing(false);
     }
   };
+
+  // Register keyboard shortcuts
+  useEffect(() => {
+    registerShortcut({
+      key: "s",
+      meta: true,
+      description: "Save draft",
+      action: () => saveDraft(),
+      category: "Editor",
+    });
+
+    registerShortcut({
+      key: "Enter",
+      meta: true,
+      description: "Publish page",
+      action: () => {
+        if (initialStatus !== "published") publish();
+      },
+      category: "Editor",
+    });
+
+    return () => {
+      unregisterShortcut("s");
+      unregisterShortcut("Enter");
+    };
+  }, [content, title, initialStatus]); // Re-register when content changes
 
   return (
     <div className="space-y-6">

@@ -147,4 +147,23 @@ export async function pagesRoutes(fastify: FastifyInstance, auth: AuthHandlers) 
       return { data: versions };
     }
   );
+
+  fastify.post(
+    "/spaces/:spaceId/pages/reorder",
+    { preHandler: [authenticate, requireSpaceRole("editor")] },
+    async (request, reply) => {
+      const { spaceId } = request.params as { spaceId: string };
+      const { updates } = request.body as { updates: Array<{ id: string; sort_order: number; parent_id?: string | null }> };
+      
+      if (!Array.isArray(updates) || updates.length === 0) {
+        return reply.status(400).send({
+          status: "error",
+          message: "Updates array is required",
+        });
+      }
+
+      await pagesService.reorderPages(spaceId, updates);
+      return { data: { success: true } };
+    }
+  );
 }

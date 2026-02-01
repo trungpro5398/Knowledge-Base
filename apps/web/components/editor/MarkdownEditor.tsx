@@ -4,9 +4,11 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
+import { Undo2, Redo2 } from "lucide-react";
 import { createClient } from "@/lib/auth/supabase-browser";
 import { api } from "@/lib/api/client";
 import { MarkdownToolbar } from "./markdown-toolbar";
+import { HistoryStack } from "@/lib/editor/history-stack";
 
 interface MarkdownEditorProps {
   value: string;
@@ -28,9 +30,12 @@ export function MarkdownEditor({
   const [dragOver, setDragOver] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const historyRef = useRef(new HistoryStack(50));
+  const lastPushRef = useRef<number>(0);
 
   useEffect(() => {
     setLocal(value);
+    historyRef.current.initialize(value);
   }, [value]);
 
   const triggerSave = useCallback(() => {
@@ -45,7 +50,30 @@ export function MarkdownEditor({
     setLocal(v);
     onChange(v);
     triggerSave();
+
+    // Push to history stack (debounced - every 2 seconds)
+    const now = Date.now();
+    if (now - lastPushRef.current > 2000) {
+      historyRef.current.push(v);
+      lastPushRef.current = now;
+    }
   };
+
+  const handleUndo = useCallback(() => {
+    const prev = historyRef.current.undo();
+    if (prev !== null) {
+      setLocal(prev);
+      onChange(prev);
+    }
+  }, [onChange]);
+
+  const handleRedo = useCallback(() => {
+    const next = historyRef.current.redo();
+    if (next !== null) {
+      setLocal(next);
+      onChange(next);
+    }
+  }, [onChange]);
 
   const insertAtCursor = useCallback((text: string) => {
     if (!textareaRef.current) return;
@@ -196,13 +224,43 @@ export function MarkdownEditor({
           e.preventDefault();
           insertWithWrap("[", "](url)");
           break;
+        case "z":
+          e.preventDefault();
+          if (e.shiftKey) {
+            handleRedo();
+          } else {
+            handleUndo();
+          }
+          break;
       }
     }
-  }, [insertWithWrap]);
+  }, [insertWithWrap, handleUndo, handleRedo]);
 
   return (
     <div className="border rounded-lg overflow-hidden">
-      <MarkdownToolbar onInsert={insertWithWrap} />
+      <div className="flex items-center justify-between border-b bg-muted/30">
+        <MarkdownToolbar onInsert={insertWithWrap} />
+        <div className="flex items-center gap-1 px-2">
+          <button
+            type="button"
+            onClick={handleUndo}
+            disabled={!historyRef.current.canUndo()}
+            className="p-2 rounded-md hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Undo (⌘Z)"
+          >
+            <Undo2 className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleRedo}
+            disabled={!historyRef.current.canRedo()}
+            className="p-2 rounded-md hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Redo (⌘⇧Z)"
+          >
+            <Redo2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
       <div 
         className="relative grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[400px] p-4"
         onDrop={handleDrop}
