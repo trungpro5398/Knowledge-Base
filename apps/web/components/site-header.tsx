@@ -25,7 +25,8 @@ export function SiteHeader({
           className="flex items-center gap-2 font-semibold text-foreground hover:text-primary transition-colors"
         >
           <BookOpen className="h-5 w-5 text-primary" />
-          <span className="hidden sm:inline">Knowledge Base for TET</span>
+          <span className="hidden sm:inline">Kho Tài Liệu TET</span>
+          <span className="sm:hidden">Tài Liệu</span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
           <Link
@@ -33,7 +34,7 @@ export function SiteHeader({
             className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
           >
             <Search className="h-4 w-4" />
-            <span className="hidden sm:inline">Tìm kiếm / Xem KB</span>
+            <span className="hidden sm:inline">Xem Tài Liệu</span>
           </Link>
           {isLoggedIn ? (
             <>

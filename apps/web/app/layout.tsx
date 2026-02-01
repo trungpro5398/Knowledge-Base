@@ -15,7 +15,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Knowledge Base for TET",
+  title: "Kho Tài Liệu TET - Knowledge Base",
   description: "Tài liệu vận hành, quy trình và quyết định nội bộ của TET. Luôn cập nhật, dễ tìm, dễ hiểu.",
 };
 
