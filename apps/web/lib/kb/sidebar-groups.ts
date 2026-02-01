@@ -46,7 +46,7 @@ export const TET_PROSYS_GROUPS = [
 
 export function getGroupForTitle(title: string): string | null {
   for (const g of TET_PROSYS_GROUPS) {
-    if (g.titles.includes(title)) return g.id;
+    if ((g.titles as readonly string[]).includes(title)) return g.id;
   }
   return null;
 }
