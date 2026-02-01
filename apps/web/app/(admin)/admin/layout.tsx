@@ -30,7 +30,7 @@ export default function AdminLayout({
               className="flex items-center gap-2 font-bold text-lg hover:text-primary transition-colors"
             >
               <FileText className="h-6 w-6 text-primary" />
-              KB Admin
+              Quản Trị Tài Liệu
             </Link>
             <span className="rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
               Admin
@@ -64,7 +64,7 @@ export default function AdminLayout({
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <BookOpen className="h-4 w-4" />
-              Xem KB
+              Xem Tài Liệu
             </Link>
             <ThemeToggle />
           </div>
@@ -94,7 +94,7 @@ export default function AdminLayout({
           className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
         >
           <BookOpen className="h-5 w-5 text-muted-foreground" />
-          <span className="text-xs">KB</span>
+          <span className="text-xs">Tài Liệu</span>
         </Link>
         <Link
           href="/admin/trash"
