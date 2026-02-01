@@ -254,80 +254,14 @@ export default async function AdminDashboard() {
           </div>
         )}
 
-        {/* Empty state */}
-        {spaces.length === 0 && (
+        {/* Empty state: only when no spaces at all */}
+        {spaces.length === 0 && organizations.length === 0 && (
           <div className="card flex flex-col items-center justify-center py-16 text-center">
             <div className="p-4 rounded-full bg-muted mb-4">
               <FolderOpen className="h-12 w-12 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground mb-2">Chưa có space nào</p>
             <p className="text-sm text-muted-foreground">Tạo space mới bằng form bên trên</p>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {spaces.map((space) => {
-              const spaceStats = getSpaceStats(space.id);
-              return (
-                <div
-                  key={space.id}
-                  className="card p-5 hover:border-primary/30 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
-                      <FolderOpen className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold mb-1">{space.name}</h3>
-                      <p className="text-sm text-muted-foreground font-mono mb-3">
-                        {space.slug}
-                      </p>
-
-                      {/* Stats */}
-                      {spaceStats && (
-                        <div className="flex items-center gap-3 mb-4 text-sm">
-                          <div className="flex items-center gap-1.5">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{spaceStats.total_pages}</span>
-                            <span className="text-muted-foreground">trang</span>
-                          </div>
-                          {spaceStats.total_pages > 0 && (
-                            <>
-                              <div className="text-muted-foreground">•</div>
-                              <div className="text-muted-foreground">
-                                {spaceStats.published_pages} published
-                              </div>
-                              <div className="text-muted-foreground">•</div>
-                              <div className="text-muted-foreground">
-                                {spaceStats.draft_pages} draft
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Quick Actions */}
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/admin/spaces/${space.id}/tree`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-md hover:bg-muted transition-colors"
-                        >
-                          <Edit className="h-3.5 w-3.5" />
-                          Quản lý pages
-                        </Link>
-                        <Link
-                          href={`/kb/${space.slug}`}
-                          target="_blank"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-md hover:bg-muted transition-colors"
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          Xem KB
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         )}
       </div>
