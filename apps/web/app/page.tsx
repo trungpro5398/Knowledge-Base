@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { BookOpen, Settings, LogIn, UserPlus } from "lucide-react";
+import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createServerSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const isLoggedIn = !!session?.user;
+
   return (
     <main className="min-h-screen">
       <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -11,53 +16,58 @@ export default function HomePage() {
       <div className="container mx-auto px-6 py-16 md:py-24">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-            Knowledge Base
+            Knowledge Base for TET
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Tài liệu nội bộ – Công cụ thay thế Confluence, gọn nhẹ và dễ sử dụng.
+          <p className="text-lg md:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto">
+            Tài liệu vận hành, quy trình và quyết định nội bộ của TET.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 mb-16">
+          <p className="text-base md:text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
+            Luôn cập nhật, dễ tìm, dễ hiểu.
+          </p>
+
+          {/* Primary CTA – chỉ 1 hành động chính */}
+          <div className="flex flex-col items-center gap-4 mb-12">
             <Link
               href="/kb"
-              className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-base"
+              className="btn-primary inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold"
             >
               <BookOpen className="h-5 w-5" />
-              Xem KB
+              Xem Knowledge Base
             </Link>
+            <p className="text-sm text-muted-foreground max-w-md">
+              Một số nội dung yêu cầu đăng nhập bằng email @tet-edu.com
+            </p>
+            {isLoggedIn && (
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="rounded-md bg-muted px-2 py-0.5 font-medium">
+                  Admin Console
+                </span>
+              </Link>
+            )}
+          </div>
+
+          {/* Secondary – Đăng nhập / Đăng ký (subtle) */}
+          <div className="flex flex-wrap justify-center gap-6 text-sm">
             <Link
-              href="/admin"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-border bg-card font-semibold hover:bg-muted transition-colors"
+              href="/login"
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Settings className="h-5 w-5" />
-              Admin
+              <LogIn className="h-4 w-4" />
+              Đăng nhập
+            </Link>
+            <span className="text-border">·</span>
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <UserPlus className="h-4 w-4" />
+              Đăng ký (chỉ email @tet-edu.com)
             </Link>
           </div>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4 max-w-xl mx-auto">
-          <Link
-            href="/login"
-            className="card flex items-center gap-4 p-5 hover:border-primary/30 hover:shadow-md transition-all group"
-          >
-            <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20">
-              <LogIn className="h-6 w-6" />
-            </div>
-            <div className="text-left">
-              <h3 className="font-semibold">Đăng nhập</h3>
-              <p className="text-sm text-muted-foreground">Đã có tài khoản</p>
-            </div>
-          </Link>
-          <Link
-            href="/register"
-            className="card flex items-center gap-4 p-5 hover:border-primary/30 hover:shadow-md transition-all group"
-          >
-            <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20">
-              <UserPlus className="h-6 w-6" />
-            </div>
-            <div className="text-left">
-              <h3 className="font-semibold">Đăng ký</h3>
-              <p className="text-sm text-muted-foreground">Chỉ email @tet-edu.com</p>
-            </div>
-          </Link>
         </div>
       </div>
     </main>

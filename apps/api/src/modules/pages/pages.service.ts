@@ -95,13 +95,16 @@ export async function createVersion(
   data: { contentMd?: string; contentJson?: Record<string, unknown>; summary?: string },
   userId: string
 ) {
-  return pagesRepo.createVersion({
+  const version = await pagesRepo.createVersion({
     pageId,
     contentMd: data.contentMd ?? null,
     contentJson: data.contentJson ?? null,
     summary: data.summary ?? null,
     createdBy: userId,
   });
+  // Luôn cập nhật current_version để reload hiển thị đúng bản mới (autosave hoặc publish)
+  await pagesRepo.setCurrentVersion(pageId, version.id);
+  return version;
 }
 
 export async function publishPage(pageId: string, versionId: string) {

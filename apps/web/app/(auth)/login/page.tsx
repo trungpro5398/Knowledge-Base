@@ -44,7 +44,7 @@ export default function LoginPage() {
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
         >
           <BookOpen className="h-5 w-5" />
-          <span className="font-medium">Knowledge Base</span>
+          <span className="font-medium">Knowledge Base for TET</span>
         </Link>
         <div className="card">
           <div className="flex items-center gap-3 mb-6">

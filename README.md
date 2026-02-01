@@ -1,6 +1,6 @@
-# Knowledge Base
+# Knowledge Base for TET
 
-Internal knowledge base application - Confluence alternative. Built with Next.js, Fastify, and Supabase.
+Tài liệu vận hành, quy trình và quyết định nội bộ. Built with Next.js, Fastify, and Supabase.
 
 ## Architecture
 

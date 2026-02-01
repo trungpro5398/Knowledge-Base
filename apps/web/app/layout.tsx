@@ -9,8 +9,8 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Knowledge Base",
-  description: "Internal knowledge base - Confluence alternative",
+  title: "Knowledge Base for TET",
+  description: "Tài liệu vận hành, quy trình và quyết định nội bộ của TET. Luôn cập nhật, dễ tìm, dễ hiểu.",
 };
 
 export default function RootLayout({
