@@ -15,9 +15,10 @@ function getPool(): pg.Pool {
     }
     _pool = new Pool({
       connectionString: config.databaseUrl,
-      max: 20,
+      max: 8,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
+      statement_timeout: 5000,
     });
   }
   return _pool;

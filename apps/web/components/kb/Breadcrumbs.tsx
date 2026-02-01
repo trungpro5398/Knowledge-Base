@@ -1,28 +1,48 @@
 import Link from "next/link";
 import { pathToSlug } from "@/lib/routing/slug";
 
+interface BreadcrumbItem {
+  title: string;
+  path: string;
+}
+
 interface BreadcrumbsProps {
   spaceSlug: string;
   path: string;
   title: string;
+  items?: BreadcrumbItem[];
 }
 
-export function Breadcrumbs({ spaceSlug, path, title }: BreadcrumbsProps) {
-  const parts = pathToSlug(path);
-  const crumbs: { label: string; href: string }[] = [
-    { label: "KB", href: "/kb" },
-    { label: spaceSlug, href: `/kb/${spaceSlug}` },
-  ];
-
-  let acc = "";
-  for (let i = 0; i < parts.length - 1; i++) {
-    acc += (acc ? "." : "") + parts[i];
-    crumbs.push({
-      label: parts[i],
-      href: `/kb/${spaceSlug}/${parts.slice(0, i + 1).join("/")}`,
-    });
-  }
-  crumbs.push({ label: title, href: "" });
+export function Breadcrumbs({ spaceSlug, path, title, items: apiItems }: BreadcrumbsProps) {
+  const crumbs: { label: string; href: string }[] = apiItems
+    ? apiItems.map((item, i) => {
+        const isLast = i === apiItems.length - 1;
+        const href = isLast
+          ? ""
+          : item.path === ""
+            ? "/kb"
+            : item.path === spaceSlug
+              ? `/kb/${spaceSlug}`
+              : `/kb/${spaceSlug}/${item.path.split(".").join("/")}`;
+        return { label: item.title, href };
+      })
+    : (() => {
+        const parts = pathToSlug(path);
+        const c: { label: string; href: string }[] = [
+          { label: "KB", href: "/kb" },
+          { label: spaceSlug, href: `/kb/${spaceSlug}` },
+        ];
+        let acc = "";
+        for (let i = 0; i < parts.length - 1; i++) {
+          acc += (acc ? "." : "") + parts[i];
+          c.push({
+            label: parts[i],
+            href: `/kb/${spaceSlug}/${parts.slice(0, i + 1).join("/")}`,
+          });
+        }
+        c.push({ label: title, href: "" });
+        return c;
+      })();
 
   return (
     <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">

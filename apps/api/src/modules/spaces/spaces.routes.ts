@@ -40,6 +40,9 @@ export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers)
     if (!page) {
       return reply.status(404).send({ status: "error", message: "Page not found" });
     }
+    const etag = `"${page.id}:${page.current_version_id ?? "none"}"`;
+    reply.header("ETag", etag);
+    reply.header("Cache-Control", "public, max-age=0, s-maxage=600, stale-while-revalidate=86400");
     return { data: page };
   });
 
@@ -50,6 +53,7 @@ export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers)
       return reply.status(404).send({ status: "error", message: "Space not found" });
     }
     const tree = await pagesService.getPagesTree(space.id, { publishedOnly: true });
+    reply.header("Cache-Control", "public, max-age=0, s-maxage=600, stale-while-revalidate=86400");
     return { data: tree };
   });
 

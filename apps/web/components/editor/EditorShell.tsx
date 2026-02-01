@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { AttachmentUpload } from "./AttachmentUpload";
 import { api } from "@/lib/api/client";
-import { Save, Send } from "lucide-react";
+import { Save, Send, Check } from "lucide-react";
 import type { ApiResponse, PageVersion } from "@/lib/api/types";
+
+function contentHash(s: string): string {
+  return `${s.length}:${s.slice(0, 100)}:${s.slice(-100)}`;
+}
 
 interface EditorShellProps {
   pageId: string;
@@ -26,8 +30,27 @@ export function EditorShell({
   const [content, setContent] = useState(initialContent);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const lastSavedContentHash = useRef(contentHash(initialContent));
 
   const saveDraft = async () => {
+    const hash = contentHash(content);
+    if (hash === lastSavedContentHash.current) {
+      const titleChanged = title !== initialTitle;
+      if (titleChanged) {
+        setSaving(true);
+        try {
+          await api.patch(`/api/pages/${pageId}`, { title });
+          setSavedAt(new Date());
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setSaving(false);
+        }
+      }
+      return;
+    }
+
     setSaving(true);
     try {
       await api.patch(`/api/pages/${pageId}`, { title });
@@ -35,6 +58,8 @@ export function EditorShell({
         content_md: content,
         summary: "Auto-save",
       });
+      lastSavedContentHash.current = hash;
+      setSavedAt(new Date());
     } catch (e) {
       console.error(e);
     } finally {
@@ -74,8 +99,8 @@ export function EditorShell({
             disabled={saving}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium hover:bg-muted disabled:opacity-50 transition-colors"
           >
-            <Save className="h-4 w-4" />
-            {saving ? "Đang lưu..." : "Lưu nháp"}
+            {saving ? <Save className="h-4 w-4 animate-pulse" /> : savedAt ? <Check className="h-4 w-4 text-green-600" /> : <Save className="h-4 w-4" />}
+            {saving ? "Đang lưu..." : savedAt ? "Đã lưu" : "Lưu nháp"}
           </button>
           <button
             onClick={publish}
@@ -92,7 +117,7 @@ export function EditorShell({
         value={content}
         onChange={setContent}
         onDebouncedSave={saveDraft}
-        debounceMs={2000}
+        debounceMs={1200}
       />
     </div>
   );

@@ -2,11 +2,18 @@
 
 import { useEffect, useState } from "react";
 
-interface TocProps {
-  headings: string[];
+interface TocItem {
+  id: string;
+  text: string;
+  level: number;
 }
 
-export function Toc({ headings }: TocProps) {
+interface TocProps {
+  headings?: string[];
+  items?: TocItem[];
+}
+
+export function Toc({ headings, items: tocItems }: TocProps) {
   const [activeId, setActiveId] = useState("");
 
   useEffect(() => {
@@ -25,14 +32,14 @@ export function Toc({ headings }: TocProps) {
     return () => observer.disconnect();
   }, []);
 
-  const items = headings.map((h) => {
+  const items = tocItems ?? (headings ?? []).map((h) => {
     const match = h.match(/^(#{1,3})\s+(.+)$/);
     if (!match) return null;
     const [, hashes, text] = match;
     const level = hashes.length;
     const id = text.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
     return { id, text, level };
-  }).filter(Boolean) as { id: string; text: string; level: number }[];
+  }).filter(Boolean) as TocItem[];
 
   return (
     <nav className="border-l pl-4">

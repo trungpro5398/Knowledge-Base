@@ -1,18 +1,20 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
+import { getSupabaseEnv } from "@/lib/auth/env";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/admin";
+  const { url, key } = getSupabaseEnv();
 
   if (code) {
     const responseRedirect = NextResponse.redirect(`${origin}${next}`);
     const collected: { name: string; value: string; options?: Record<string, unknown> }[] = [];
 
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      url,
+      key,
       {
         cookies: {
           getAll() {

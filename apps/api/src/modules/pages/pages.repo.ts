@@ -21,6 +21,8 @@ export interface PageVersionRow {
   content_md: string | null;
   content_json: Record<string, unknown> | null;
   summary: string | null;
+  rendered_html: string | null;
+  toc_json: Record<string, unknown>[] | null;
   created_by: string;
   created_at: Date;
 }
@@ -169,6 +171,27 @@ export async function setCurrentVersion(pageId: string, versionId: string): Prom
   await pool.query(
     "UPDATE pages SET current_version_id = $1, updated_at = NOW() WHERE id = $2",
     [versionId, pageId]
+  );
+}
+
+export async function getVersionById(versionId: string): Promise<PageVersionRow | null> {
+  if (!pool) return null;
+  const { rows } = await pool.query<PageVersionRow>(
+    "SELECT * FROM page_versions WHERE id = $1",
+    [versionId]
+  );
+  return rows[0] ?? null;
+}
+
+export async function updateVersionRendered(
+  versionId: string,
+  renderedHtml: string,
+  tocJson: { id: string; text: string; level: number }[]
+): Promise<void> {
+  if (!pool) return;
+  await pool.query(
+    "UPDATE page_versions SET rendered_html = $1, toc_json = $2 WHERE id = $3",
+    [renderedHtml, JSON.stringify(tocJson), versionId]
   );
 }
 

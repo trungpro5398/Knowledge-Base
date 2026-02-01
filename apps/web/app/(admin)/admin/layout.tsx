@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchBar } from "@/components/search/SearchBar";
+import { QueryProvider } from "@/components/query-provider";
 import {
   LayoutDashboard,
   Trash2,
@@ -14,6 +15,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
+    <QueryProvider>
     <div className="min-h-screen flex bg-background">
       <aside className="w-64 border-r border-border flex flex-col bg-card/50">
         <div className="p-5 border-b">
@@ -57,5 +59,6 @@ export default function AdminLayout({
       </aside>
       <main className="flex-1 overflow-auto">{children}</main>
     </div>
+    </QueryProvider>
   );
 }

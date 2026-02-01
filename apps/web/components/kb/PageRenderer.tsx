@@ -4,10 +4,14 @@ import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 
 interface PageRendererProps {
-  content: string;
+  content?: string;
+  html?: string;
 }
 
-export function PageRenderer({ content }: PageRendererProps) {
+export function PageRenderer({ content, html }: PageRendererProps) {
+  if (html) {
+    return <div className="prose-kb" dangerouslySetInnerHTML={{ __html: html }} />;
+  }
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
@@ -30,7 +34,7 @@ export function PageRenderer({ content }: PageRendererProps) {
         ),
       }}
     >
-      {content}
+      {content ?? ""}
     </ReactMarkdown>
   );
 }

@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BookOpen, LogIn } from "lucide-react";
-import { signInWithPassword } from "@/lib/auth/actions";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,12 +17,22 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const result = await signInWithPassword({ email, password, redirectTo });
-    if (result?.error) {
-      setError(result.error);
-      setLoading(false);
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      redirect: "manual",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, redirectTo }),
+    });
+    if (res.type === "opaqueredirect" || res.status === 302) {
+      const location = res.headers.get("Location") ?? redirectTo;
+      window.location.href = location;
+      return;
     }
-    // Nếu thành công, signInWithPassword sẽ redirect — không cần làm gì thêm
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError((data.error as string) ?? "Đăng nhập thất bại");
+    }
+    setLoading(false);
   };
 
   return (

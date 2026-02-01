@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import type { AuthHandlers } from "./auth-types.js";
+import { publicRoutes } from "../modules/public/public.routes.js";
 import { spacesRoutes } from "../modules/spaces/spaces.routes.js";
 import { pagesRoutes } from "../modules/pages/pages.routes.js";
 import { searchRoutes } from "../modules/search/search.routes.js";
@@ -35,6 +36,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
 
   await fastify.register(
     async (api) => {
+      await api.register(publicRoutes, { prefix: "/public" });
       await api.register(async (instance) => { await spacesRoutes(instance, auth); });
       await api.register(async (instance) => { await pagesRoutes(instance, auth); });
       await api.register(async (instance) => { await searchRoutes(instance, auth); });

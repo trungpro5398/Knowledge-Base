@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { config } from "../config/env.js";
+import { verifyToken } from "../utils/jwt.js";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -15,24 +15,10 @@ declare module "fastify" {
 }
 
 async function authPlugin(fastify: FastifyInstance) {
-  // Validate required env vars
-  if (!config.supabaseUrl || !config.supabaseAnonKey) {
-    fastify.log.warn("SUPABASE_URL or SUPABASE_ANON_KEY not set. Auth will fail.");
+  if (!config.supabaseUrl) {
+    fastify.log.warn("SUPABASE_URL not set. Auth will fail.");
   }
 
-  let supabase: SupabaseClient | null = null;
-
-  const getSupabase = (): SupabaseClient => {
-    if (!supabase) {
-      if (!config.supabaseUrl || !config.supabaseAnonKey) {
-        throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY are required");
-      }
-      supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
-    }
-    return supabase;
-  };
-
-  // Decorate authenticate function
   fastify.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
     const authHeader = request.headers.authorization;
     const token = authHeader?.replace(/^Bearer\s+/i, "");
@@ -42,15 +28,11 @@ async function authPlugin(fastify: FastifyInstance) {
     }
 
     try {
-      const { data: { user }, error } = await getSupabase().auth.getUser(token);
-      if (error || !user) {
-        request.log.debug({ error }, "Auth failed");
-        return reply.status(401).send({ status: "error", message: "Invalid token" });
-      }
-      request.user = { id: user.id, email: user.email ?? undefined };
+      const user = await verifyToken(token);
+      request.user = { id: user.id, email: user.email };
     } catch (err) {
-      request.log.error({ err }, "Auth error");
-      return reply.status(401).send({ status: "error", message: "Authentication failed" });
+      request.log.debug({ err }, "JWT verification failed");
+      return reply.status(401).send({ status: "error", message: "Invalid token" });
     }
   });
 }

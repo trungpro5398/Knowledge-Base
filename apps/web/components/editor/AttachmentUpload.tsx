@@ -2,6 +2,8 @@
 
 import { useState, useRef } from "react";
 import { Paperclip } from "lucide-react";
+import { createClient } from "@/lib/auth/supabase-browser";
+import { api } from "@/lib/api/client";
 
 interface AttachmentUploadProps {
   pageId: string;
@@ -17,20 +19,32 @@ export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) 
     if (!file) return;
     setUploading(true);
     try {
-      const token = await (await import("@/lib/api/auth")).getAccessToken();
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/pages/${pageId}/attachments`,
+      const pathRes = await api.post<{ data: { path: string } }>(
+        `/api/pages/${pageId}/attachments/upload-path`,
         {
-          method: "POST",
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          body: formData,
+          filename: file.name,
+          mime_type: file.type || "application/octet-stream",
+          size_bytes: file.size,
         }
       );
-      if (!res.ok) throw new Error("Upload failed");
+      const path = pathRes.data.path;
+
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from("attachments")
+        .upload(path, file, { contentType: file.type, upsert: false });
+
+      if (uploadError) throw new Error(uploadError.message);
+
+      await api.post(`/api/pages/${pageId}/attachments/register`, {
+        path,
+        mime_type: file.type || "application/octet-stream",
+        size_bytes: file.size,
+      });
       onUploaded?.();
-    } catch {
+    } catch (err) {
+      console.error(err);
+    } finally {
       setUploading(false);
     }
     e.target.value = "";

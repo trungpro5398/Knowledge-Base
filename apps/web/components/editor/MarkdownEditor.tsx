@@ -15,7 +15,7 @@ export function MarkdownEditor({
   value,
   onChange,
   onDebouncedSave,
-  debounceMs = 2000,
+  debounceMs = 1200,
 }: MarkdownEditorProps) {
   const [local, setLocal] = useState(value);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();

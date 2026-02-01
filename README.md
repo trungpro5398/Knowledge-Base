@@ -32,6 +32,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 # Local: http://localhost:3001 | Production: https://knowledge-base-api.fly.dev
 NEXT_PUBLIC_API_URL=http://localhost:3001
+# Optional: for /api/revalidate webhook (same as API REVALIDATE_SECRET)
+# REVALIDATE_SECRET=your-secret
 ```
 
 **apps/api/.env**
@@ -40,8 +42,12 @@ PORT=3001
 SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_ANON_KEY=xxx
 SUPABASE_SERVICE_ROLE_KEY=xxx
+# Use Supabase Pooler (port 6543) in production for connection pooling
 DATABASE_URL=postgresql://...
 CORS_ORIGINS=http://localhost:3000
+# Optional: event-driven revalidate when publish
+WEB_REVALIDATE_URL=https://your-app.vercel.app/api/revalidate
+REVALIDATE_SECRET=your-secret
 ```
 
 ### Run

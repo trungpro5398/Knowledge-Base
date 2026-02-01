@@ -1,7 +1,28 @@
 import * as pagesRepo from "./pages.repo.js";
 import * as templatesRepo from "./templates.repo.js";
+import { config } from "../../config/env.js";
 import { NotFoundError, ValidationError } from "../../utils/errors.js";
+import { compileMarkdown } from "../../utils/markdown.js";
 import type { PageRow } from "./pages.repo.js";
+
+async function callRevalidate(path: string, tag: string): Promise<void> {
+  if (!config.webRevalidateUrl || !config.revalidateSecret) return;
+  try {
+    const res = await fetch(config.webRevalidateUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.revalidateSecret}`,
+      },
+      body: JSON.stringify({ path, tag }),
+    });
+    if (!res.ok) {
+      console.error("Revalidate webhook failed:", res.status, await res.text());
+    }
+  } catch (err) {
+    console.error("Revalidate webhook error:", err);
+  }
+}
 
 function buildTree(pages: PageRow[], parentId: string | null = null): (PageRow & { children: (PageRow & { children: unknown[] })[] })[] {
   return pages
@@ -86,8 +107,25 @@ export async function createVersion(
 export async function publishPage(pageId: string, versionId: string) {
   const page = await pagesRepo.getPageById(pageId);
   if (!page) throw new NotFoundError("Page not found");
+  const version = await pagesRepo.getVersionById(versionId);
+  if (!version) throw new NotFoundError("Version not found");
+  const contentMd = version.content_md ?? "";
+  const { html, toc } = await compileMarkdown(contentMd);
+  await pagesRepo.updateVersionRendered(versionId, html, toc);
   await pagesRepo.setCurrentVersion(pageId, versionId);
   await pagesRepo.updatePage(pageId, { status: "published" });
+
+  const space = await import("../spaces/spaces.repo.js").then((m) =>
+    m.getSpaceById(page.space_id)
+  );
+  if (space) {
+    const pathSegments = (page.path as string).split(".").filter(Boolean);
+    const kbPath = pathSegments.length > 0
+      ? `/kb/${space.slug}/${pathSegments.join("/")}`
+      : `/kb/${space.slug}`;
+    await callRevalidate(kbPath, "kb");
+  }
+
   return pagesRepo.getPageById(pageId);
 }
 
