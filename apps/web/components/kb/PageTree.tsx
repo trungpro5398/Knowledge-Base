@@ -14,7 +14,7 @@ export interface SidebarGroupConfig {
   id: string;
   label: string;
   icon: string;
-  titles: string[];
+  titles: readonly string[];
 }
 
 interface PageTreeProps {
