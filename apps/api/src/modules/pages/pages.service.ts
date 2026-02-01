@@ -27,6 +27,7 @@ async function callRevalidate(path: string, tag: string): Promise<void> {
 function buildTree(pages: PageRow[], parentId: string | null = null): (PageRow & { children: (PageRow & { children: unknown[] })[] })[] {
   return pages
     .filter((p) => p.parent_id === parentId)
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || String(a.path).localeCompare(String(b.path)))
     .map((p) => ({
       ...p,
       children: buildTree(pages, p.id),
@@ -83,7 +84,7 @@ export async function createPage(
 
 export async function updatePage(
   id: string,
-  data: { title?: string; slug?: string; parent_id?: string | null; status?: string }
+  data: { title?: string; slug?: string; parent_id?: string | null; status?: string; sort_order?: number }
 ) {
   const updated = await pagesRepo.updatePage(id, data);
   if (!updated) throw new NotFoundError("Page not found");

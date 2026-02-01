@@ -8,6 +8,7 @@ export interface PageRow {
   path: string;
   title: string;
   status: string;
+  sort_order: number;
   current_version_id: string | null;
   created_by: string;
   updated_by: string;
@@ -94,11 +95,18 @@ export async function createPage(data: {
     ? await getChildPath(data.parentId, data.slug)
     : data.slug;
 
+  const { rows: maxRows } = await pool.query<{ max: number | null }>(
+    `SELECT COALESCE(MAX(sort_order), -1) + 1 as max
+     FROM pages WHERE space_id = $1 AND (parent_id IS NOT DISTINCT FROM $2)`,
+    [data.spaceId, data.parentId]
+  );
+  const sortOrder = maxRows[0]?.max ?? 0;
+
   const { rows } = await pool.query<PageRow>(
-    `INSERT INTO pages (space_id, parent_id, slug, path, title, status, created_by, updated_by)
-     VALUES ($1, $2, $3, $4, $5, 'draft', $6, $6)
+    `INSERT INTO pages (space_id, parent_id, slug, path, title, status, sort_order, created_by, updated_by)
+     VALUES ($1, $2, $3, $4, $5, 'draft', $6, $7, $7)
      RETURNING *`,
-    [data.spaceId, data.parentId, data.slug, path, data.title, data.createdBy]
+    [data.spaceId, data.parentId, data.slug, path, data.title, sortOrder, data.createdBy]
   );
   return rows[0]!;
 }
@@ -112,7 +120,7 @@ async function getChildPath(parentId: string, slug: string): Promise<string> {
 
 export async function updatePage(
   id: string,
-  data: { title?: string; slug?: string; parent_id?: string | null; status?: string }
+  data: { title?: string; slug?: string; parent_id?: string | null; status?: string; sort_order?: number }
 ): Promise<PageRow | null> {
   if (!pool) return null;
 
@@ -135,6 +143,10 @@ export async function updatePage(
   if (data.status !== undefined) {
     updates.push(`status = $${i++}`);
     values.push(data.status);
+  }
+  if (data.sort_order !== undefined) {
+    updates.push(`sort_order = $${i++}`);
+    values.push(data.sort_order);
   }
 
   if (updates.length === 0) return getPageById(id) as Promise<PageRow | null>;

@@ -20,6 +20,7 @@ export const updatePageSchema = z.object({
   slug: z.string().min(1).max(200).regex(/^[a-z0-9-_/]+$/).optional(),
   parent_id: z.string().uuid().nullable().optional(),
   status: z.enum(["draft", "published", "archived"]).optional(),
+  sort_order: z.number().int().optional(),
 });
 
 export const createVersionSchema = z.object({

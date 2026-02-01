@@ -1,10 +1,13 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageRenderer } from "@/components/kb/PageRenderer";
 import { Breadcrumbs } from "@/components/kb/Breadcrumbs";
 import { Toc } from "@/components/kb/Toc";
 import { PageTree } from "@/components/kb/PageTree";
+import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
 import type { TreeNode } from "@/components/kb/PageTree";
 import { slugToPath } from "@/lib/routing/slug";
+import { TET_PROSYS_GROUPS } from "@/lib/kb/sidebar-groups";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -54,15 +57,23 @@ export default async function KbPage({
 
   if (segments.length < 2) {
     const tree = await getTreeOnly(spaceSlug);
+    const useGroupedSidebar = spaceSlug === "tet-prosys";
     return (
       <div className="flex gap-6 py-8">
         <aside className="w-56 shrink-0">
           <nav className="sticky top-8">
-            <PageTree spaceId="" spaceSlug={spaceSlug} nodes={tree} showEditLink={false} />
+            <PageTree
+              spaceId=""
+              spaceSlug={spaceSlug}
+              nodes={tree}
+              showEditLink={false}
+              groupConfig={useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
+            />
           </nav>
         </aside>
         <main className="min-w-0 flex-1">
           <div className="container max-w-4xl py-8">
+            {spaceSlug === "tet-prosys" && <ReadThisFirst spaceSlug={spaceSlug} />}
             <h1 className="text-2xl font-bold">Space: {spaceSlug}</h1>
             <p className="text-muted-foreground">Select a page from the sidebar.</p>
           </div>
@@ -79,19 +90,44 @@ export default async function KbPage({
 
   const { page, version, tree, breadcrumb } = data;
   const useRenderedHtml = !!version.rendered_html;
+  const useGroupedSidebar = spaceSlug === "tet-prosys";
 
   return (
     <div className="flex gap-6 py-8">
       <aside className="w-56 shrink-0">
         <nav className="sticky top-8">
-          <PageTree spaceId="" spaceSlug={spaceSlug} nodes={tree} showEditLink={false} />
+          <PageTree
+            spaceId=""
+            spaceSlug={spaceSlug}
+            nodes={tree}
+            showEditLink={false}
+            groupConfig={useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
+          />
         </nav>
       </aside>
       <main className="min-w-0 flex-1">
         <div className="container max-w-4xl py-8">
+          {spaceSlug === "tet-prosys" && (
+            <p className="text-sm text-muted-foreground mb-3">
+              <Link href={`/kb/${spaceSlug}`} className="hover:text-foreground underline">
+                New to ProSys? Start here →
+              </Link>
+            </p>
+          )}
           <Breadcrumbs spaceSlug={spaceSlug} path={path} title={page.title} items={breadcrumb} />
           <article className="prose-kb max-w-none">
-            <h1 className="text-3xl font-bold mb-6">{page.title}</h1>
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <h1 className="text-3xl font-bold">{page.title}</h1>
+              <span
+                className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+                  page.status === "published"
+                    ? "bg-primary/15 text-primary"
+                    : "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                }`}
+              >
+                {page.status === "published" ? "OFFICIAL" : "DRAFT"}
+              </span>
+            </div>
             <div className="prose-kb">
               <PageRenderer
                 html={useRenderedHtml ? version.rendered_html! : undefined}

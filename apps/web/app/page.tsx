@@ -1,12 +1,7 @@
 import Link from "next/link";
-import { BookOpen, Settings, LogIn, UserPlus } from "lucide-react";
-import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
+import { BookOpen } from "lucide-react";
 
-export default async function HomePage() {
-  const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const isLoggedIn = !!session?.user;
-
+export default function HomePage() {
   return (
     <main className="min-h-screen">
       <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -25,8 +20,8 @@ export default async function HomePage() {
             Luôn cập nhật, dễ tìm, dễ hiểu.
           </p>
 
-          {/* Primary CTA – chỉ 1 hành động chính */}
-          <div className="flex flex-col items-center gap-4 mb-12">
+          {/* Primary CTA – chỉ 1 hành động chính; Auth ở header */}
+          <div className="flex flex-col items-center gap-4">
             <Link
               href="/kb"
               className="btn-primary inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold"
@@ -37,36 +32,6 @@ export default async function HomePage() {
             <p className="text-sm text-muted-foreground max-w-md">
               Một số nội dung yêu cầu đăng nhập bằng email @tet-edu.com
             </p>
-            {isLoggedIn && (
-              <Link
-                href="/admin"
-                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Settings className="h-4 w-4" />
-                <span className="rounded-md bg-muted px-2 py-0.5 font-medium">
-                  Admin Console
-                </span>
-              </Link>
-            )}
-          </div>
-
-          {/* Secondary – Đăng nhập / Đăng ký (subtle) */}
-          <div className="flex flex-wrap justify-center gap-6 text-sm">
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <LogIn className="h-4 w-4" />
-              Đăng nhập
-            </Link>
-            <span className="text-border">·</span>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <UserPlus className="h-4 w-4" />
-              Đăng ký (chỉ email @tet-edu.com)
-            </Link>
           </div>
         </div>
       </div>

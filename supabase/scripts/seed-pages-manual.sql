@@ -62,5 +62,29 @@ CROSS JOIN (SELECT id FROM spaces WHERE slug = 'tet-prosys' LIMIT 1) s
 WHERE u.id IS NOT NULL AND s.id IS NOT NULL
 ON CONFLICT (user_id, space_id) DO NOTHING;
 
+-- Bước 5: Cập nhật sort_order (thứ tự đúng)
+UPDATE pages SET sort_order = ord.ord
+FROM (VALUES
+  ('Overview', 1),
+  ('ProSys Core Design & Operating Model', 2),
+  ('Workflow & Status', 3),
+  ('Services to Procure', 4),
+  ('Quotes', 5),
+  ('PM Approve Quote', 6),
+  ('FM Approve Quote', 7),
+  ('Services Being Delivered', 8),
+  ('Invoice', 9),
+  ('FM Approve To Pay', 10),
+  ('Done', 11),
+  ('Task Rules', 12),
+  ('Labels & Batch System', 13),
+  ('Roles & Responsibilities', 14),
+  ('Finance & Audit', 15),
+  ('Board Usage Guide', 16),
+  ('Automation Rules', 17)
+) AS ord(title, ord)
+WHERE pages.title = ord.title
+AND pages.space_id = (SELECT id FROM spaces WHERE slug = 'tet-prosys' LIMIT 1);
+
 -- Xong
 SELECT 'Đã seed ' || count(*) || ' pages.' as result FROM pages WHERE space_id = (SELECT id FROM spaces WHERE slug = 'tet-prosys' LIMIT 1);
