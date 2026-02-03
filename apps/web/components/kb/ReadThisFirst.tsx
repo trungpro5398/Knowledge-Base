@@ -21,10 +21,10 @@ export function ReadThisFirst({ spaceSlug }: { spaceSlug: string }) {
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="font-semibold text-foreground mb-1 flex items-center gap-2">
-            <span>New to ProSys?</span>
+            <span>Bắt đầu với ProSys</span>
           </h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Start here → How ProSys works in 10 minutes
+            Nếu bạn mới dùng hệ thống này, hãy đọc lần lượt các mục dưới đây (tổng khoảng 10 phút).
           </p>
           <ul className="space-y-2">
             {START_LINKS.map((item) => (

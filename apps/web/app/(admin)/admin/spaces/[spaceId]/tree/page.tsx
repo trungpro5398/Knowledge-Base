@@ -63,7 +63,13 @@ export default async function TreePage({
         </Link>
       </div>
       <div className="card">
-        <PageTree spaceId={spaceId} spaceSlug={space.slug} nodes={tree} />
+        <PageTree
+          spaceId={spaceId}
+          spaceSlug={space.slug}
+          nodes={tree}
+          linkMode="admin"
+          showEditLink={false}
+        />
       </div>
     </div>
   );

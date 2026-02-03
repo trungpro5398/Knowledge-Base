@@ -128,8 +128,11 @@ export default async function AdminDashboard() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <h3 className="font-semibold mb-1">{space.name}</h3>
-                            <p className="text-sm text-muted-foreground font-mono mb-3">
-                              {space.slug}
+                            <p className="text-xs text-muted-foreground mb-3">
+                              <span className="hidden sm:inline">Đường dẫn public:&nbsp;</span>
+                              <code className="font-mono bg-muted px-1.5 py-0.5 rounded">
+                                /kb/{space.slug}
+                              </code>
                             </p>
 
                             {/* Stats */}
@@ -202,8 +205,11 @@ export default async function AdminDashboard() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="font-semibold mb-1">{space.name}</h3>
-                        <p className="text-sm text-muted-foreground font-mono mb-3">
-                          {space.slug}
+                        <p className="text-xs text-muted-foreground mb-3">
+                          <span className="hidden sm:inline">Đường dẫn public:&nbsp;</span>
+                          <code className="font-mono bg-muted px-1.5 py-0.5 rounded">
+                            /kb/{space.slug}
+                          </code>
                         </p>
 
                         {spaceStats && (

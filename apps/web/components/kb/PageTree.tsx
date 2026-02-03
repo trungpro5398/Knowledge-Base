@@ -26,6 +26,12 @@ interface PageTreeProps {
   isLoading?: boolean;
   /** When set (e.g. tet-prosys), sidebar renders as collapsible groups */
   groupConfig?: readonly SidebarGroupConfig[];
+  /**
+   * Determines where page links navigate to:
+   * - "kb" (default): public KB routes (/kb/[spaceSlug]/...)
+   * - "admin": admin editor routes (/admin/spaces/[spaceId]/pages/[pageId]/edit)
+   */
+  linkMode?: "kb" | "admin";
 }
 
 function TreeNodeItem({
@@ -34,14 +40,19 @@ function TreeNodeItem({
   spaceSlug,
   path,
   showEditLink,
+  linkMode,
 }: {
   node: TreeNode;
   spaceId: string;
   spaceSlug: string;
   path: string[];
   showEditLink: boolean;
+  linkMode: "kb" | "admin";
 }) {
-  const href = `/kb/${spaceSlug}/${path.join("/")}`;
+  const href =
+    linkMode === "admin"
+      ? `/admin/spaces/${spaceId}/pages/${node.id}/edit`
+      : `/kb/${spaceSlug}/${path.join("/")}`;
   const editHref = `/admin/spaces/${spaceId}/pages/${node.id}/edit`;
   return (
     <li className="border-l border-border pl-4 py-2 first:pt-0">
@@ -54,7 +65,8 @@ function TreeNodeItem({
         >
           {node.title}
         </Link>
-        {showEditLink && (
+        {/* Chỉ hiện nút edit riêng khi đang ở chế độ KB (public) và có quyền edit */}
+        {showEditLink && linkMode === "kb" && (
           <Link
             href={editHref}
             className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
@@ -74,6 +86,7 @@ function TreeNodeItem({
               spaceSlug={spaceSlug}
               path={[...path, child.slug]}
               showEditLink={showEditLink}
+              linkMode={linkMode}
             />
           ))}
         </ul>
@@ -89,7 +102,16 @@ function getGroupId(title: string, config: readonly SidebarGroupConfig[]): strin
   return null;
 }
 
-export function PageTree({ spaceId, spaceSlug, nodes, showEditLink = true, isLoading = false, groupConfig }: PageTreeProps) {
+export function PageTree({
+  spaceId,
+  spaceSlug,
+  nodes,
+  showEditLink = true,
+  isLoading = false,
+  groupConfig,
+  linkMode = "kb",
+}: PageTreeProps) {
+
   if (isLoading) {
     return (
       <div className="space-y-3 py-4">
@@ -144,6 +166,7 @@ export function PageTree({ spaceId, spaceSlug, nodes, showEditLink = true, isLoa
                     spaceSlug={spaceSlug}
                     path={[node.slug]}
                     showEditLink={showEditLink}
+                    linkMode={linkMode}
                   />
                 ))}
               </ul>
@@ -164,6 +187,7 @@ export function PageTree({ spaceId, spaceSlug, nodes, showEditLink = true, isLoa
                   spaceSlug={spaceSlug}
                   path={[node.slug]}
                   showEditLink={showEditLink}
+                  linkMode={linkMode}
                 />
               ))}
             </ul>
@@ -183,6 +207,7 @@ export function PageTree({ spaceId, spaceSlug, nodes, showEditLink = true, isLoa
           spaceSlug={spaceSlug}
           path={[node.slug]}
           showEditLink={showEditLink}
+          linkMode={linkMode}
         />
       ))}
     </ul>
