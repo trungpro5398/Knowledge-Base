@@ -3,7 +3,7 @@ import { PageTree } from "@/components/kb/PageTree";
 import type { TreeNode } from "@/components/kb/PageTree";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
-import { Plus, FolderOpen } from "lucide-react";
+import { Plus } from "lucide-react";
 import { AdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbs";
 import type { ApiResponse, Space, PageNode } from "@/lib/api/types";
 
@@ -46,7 +46,7 @@ export default async function TreePage({
     <div className="p-8 max-w-4xl">
       <AdminBreadcrumbs
         items={[
-          { label: space.name, icon: <FolderOpen className="h-4 w-4" /> }
+          { label: space.name, iconName: "folder" }
         ]}
       />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">

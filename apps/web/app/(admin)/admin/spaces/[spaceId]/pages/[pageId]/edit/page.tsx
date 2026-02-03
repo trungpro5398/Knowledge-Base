@@ -2,7 +2,6 @@ import { EditorShell } from "@/components/editor/EditorShell";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
 import { AdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbs";
-import { FolderOpen, FileText } from "lucide-react";
 import type { ApiResponse, Page, Space } from "@/lib/api/types";
 
 async function getPage(pageId: string, token: string): Promise<Page | null> {
@@ -47,11 +46,11 @@ export default async function EditPage({
           {
             label: space?.name || "Space",
             href: `/admin/spaces/${spaceId}/tree`,
-            icon: <FolderOpen className="h-4 w-4" />
+            iconName: "folder"
           },
           {
             label: page.title,
-            icon: <FileText className="h-4 w-4" />
+            iconName: "file"
           }
         ]}
       />
