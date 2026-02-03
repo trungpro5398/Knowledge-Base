@@ -4,8 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { AttachmentUpload } from "./AttachmentUpload";
 import { VersionHistoryModal } from "./version-history-modal";
+import { PageActionsToolbar } from "@/components/admin/PageActionsToolbar";
 import { api } from "@/lib/api/client";
-import { Save, Send, Check, History } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useShortcuts } from "@/components/keyboard/shortcuts-provider";
 import type { ApiResponse, PageVersion } from "@/lib/api/types";
@@ -17,17 +17,21 @@ function contentHash(s: string): string {
 interface EditorShellProps {
   pageId: string;
   spaceId: string;
+  spaceSlug?: string;
   initialTitle: string;
   initialContent: string;
   initialStatus: string;
+  updatedAt?: string;
 }
 
 export function EditorShell({
   pageId,
   spaceId,
+  spaceSlug = "",
   initialTitle,
   initialContent,
   initialStatus,
+  updatedAt,
 }: EditorShellProps) {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
@@ -35,6 +39,7 @@ export function EditorShell({
   const [publishing, setPublishing] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [status, setStatus] = useState(initialStatus);
   const lastSavedContentHash = useRef(contentHash(initialContent));
   const { registerShortcut, unregisterShortcut } = useShortcuts();
 
@@ -81,7 +86,8 @@ export function EditorShell({
       );
       const versionId = versionRes.data.id;
       await api.post(`/api/pages/${pageId}/publish`, { version_id: versionId });
-      window.location.reload();
+      setStatus("published");
+      setSavedAt(new Date());
     } catch (e) {
       console.error(e);
     } finally {
@@ -104,7 +110,7 @@ export function EditorShell({
       meta: true,
       description: "Publish page",
       action: () => {
-        if (initialStatus !== "published") publish();
+        if (status !== "published") publish();
       },
       category: "Editor",
     });
@@ -113,44 +119,40 @@ export function EditorShell({
       unregisterShortcut("s");
       unregisterShortcut("Enter");
     };
-  }, [content, title, initialStatus]); // Re-register when content changes
+  }, [content, title, status]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap gap-3 items-start">
+    <div className="space-y-4">
+      {/* Sticky Actions Toolbar */}
+      <PageActionsToolbar
+        pageId={pageId}
+        spaceId={spaceId}
+        spaceSlug={spaceSlug}
+        status={status as "draft" | "published" | "archived"}
+        saving={saving}
+        savedAt={savedAt}
+        onSave={saveDraft}
+        onPublish={publish}
+        onShowHistory={() => setShowHistory(true)}
+        publishing={publishing}
+      />
+
+      {/* Title Input */}
+      <div className="space-y-2">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="text-xl font-bold flex-1 min-w-[200px]"
-          placeholder="Tiêu đề trang"
+          className="text-2xl font-bold w-full bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-muted-foreground/50"
+          placeholder="Page title..."
         />
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={saveDraft}
-            disabled={saving}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium hover:bg-muted disabled:opacity-50 transition-colors"
-          >
-            {saving ? <Save className="h-4 w-4 animate-pulse" /> : savedAt ? <Check className="h-4 w-4 text-green-600" /> : <Save className="h-4 w-4" />}
-            {saving ? "Đang lưu..." : savedAt ? "Đã lưu" : "Lưu nháp"}
-          </button>
-          <button
-            onClick={publish}
-            disabled={publishing || initialStatus === "published"}
-            className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
-          >
-            <Send className="h-4 w-4" />
-            {publishing ? "Đang xuất bản..." : "Xuất bản"}
-          </button>
-          <button
-            onClick={() => setShowHistory(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border font-medium hover:bg-muted transition-colors"
-          >
-            <History className="h-4 w-4" />
-            History
-          </button>
-          <AttachmentUpload pageId={pageId} />
-        </div>
       </div>
+
+      {/* Attachments */}
+      <div className="flex items-center gap-3">
+        <AttachmentUpload pageId={pageId} />
+      </div>
+
+      {/* Markdown Editor */}
       <MarkdownEditor
         value={content}
         onChange={setContent}
@@ -158,6 +160,8 @@ export function EditorShell({
         debounceMs={1200}
         pageId={pageId}
       />
+
+      {/* Version History Modal */}
       {showHistory && (
         <VersionHistoryModal
           pageId={pageId}
@@ -172,3 +176,4 @@ export function EditorShell({
     </div>
   );
 }
+

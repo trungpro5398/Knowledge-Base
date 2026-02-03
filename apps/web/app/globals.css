@@ -17,7 +17,14 @@
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
+
+    /* Active states */
+    --sidebar-active-bg: 160 84% 39% / 0.08;
+    --sidebar-active-border: 160 84% 39%;
+    --tree-line: 214 32% 85%;
+    --tree-line-active: 160 84% 50%;
   }
+
   .dark {
     --background: 222 47% 7%;
     --foreground: 210 40% 98%;
@@ -30,6 +37,12 @@
     --ring: 160 70% 45%;
     --card: 222 47% 10%;
     --card-foreground: 210 40% 98%;
+
+    /* Active states - dark */
+    --sidebar-active-bg: 160 70% 45% / 0.12;
+    --sidebar-active-border: 160 70% 50%;
+    --tree-line: 217 33% 25%;
+    --tree-line-active: 160 70% 50%;
   }
 }
 
@@ -37,12 +50,17 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
-  input, textarea, select {
+
+  input,
+  textarea,
+  select {
     @apply rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50;
   }
+
   button:not([type="submit"]):not(.btn-primary) {
     @apply rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
   }
@@ -52,22 +70,54 @@
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
   }
+
   .card {
     @apply rounded-xl border bg-card p-6 shadow-sm;
   }
+
   .prose-kb {
     @apply text-foreground;
   }
-  .prose-kb h1 { @apply text-2xl font-bold mt-8 mb-4 first:mt-0; }
-  .prose-kb h2 { @apply text-xl font-semibold mt-6 mb-3; }
-  .prose-kb h3 { @apply text-lg font-medium mt-4 mb-2; }
-  .prose-kb p { @apply my-3 leading-relaxed; }
-  .prose-kb ul { @apply list-disc pl-6 my-3; }
-  .prose-kb ol { @apply list-decimal pl-6 my-3; }
-  .prose-kb a { @apply text-primary underline hover:no-underline; }
-  .prose-kb code { @apply px-1.5 py-0.5 rounded bg-muted text-sm font-mono; }
-  .prose-kb pre { @apply p-4 rounded-lg bg-muted overflow-x-auto my-4; }
-  .prose-kb pre code { @apply p-0 bg-transparent; }
+
+  .prose-kb h1 {
+    @apply text-2xl font-bold mt-8 mb-4 first:mt-0;
+  }
+
+  .prose-kb h2 {
+    @apply text-xl font-semibold mt-6 mb-3;
+  }
+
+  .prose-kb h3 {
+    @apply text-lg font-medium mt-4 mb-2;
+  }
+
+  .prose-kb p {
+    @apply my-3 leading-relaxed;
+  }
+
+  .prose-kb ul {
+    @apply list-disc pl-6 my-3;
+  }
+
+  .prose-kb ol {
+    @apply list-decimal pl-6 my-3;
+  }
+
+  .prose-kb a {
+    @apply text-primary underline hover:no-underline;
+  }
+
+  .prose-kb code {
+    @apply px-1.5 py-0.5 rounded bg-muted text-sm font-mono;
+  }
+
+  .prose-kb pre {
+    @apply p-4 rounded-lg bg-muted overflow-x-auto my-4;
+  }
+
+  .prose-kb pre code {
+    @apply p-0 bg-transparent;
+  }
 }
 
 /* Command Palette (cmdk) */
@@ -105,6 +155,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -115,6 +166,7 @@
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -124,6 +176,7 @@
   from {
     transform: translateX(-100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -139,4 +192,29 @@
 
 .animate-slide-in-left {
   animation: slide-in-left 0.3s ease-out;
+}
+
+/* Sidebar active states */
+.sidebar-item {
+  @apply flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all;
+}
+
+.sidebar-item-active {
+  @apply bg-[hsl(var(--sidebar-active-bg))] text-primary font-medium;
+  border-left: 3px solid hsl(var(--sidebar-active-border));
+  margin-left: -3px;
+}
+
+/* Tree line styles */
+.tree-line {
+  border-left: 1px solid hsl(var(--tree-line));
+}
+
+.tree-line-active {
+  border-left: 2px solid hsl(var(--tree-line-active));
+}
+
+/* Tree node active */
+.tree-node-active>.tree-node-content {
+  @apply bg-[hsl(var(--sidebar-active-bg))] text-primary font-medium rounded-md;
 }

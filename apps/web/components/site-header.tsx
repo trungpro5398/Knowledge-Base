@@ -30,7 +30,7 @@ export function SiteHeader({
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
           <Link
-            href="/kb"
+            href="/kb/tet-prosys"
             className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
           >
             <Search className="h-4 w-4" />

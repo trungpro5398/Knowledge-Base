@@ -1,0 +1,178 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import {
+    Save,
+    Send,
+    Check,
+    History,
+    Star,
+    Share2,
+    MoreHorizontal,
+    Link2,
+    Trash2,
+    ArrowUpRight
+} from "lucide-react";
+import { CopyLinkButton } from "@/components/ui/copy-link-button";
+
+type PageStatus = "draft" | "published" | "archived";
+
+interface PageActionsToolbarProps {
+    pageId: string;
+    spaceId: string;
+    spaceSlug: string;
+    status: PageStatus;
+    saving?: boolean;
+    savedAt?: Date | null;
+    onSave: () => void;
+    onPublish: () => void;
+    onShowHistory: () => void;
+    publishing?: boolean;
+}
+
+const statusConfig: Record<PageStatus, { label: string; className: string }> = {
+    draft: {
+        label: "Draft",
+        className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    },
+    published: {
+        label: "Published",
+        className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    },
+    archived: {
+        label: "Archived",
+        className: "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20",
+    },
+};
+
+export function PageActionsToolbar({
+    pageId,
+    spaceId,
+    spaceSlug,
+    status,
+    saving = false,
+    savedAt,
+    onSave,
+    onPublish,
+    onShowHistory,
+    publishing = false,
+}: PageActionsToolbarProps) {
+    const [isStarred, setIsStarred] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+
+    const statusStyle = statusConfig[status];
+    const pageUrl = `/kb/${spaceSlug}/${pageId}`;
+
+    return (
+        <div className="sticky top-0 z-20 -mx-8 px-8 py-3 mb-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border/50">
+            <div className="flex flex-wrap items-center gap-3">
+                {/* Status Badge */}
+                <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full border ${statusStyle.className}`}>
+                    {statusStyle.label}
+                </span>
+
+                {/* Spacer */}
+                <div className="flex-1" />
+
+                {/* Actions */}
+                <div className="flex items-center gap-2">
+                    {/* Star Button */}
+                    <button
+                        onClick={() => setIsStarred(!isStarred)}
+                        className="p-2 rounded-lg hover:bg-muted transition-colors"
+                        title={isStarred ? "Remove from favorites" : "Add to favorites"}
+                    >
+                        <Star
+                            className={`h-4 w-4 ${isStarred ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
+                        />
+                    </button>
+
+                    {/* Save Button */}
+                    <button
+                        onClick={onSave}
+                        disabled={saving}
+                        className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border hover:bg-muted disabled:opacity-50 transition-colors"
+                    >
+                        {saving ? (
+                            <Save className="h-4 w-4 animate-pulse" />
+                        ) : savedAt ? (
+                            <Check className="h-4 w-4 text-emerald-500" />
+                        ) : (
+                            <Save className="h-4 w-4" />
+                        )}
+                        <span className="hidden sm:inline">
+                            {saving ? "Saving..." : savedAt ? "Saved" : "Save"}
+                        </span>
+                    </button>
+
+                    {/* Publish Button */}
+                    <button
+                        onClick={onPublish}
+                        disabled={publishing || status === "published"}
+                        className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
+                    >
+                        <Send className="h-4 w-4" />
+                        <span className="hidden sm:inline">
+                            {publishing ? "Publishing..." : "Publish"}
+                        </span>
+                    </button>
+
+                    {/* History Button */}
+                    <button
+                        onClick={onShowHistory}
+                        className="p-2 rounded-lg hover:bg-muted transition-colors"
+                        title="Version history"
+                    >
+                        <History className="h-4 w-4 text-muted-foreground" />
+                    </button>
+
+                    {/* More Actions Dropdown */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowDropdown(!showDropdown)}
+                            className="p-2 rounded-lg hover:bg-muted transition-colors"
+                        >
+                            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                        </button>
+
+                        {showDropdown && (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-30"
+                                    onClick={() => setShowDropdown(false)}
+                                />
+                                <div className="absolute right-0 top-full mt-1 z-40 min-w-[180px] rounded-lg border bg-card shadow-lg py-1 animate-fade-in">
+                                    <CopyLinkButton className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors text-left" />
+
+                                    <Link
+                                        href={pageUrl}
+                                        target="_blank"
+                                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
+                                        onClick={() => setShowDropdown(false)}
+                                    >
+                                        <ArrowUpRight className="h-4 w-4" />
+                                        View published
+                                    </Link>
+
+                                    <div className="border-t border-border my-1" />
+
+                                    <button
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                                        onClick={() => {
+                                            setShowDropdown(false);
+                                            // TODO: Implement delete
+                                        }}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        Move to trash
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

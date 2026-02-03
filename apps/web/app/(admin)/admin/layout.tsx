@@ -60,7 +60,7 @@ export default function AdminLayout({
         <div className="p-3 border-t space-y-1">
           <div className="flex justify-between items-center gap-2">
             <Link
-              href="/kb"
+              href="/kb/tet-prosys"
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <BookOpen className="h-4 w-4" />
@@ -90,7 +90,7 @@ export default function AdminLayout({
           <span className="text-xs">Dashboard</span>
         </Link>
         <Link
-          href="/kb"
+          href="/kb/tet-prosys"
           className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
         >
           <BookOpen className="h-5 w-5 text-muted-foreground" />

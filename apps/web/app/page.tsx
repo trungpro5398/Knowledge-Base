@@ -23,11 +23,11 @@ export default function HomePage() {
           {/* Primary CTA – chỉ 1 hành động chính; Auth ở header */}
           <div className="flex flex-col items-center gap-4">
             <Link
-              href="/kb"
+              href="/kb/tet-prosys"
               className="btn-primary inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold"
             >
               <BookOpen className="h-5 w-5" />
-              Xem Knowledge Base
+              Xem Tài Liệu
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
               Một số nội dung yêu cầu đăng nhập bằng email @tet-edu.com
