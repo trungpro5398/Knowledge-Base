@@ -151,7 +151,7 @@ export default async function KbPage({
             />
           </nav>
         </aside>
-        <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0">
+        <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
           <div className="container max-w-4xl py-4 md:py-8">
             {spaceSlug === "tet-prosys" && startLinks.length > 0 && (
               <ReadThisFirst spaceSlug={spaceSlug} items={startLinks} />
@@ -245,17 +245,23 @@ export default async function KbPage({
           />
         </nav>
       </aside>
-      <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0">
+      <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
         <div className="container max-w-4xl py-4 md:py-8">
           {spaceSlug === "tet-prosys" && (
-            <p className="text-sm text-muted-foreground mb-3">
+            <p className="text-sm text-muted-foreground mb-3 animate-fade-in">
               <Link href={`/kb/${spaceSlug}`} className="hover:text-foreground underline">
                 New to ProSys? Start here →
               </Link>
             </p>
           )}
-          <Breadcrumbs spaceSlug={spaceSlug} path={path} title={page.title} items={breadcrumb} />
-          <article className="prose-kb max-w-none">
+          <Breadcrumbs
+            spaceSlug={spaceSlug}
+            path={path}
+            title={page.title}
+            items={breadcrumb}
+            className="animate-fade-in"
+          />
+          <article className="prose-kb max-w-none animate-fade-in">
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <h1 className="text-2xl md:text-3xl font-bold text-balance">{page.title}</h1>
               <span
@@ -277,7 +283,7 @@ export default async function KbPage({
             </div>
           </article>
           {version.toc.length > 1 && (
-            <aside className="mt-12">
+            <aside className="mt-12 animate-slide-in-right">
               <Toc items={version.toc} />
             </aside>
           )}

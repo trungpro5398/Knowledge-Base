@@ -11,9 +11,16 @@ interface BreadcrumbsProps {
   path: string;
   title: string;
   items?: BreadcrumbItem[];
+  className?: string;
 }
 
-export function Breadcrumbs({ spaceSlug, path, title, items: apiItems }: BreadcrumbsProps) {
+export function Breadcrumbs({
+  spaceSlug,
+  path,
+  title,
+  items: apiItems,
+  className = "",
+}: BreadcrumbsProps) {
   const crumbs: { label: string; href: string }[] = apiItems
     ? apiItems.map((item, i) => {
         const isLast = i === apiItems.length - 1;
@@ -45,7 +52,10 @@ export function Breadcrumbs({ spaceSlug, path, title, items: apiItems }: Breadcr
       })();
 
   return (
-    <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
+    <nav
+      className={`flex items-center gap-2 text-sm text-muted-foreground mb-6 ${className}`}
+      aria-label="Breadcrumb"
+    >
       {crumbs.map((c, i) => (
         <span key={i} className="flex items-center gap-2">
           {i > 0 && <span>/</span>}

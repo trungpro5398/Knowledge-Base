@@ -65,6 +65,7 @@ function TreeNodeItem({
   showCreateChild,
   linkMode,
   activePageId,
+  activeKbPath,
 }: {
   node: TreeNode;
   spaceId: string;
@@ -74,20 +75,25 @@ function TreeNodeItem({
   showCreateChild: boolean;
   linkMode: "kb" | "admin";
   activePageId?: string | null;
+  activeKbPath?: string | null;
 }) {
   const href =
     linkMode === "admin"
       ? `/admin/spaces/${spaceId}/${node.id}`
       : `/kb/${spaceSlug}/${path.join("/")}`;
   const editHref = `/admin/spaces/${spaceId}/pages/${node.id}/edit`;
-  const isActive = linkMode === "admin" && activePageId === node.id;
+  const isActive =
+    linkMode === "admin"
+      ? activePageId === node.id
+      : activeKbPath === path.join("/");
   
   return (
     <li className="border-l border-border pl-4 py-2 first:pt-0">
       <div
         className={cn(
-          "flex items-center gap-2 group min-w-0",
-          isActive && "bg-primary/10 rounded-md px-2 py-1 -ml-2"
+          "flex items-center gap-2 group min-w-0 rounded-md px-2 py-1 -ml-2 transition-colors duration-200 hover:bg-muted/50",
+          isActive &&
+            "relative bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:rounded-full before:bg-primary before:content-['']"
         )}
       >
         <FileText className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
@@ -137,6 +143,7 @@ function TreeNodeItem({
               showCreateChild={showCreateChild}
               linkMode={linkMode}
               activePageId={activePageId}
+              activeKbPath={activeKbPath}
             />
           ))}
         </ul>
@@ -363,8 +370,9 @@ function SortableTreeItem({
     <li ref={setNodeRef} style={style} className={cn(isDragging && "opacity-60")}>
       <div
         className={cn(
-          "flex items-center gap-2 rounded-md px-2 py-1.5 group min-w-0",
-          isActive && "bg-primary/10 text-primary"
+          "flex items-center gap-2 rounded-md px-2 py-1.5 group min-w-0 transition-colors duration-200 hover:bg-muted/40",
+          isActive &&
+            "relative bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:rounded-full before:bg-primary before:content-['']"
         )}
       >
         <button
@@ -611,6 +619,18 @@ export function PageTree({
     linkMode === "admin" && pathname
       ? pathname.match(/\/admin\/spaces\/[^/]+\/([^/]+)$/)?.[1] ?? null
       : null;
+  const activeKbPath = useMemo(() => {
+    if (linkMode !== "kb" || !pathname) return null;
+    const prefix = `/kb/${spaceSlug}`;
+    if (!pathname.startsWith(prefix)) return null;
+    const rest = pathname.slice(prefix.length);
+    if (!rest || rest === "/") return "";
+    return rest
+      .replace(/^\/+/, "")
+      .split("/")
+      .map((part) => decodeURIComponent(part))
+      .join("/");
+  }, [linkMode, pathname, spaceSlug]);
   const canDrag = enableDragAndDrop && linkMode === "admin" && !(groupConfig && groupConfig.length > 0);
   const effectiveNodes = nodes;
 
@@ -692,7 +712,7 @@ export function PageTree({
               className="group/details rounded-lg border border-border/80 overflow-hidden"
               open={g.id === "getting-started"}
             >
-              <summary className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground cursor-pointer list-none hover:bg-muted/50 hover:text-foreground [&::-webkit-details-marker]:hidden">
+              <summary className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground cursor-pointer list-none hover:bg-muted/50 hover:text-foreground transition-colors [&::-webkit-details-marker]:hidden">
                 <span className="group-open/details:rotate-90 transition-transform">{g.icon}</span>
                 <span>{g.label}</span>
               </summary>
@@ -708,6 +728,7 @@ export function PageTree({
                     showCreateChild={showCreateChild}
                     linkMode={linkMode}
                     activePageId={activePageId}
+                    activeKbPath={activeKbPath}
                   />
                 ))}
               </ul>
@@ -716,7 +737,7 @@ export function PageTree({
         })}
         {(byGroup.get("other")?.length ?? 0) > 0 && (
           <details className="group/details rounded-lg border border-border/80 overflow-hidden">
-            <summary className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground cursor-pointer list-none hover:bg-muted/50 [&::-webkit-details-marker]:hidden">
+            <summary className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground cursor-pointer list-none hover:bg-muted/50 transition-colors [&::-webkit-details-marker]:hidden">
               Khác
             </summary>
             <ul className="border-t border-border/80 py-2 space-y-0">
@@ -731,6 +752,7 @@ export function PageTree({
                   showCreateChild={showCreateChild}
                   linkMode={linkMode}
                   activePageId={activePageId}
+                  activeKbPath={activeKbPath}
                 />
               ))}
             </ul>
@@ -755,6 +777,7 @@ export function PageTree({
             showCreateChild={showCreateChild}
             linkMode={linkMode}
             activePageId={activePageId}
+            activeKbPath={activeKbPath}
           />
         ))}
       </ul>

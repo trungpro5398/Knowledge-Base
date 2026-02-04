@@ -49,7 +49,9 @@ export function Toc({ headings, items: tocItems }: TocProps) {
           <li
             key={item.id}
             style={{ paddingLeft: (item.level - 1) * 12 }}
-            className={activeId === item.id ? "text-primary font-medium" : ""}
+            className={`transition-colors duration-200 ${
+              activeId === item.id ? "text-primary font-medium" : "text-muted-foreground"
+            }`}
           >
             <a
               href={`#${item.id}`}

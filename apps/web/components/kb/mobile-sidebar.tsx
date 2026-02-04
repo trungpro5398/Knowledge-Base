@@ -41,13 +41,13 @@ export function MobileSidebar({
         <>
           <button
             type="button"
-            className="fixed inset-0 bg-black/50 z-50 md:hidden"
+            className="fixed inset-0 bg-black/50 z-50 md:hidden animate-fade-in"
             onClick={() => setOpen(false)}
             aria-label="Close menu"
           />
           <div
             id="kb-mobile-sidebar"
-            className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-card border-r z-50 md:hidden overflow-auto overscroll-contain"
+            className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-card border-r z-50 md:hidden overflow-auto overscroll-contain animate-slide-in-left"
             role="dialog"
             aria-modal="true"
             aria-label="Navigation"
