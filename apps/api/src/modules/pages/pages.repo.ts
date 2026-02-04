@@ -426,3 +426,18 @@ export async function restoreFromTrash(pageId: string): Promise<void> {
   if (!pool) return;
   await pool.query("DELETE FROM trash WHERE page_id = $1", [pageId]);
 }
+
+export async function deletePageSubtree(pageId: string): Promise<number> {
+  if (!pool) return 0;
+  const { rowCount } = await pool.query(
+    `WITH target AS (
+       SELECT id, space_id, path FROM pages WHERE id = $1
+     )
+     DELETE FROM pages p
+     USING target t
+     WHERE p.space_id = t.space_id
+       AND p.path <@ t.path`,
+    [pageId]
+  );
+  return rowCount ?? 0;
+}
