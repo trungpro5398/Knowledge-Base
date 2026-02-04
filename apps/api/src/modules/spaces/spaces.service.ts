@@ -1,5 +1,6 @@
 import * as spacesRepo from "./spaces.repo.js";
 import { NotFoundError, ValidationError } from "../../utils/errors.js";
+import { pool } from "../../db/pool.js";
 
 export async function listSpaces(userId: string) {
   return spacesRepo.listSpacesForUser(userId);
@@ -41,7 +42,6 @@ export async function createSpace(
 }
 
 async function addMember(spaceId: string, userId: string, role: string) {
-  const { pool } = await import("../../db/pool.js");
   if (!pool) return;
   await pool.query(
     "INSERT INTO memberships (user_id, space_id, role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",

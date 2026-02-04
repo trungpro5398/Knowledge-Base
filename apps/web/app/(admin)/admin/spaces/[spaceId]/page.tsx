@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
 import type { ApiResponse, PageNode } from "@/lib/api/types";
@@ -42,8 +43,11 @@ export default async function SpacePage({
       <div className="text-center max-w-md">
         <h2 className="text-xl font-semibold mb-2">Chưa có trang nào</h2>
         <p className="text-muted-foreground mb-4">
-          Tạo trang đầu tiên bằng cách bấm nút "Trang mới" ở góc trên bên phải.
+          Tạo trang đầu tiên để bắt đầu xây nội dung cho space này.
         </p>
+        <Link href={`/admin/spaces/${spaceId}/pages/new`} className="btn-primary">
+          Tạo trang đầu tiên
+        </Link>
       </div>
     </div>
   );

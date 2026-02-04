@@ -22,6 +22,8 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [manualSlug, setManualSlug] = useState(false);
   const router = useRouter();
+  const derivedSlug = title.trim() ? generateSlug(title) : "";
+  const slugPreview = slug || derivedSlug || "duong-dan-trang";
 
   useEffect(() => {
     getTemplates(spaceId).then(setTemplates).catch(() => setTemplates([]));
@@ -31,7 +33,8 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
     setTitle(newTitle);
     // Auto-generate slug only if user hasn't manually edited it
     if (!manualSlug) {
-      setSlug(generateSlug(newTitle));
+      const nextSlug = newTitle.trim() ? generateSlug(newTitle) : "";
+      setSlug(nextSlug);
     }
   };
 
@@ -61,8 +64,13 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="card max-w-lg space-y-5">
-      <h1 className="text-xl font-bold">Trang mới</h1>
+    <form onSubmit={handleSubmit} className="rounded-2xl border bg-card/70 p-6 max-w-2xl space-y-6">
+      <div className="space-y-1">
+        <h1 className="text-xl font-semibold">Tạo trang</h1>
+        <p className="text-sm text-muted-foreground">
+          Đặt tiêu đề rõ ràng. Bạn có thể chọn template hoặc chỉnh slug ở phần nâng cao.
+        </p>
+      </div>
       {error && (
         <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
           {error}
@@ -101,6 +109,10 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
           className="w-full"
           autoFocus
         />
+        <p className="text-xs text-muted-foreground mt-2">
+          Slug tự tạo:{" "}
+          <code className="bg-muted px-1.5 py-0.5 rounded">{slugPreview}</code>
+        </p>
       </div>
 
       {/* Advanced section - collapsed by default */}
@@ -135,7 +147,7 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
                   <p>
                     <span className="font-medium">Ví dụ URL:</span>{" "}
                     <code className="bg-muted px-1.5 py-0.5 rounded">
-                      /kb/tet-prosys/{slug || "duong-dan-trang"}
+                      /kb/&lt;space&gt;/{slugPreview}
                     </code>
                   </p>
                   <p className="text-amber-600 dark:text-amber-500">
@@ -148,9 +160,11 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
         )}
       </div>
 
-      <button type="submit" disabled={loading} className="btn-primary w-full">
-        {loading ? "Đang tạo..." : "Tạo trang"}
-      </button>
+      <div className="flex items-center justify-end">
+        <button type="submit" disabled={loading} className="btn-primary w-full sm:w-auto">
+          {loading ? "Đang tạo..." : "Tạo trang"}
+        </button>
+      </div>
     </form>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, Pencil, FolderOpen } from "lucide-react";
+import { FileText, Pencil, FolderOpen, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export interface TreeNode {
@@ -25,6 +25,7 @@ interface PageTreeProps {
   nodes: TreeNode[];
   showEditLink?: boolean;
   isLoading?: boolean;
+  showCreateLink?: boolean;
   /** When set (e.g. tet-prosys), sidebar renders as collapsible groups */
   groupConfig?: readonly SidebarGroupConfig[];
   /**
@@ -118,6 +119,7 @@ export function PageTree({
   nodes,
   showEditLink = true,
   isLoading = false,
+  showCreateLink = false,
   groupConfig,
   linkMode = "kb",
 }: PageTreeProps) {
@@ -146,9 +148,33 @@ export function PageTree({
         <FolderOpen className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
         <p className="text-sm text-muted-foreground mb-2">Chưa có trang nào.</p>
         <p className="text-xs text-muted-foreground">Tạo trang mới trong Admin để bắt đầu.</p>
+        {showCreateLink && linkMode === "admin" && (
+          <div className="mt-4">
+            <Link
+              href={`/admin/spaces/${spaceId}/pages/new`}
+              className="btn-primary h-8 px-3 text-xs gap-2"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Tạo trang
+            </Link>
+          </div>
+        )}
       </div>
     );
   }
+
+  const createLink =
+    showCreateLink && linkMode === "admin" ? (
+      <div className="mb-3">
+        <Link
+          href={`/admin/spaces/${spaceId}/pages/new`}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          Tạo trang mới
+        </Link>
+      </div>
+    ) : null;
 
   if (groupConfig && groupConfig.length > 0) {
     const byGroup = new Map<string | "other", TreeNode[]>();
@@ -160,6 +186,7 @@ export function PageTree({
     }
     return (
       <div className="space-y-1">
+        {createLink}
         {groupConfig.map((g) => {
           const groupNodes = byGroup.get(g.id) ?? [];
           if (groupNodes.length === 0) return null;
@@ -216,19 +243,22 @@ export function PageTree({
   }
 
   return (
-    <ul className="space-y-1">
-      {nodes.map((node) => (
-        <TreeNodeItem
-          key={node.id}
-          node={node}
-          spaceId={spaceId}
-          spaceSlug={spaceSlug}
-          path={[node.slug]}
-          showEditLink={showEditLink}
-          linkMode={linkMode}
-          activePageId={activePageId}
-        />
-      ))}
-    </ul>
+    <div>
+      {createLink}
+      <ul className="space-y-1">
+        {nodes.map((node) => (
+          <TreeNodeItem
+            key={node.id}
+            node={node}
+            spaceId={spaceId}
+            spaceSlug={spaceSlug}
+            path={[node.slug]}
+            showEditLink={showEditLink}
+            linkMode={linkMode}
+            activePageId={activePageId}
+          />
+        ))}
+      </ul>
+    </div>
   );
 }

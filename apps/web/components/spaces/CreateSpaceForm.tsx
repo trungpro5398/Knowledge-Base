@@ -14,6 +14,8 @@ export function CreateSpaceForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const derivedSlug = name.trim() ? generateSlug(name) : "";
+  const slugPreview = slug || derivedSlug || "ten-space";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,34 +41,49 @@ export function CreateSpaceForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="card">
-      <h2 className="font-semibold mb-4 flex items-center gap-2">
-        <Plus className="h-4 w-4" />
-        Tạo space mới
-      </h2>
+    <form onSubmit={handleSubmit} className="rounded-2xl border bg-card/70 p-5 md:p-6">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Tạo space
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Mỗi space là một khu vực tài liệu riêng. Tạo nhanh và chỉnh slug nếu cần.
+          </p>
+        </div>
+      </div>
       {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm mb-4">
+        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm mt-4">
           {error}
         </div>
       )}
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <input
-            value={name}
-            onChange={(e) => {
+      <div className="mt-4 space-y-4">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Tên space</label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              value={name}
+              onChange={(e) => {
               const value = e.target.value;
               setName(value);
               // Tự sinh slug từ tên nếu user chưa sửa slug thủ công
               if (!manualSlug) {
-                setSlug(generateSlug(value));
+                const nextSlug = value.trim() ? generateSlug(value) : "";
+                setSlug(nextSlug);
               }
             }}
-            placeholder="Tên space (ví dụ: TET ProSys – Operation Manual)"
-            className="flex-1"
-          />
-          <button type="submit" disabled={loading} className="btn-primary shrink-0">
-            {loading ? "Đang tạo..." : "Tạo"}
-          </button>
+              placeholder="Ví dụ: TET ProSys – Operation Manual"
+              className="flex-1"
+            />
+            <button type="submit" disabled={loading} className="btn-primary shrink-0">
+              {loading ? "Đang tạo..." : "Tạo space"}
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Đường dẫn public:{" "}
+            <code className="bg-muted px-1.5 py-0.5 rounded">/kb/{slugPreview}</code>
+          </p>
         </div>
 
         {/* Tùy chọn nâng cao: chỉnh slug */}
@@ -97,9 +114,9 @@ export function CreateSpaceForm() {
                 className="w-full font-mono text-xs sm:text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                <span className="font-medium">Ví dụ URL public:</span>{" "}
+                <span className="font-medium">URL hiện tại:</span>{" "}
                 <code className="bg-muted px-1.5 py-0.5 rounded">
-                  /kb/{slug || "ten-space"}
+                  /kb/{slugPreview}
                 </code>
               </p>
             </div>

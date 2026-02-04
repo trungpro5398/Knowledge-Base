@@ -56,7 +56,8 @@ export default async function SpaceLayout({
       {/* Header */}
       <header className="shrink-0 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground">Space</span>
             <h1 className="text-lg font-semibold">{space.name}</h1>
             <span className="text-xs text-muted-foreground font-mono">
               /kb/{space.slug}
@@ -64,10 +65,10 @@ export default async function SpaceLayout({
           </div>
           <Link
             href={`/admin/spaces/${spaceId}/pages/new`}
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md hover:bg-muted transition-colors"
+            className="btn-primary h-9 px-3 text-sm gap-2"
           >
             <Plus className="h-4 w-4" />
-            Trang mới
+            Tạo trang
           </Link>
         </div>
       </header>
@@ -75,7 +76,7 @@ export default async function SpaceLayout({
       {/* Main content: sidebar + editor */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Sidebar: Page Tree */}
-        <aside className="hidden lg:block w-64 border-r border-border bg-card/50 overflow-y-auto shrink-0">
+        <aside className="hidden lg:block w-72 border-r border-border bg-card/40 overflow-y-auto shrink-0">
           <div className="p-4">
             <PageTree
               spaceId={spaceId}
@@ -83,6 +84,7 @@ export default async function SpaceLayout({
               nodes={tree}
               linkMode="admin"
               showEditLink={false}
+              showCreateLink
               groupConfig={useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
             />
           </div>

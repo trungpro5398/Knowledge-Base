@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import * as spacesService from "../spaces/spaces.service.js";
 import * as pagesService from "../pages/pages.service.js";
+import * as pagesRepo from "../pages/pages.repo.js";
 
 interface PageRow {
   id: string;
@@ -58,9 +59,7 @@ export async function publicRoutes(fastify: FastifyInstance) {
       return reply.status(404).send({ status: "error", message: "Space not found" });
     }
 
-    const page = await import("../pages/pages.repo.js").then((m) =>
-      m.getPageByPath(space.id, path)
-    );
+    const page = await pagesRepo.getPageByPath(space.id, path);
     if (!page) {
       return reply.status(404).send({ status: "error", message: "Page not found" });
     }

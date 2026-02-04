@@ -22,8 +22,8 @@ export default function AdminLayout({
     <QueryProvider>
     <ShortcutsProvider>
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      <aside className="hidden md:flex md:w-64 border-r border-border flex-col bg-card/50 border-l-4 border-l-emerald-600/50">
-        <div className="p-5 border-b border-emerald-600/20 bg-emerald-950/20 dark:bg-emerald-950/30">
+      <aside className="hidden md:flex md:w-64 border-r border-border flex-col bg-card/60">
+        <div className="p-5 border-b border-border bg-gradient-to-b from-primary/5 to-transparent">
           <div className="flex items-center justify-between gap-2 mb-2">
             <Link
               href="/admin"
@@ -32,7 +32,7 @@ export default function AdminLayout({
               <FileText className="h-6 w-6 text-primary" />
               Quản Trị Tài Liệu
             </Link>
-            <span className="rounded bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+            <span className="rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
               Admin
             </span>
           </div>

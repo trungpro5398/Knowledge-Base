@@ -4,8 +4,10 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
-RUN npm install -g pnpm && pnpm install --frozen-lockfile && pnpm build
-RUN pnpm deploy --filter=api --prod /prod/api
+RUN corepack enable \
+  && pnpm install --frozen-lockfile --filter api... \
+  && pnpm --filter api... build \
+  && pnpm deploy --filter=api --prod /prod/api
 
 FROM node:20-alpine AS runner
 ENV NODE_ENV=production

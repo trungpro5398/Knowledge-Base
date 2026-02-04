@@ -1,5 +1,6 @@
 import * as pagesRepo from "./pages.repo.js";
 import * as templatesRepo from "./templates.repo.js";
+import * as spacesRepo from "../spaces/spaces.repo.js";
 import { config } from "../../config/env.js";
 import { NotFoundError } from "../../utils/errors.js";
 import { compileMarkdown } from "../../utils/markdown.js";
@@ -142,9 +143,7 @@ export async function publishPage(pageId: string, versionId: string) {
   await pagesRepo.setCurrentVersion(pageId, versionId);
   await pagesRepo.updatePage(pageId, { status: "published" });
 
-  const space = await import("../spaces/spaces.repo.js").then((m) =>
-    m.getSpaceById(page.space_id)
-  );
+  const space = await spacesRepo.getSpaceById(page.space_id);
   if (space) {
     const pathSegments = (page.path as string).split(".").filter(Boolean);
     const kbPath = pathSegments.length > 0
