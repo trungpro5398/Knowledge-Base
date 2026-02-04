@@ -80,6 +80,17 @@ export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers)
     return { data: tree };
   });
 
+  fastify.delete(
+    "/spaces/:id",
+    { preHandler: [authenticate] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const userId = request.user!.id;
+      await spacesService.deleteSpace(id, userId);
+      return reply.status(204).send();
+    }
+  );
+
   fastify.post("/spaces", { preHandler: [authenticate] }, async (request, reply) => {
     const parsed = createSpaceSchema.safeParse(request.body);
     if (!parsed.success) {

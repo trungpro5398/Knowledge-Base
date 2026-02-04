@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { PageRenderer } from "@/components/kb/PageRenderer";
 import { Breadcrumbs } from "@/components/kb/Breadcrumbs";
 import { Toc } from "@/components/kb/Toc";
-import { PageTree } from "@/components/kb/PageTree";
+import { SidebarSearchFilter } from "@/components/kb/SidebarSearchFilter";
 import { MobileSidebar } from "@/components/kb/mobile-sidebar";
 import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
 import { CopyLinkButton } from "@/components/ui/copy-link-button";
@@ -137,8 +137,7 @@ export default async function KbPage({
                 </div>
               </div>
             )}
-            <PageTree
-              spaceId=""
+            <SidebarSearchFilter
               spaceSlug={spaceSlug}
               nodes={tree}
               showEditLink={false}
@@ -225,8 +224,7 @@ export default async function KbPage({
               </div>
             </div>
           )}
-          <PageTree
-            spaceId=""
+          <SidebarSearchFilter
             spaceSlug={spaceSlug}
             nodes={tree}
             showEditLink={false}
@@ -247,6 +245,7 @@ export default async function KbPage({
             path={path}
             title={page.title}
             items={breadcrumb}
+            sticky
             className="animate-fade-in"
           />
           <article className="prose-kb max-w-none animate-fade-in">

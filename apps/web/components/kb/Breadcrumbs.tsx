@@ -12,6 +12,8 @@ interface BreadcrumbsProps {
   title: string;
   items?: BreadcrumbItem[];
   className?: string;
+  /** Sticky bar below header with chip-style breadcrumbs */
+  sticky?: boolean;
 }
 
 export function Breadcrumbs({
@@ -20,6 +22,7 @@ export function Breadcrumbs({
   title,
   items: apiItems,
   className = "",
+  sticky = false,
 }: BreadcrumbsProps) {
   const crumbs: { label: string; href: string }[] = apiItems
     ? apiItems.map((item, i) => {
@@ -51,23 +54,42 @@ export function Breadcrumbs({
         return c;
       })();
 
-  return (
+  const content = (
     <nav
-      className={`flex items-center gap-2 text-sm text-muted-foreground mb-6 ${className}`}
+      className={`flex flex-wrap items-center gap-1.5 text-sm ${className}`}
       aria-label="Breadcrumb"
     >
       {crumbs.map((c, i) => (
-        <span key={i} className="flex items-center gap-2">
-          {i > 0 && <span>/</span>}
+        <span key={i} className="flex items-center gap-1.5">
+          {i > 0 && (
+            <span className="text-muted-foreground/60" aria-hidden="true">
+              /
+            </span>
+          )}
           {c.href ? (
-            <Link href={c.href} className="hover:text-foreground">
+            <Link
+              href={c.href}
+              className="inline-flex items-center rounded-full px-2.5 py-1 text-muted-foreground bg-muted/70 hover:bg-muted hover:text-foreground transition-colors text-xs font-medium"
+            >
               {c.label}
             </Link>
           ) : (
-            <span className="text-foreground">{c.label}</span>
+            <span className="inline-flex items-center rounded-full px-2.5 py-1 text-foreground bg-primary/10 text-primary font-medium text-xs">
+              {c.label}
+            </span>
           )}
         </span>
       ))}
     </nav>
   );
+
+  if (sticky) {
+    return (
+      <div className="sticky top-14 z-40 py-3 -mt-3 mb-4 bg-background/95 backdrop-blur-sm border-b border-border/50 -mx-4 px-4 md:-mx-0 md:px-0">
+        {content}
+      </div>
+    );
+  }
+
+  return <div className="mb-6">{content}</div>;
 }

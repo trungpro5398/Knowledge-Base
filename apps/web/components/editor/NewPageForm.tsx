@@ -66,6 +66,7 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
       if (templateId) body.template_id = templateId;
       const res = await api.post<ApiResponse<Page>>("/api/pages", body);
       toast.success("Đã tạo trang", { description: body.title });
+      router.refresh();
       router.push(`/admin/spaces/${spaceId}/${res.data.id}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Tạo thất bại. Vui lòng thử lại.";

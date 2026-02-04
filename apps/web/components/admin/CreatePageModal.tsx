@@ -61,7 +61,7 @@ export function CreatePageModal({
             }
 
             toast.success("Đã tạo trang", { description: title.trim() });
-            // Navigate to edit page
+            router.refresh();
             router.push(`/admin/spaces/${spaceId}/pages/${pageId}/edit`);
             onClose();
         } catch (err: any) {

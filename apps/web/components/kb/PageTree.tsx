@@ -54,6 +54,8 @@ interface PageTreeProps {
    * - "admin": admin editor routes (/admin/spaces/[spaceId]/pages/[pageId]/edit)
    */
   linkMode?: "kb" | "admin";
+  /** Enable stagger animation for list items */
+  staggerAnimation?: boolean;
 }
 
 function TreeNodeItem({
@@ -66,6 +68,7 @@ function TreeNodeItem({
   linkMode,
   activePageId,
   activeKbPath,
+  staggerIndex,
 }: {
   node: TreeNode;
   spaceId: string;
@@ -76,6 +79,7 @@ function TreeNodeItem({
   linkMode: "kb" | "admin";
   activePageId?: string | null;
   activeKbPath?: string | null;
+  staggerIndex?: number;
 }) {
   const href =
     linkMode === "admin"
@@ -88,7 +92,13 @@ function TreeNodeItem({
       : activeKbPath === path.join("/");
   
   return (
-    <li className="border-l border-border pl-4 py-2 first:pt-0">
+    <li
+      className={cn(
+        "border-l border-border pl-4 py-2 first:pt-0",
+        staggerIndex !== undefined && "animate-stagger-in"
+      )}
+      style={staggerIndex !== undefined ? { animationDelay: `${staggerIndex * 35}ms` } : undefined}
+    >
       <div
         className={cn(
           "flex items-center gap-2 group min-w-0 rounded-md px-2 py-1 -ml-2 transition-colors duration-200 hover:bg-muted/50",
@@ -612,6 +622,7 @@ export function PageTree({
   enableDragAndDrop = false,
   groupConfig,
   linkMode = "kb",
+  staggerAnimation = false,
 }: PageTreeProps) {
   const pathname = usePathname();
   // Extract active pageId from URL if in admin mode
@@ -717,7 +728,7 @@ export function PageTree({
                 <span>{g.label}</span>
               </summary>
               <ul className="border-t border-border/80 py-2 space-y-0">
-                {groupNodes.map((node) => (
+                {groupNodes.map((node, idx) => (
                   <TreeNodeItem
                     key={node.id}
                     node={node}
@@ -729,6 +740,7 @@ export function PageTree({
                     linkMode={linkMode}
                     activePageId={activePageId}
                     activeKbPath={activeKbPath}
+                    staggerIndex={staggerAnimation ? idx : undefined}
                   />
                 ))}
               </ul>
@@ -741,7 +753,7 @@ export function PageTree({
               Khác
             </summary>
             <ul className="border-t border-border/80 py-2 space-y-0">
-              {byGroup.get("other")!.map((node) => (
+              {byGroup.get("other")!.map((node, idx) => (
                 <TreeNodeItem
                   key={node.id}
                   node={node}
@@ -753,6 +765,7 @@ export function PageTree({
                   linkMode={linkMode}
                   activePageId={activePageId}
                   activeKbPath={activeKbPath}
+                  staggerIndex={staggerAnimation ? idx : undefined}
                 />
               ))}
             </ul>
@@ -766,7 +779,7 @@ export function PageTree({
     <div>
       {createLink}
       <ul className="space-y-1">
-        {effectiveNodes.map((node) => (
+        {effectiveNodes.map((node, idx) => (
           <TreeNodeItem
             key={node.id}
             node={node}
@@ -778,6 +791,7 @@ export function PageTree({
             linkMode={linkMode}
             activePageId={activePageId}
             activeKbPath={activeKbPath}
+            staggerIndex={staggerAnimation ? idx : undefined}
           />
         ))}
       </ul>

@@ -157,10 +157,8 @@ export async function reorderPages(
 export async function softDeletePage(pageId: string, userId: string) {
   const page = await pagesRepo.getPageById(pageId);
   if (!page) throw new NotFoundError("Page not found");
-  await pagesRepo.softDeletePage(pageId, userId);
-  if (page.status === "published") {
-    invalidatePublishedSpace(page.space_id);
-  }
+  await pagesRepo.softDeleteSubtree(pageId, userId);
+  invalidatePublishedSpace(page.space_id);
 }
 
 export async function restorePage(pageId: string) {

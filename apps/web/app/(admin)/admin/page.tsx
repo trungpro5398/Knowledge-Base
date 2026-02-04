@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
 import { CreateSpaceForm } from "@/components/spaces/CreateSpaceForm";
+import { DeleteSpaceButton } from "@/components/spaces/DeleteSpaceButton";
 import { FolderOpen, FileText, ExternalLink, Edit, Building2 } from "lucide-react";
 import type { ApiResponse, Space } from "@/lib/api/types";
 
@@ -130,6 +131,12 @@ export default async function AdminDashboard() {
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             Xem tài liệu
           </Link>
+          <DeleteSpaceButton
+            spaceId={space.id}
+            spaceName={space.name}
+            pageCount={getSpaceStats(space.id)?.total_pages ?? 0}
+            className="h-9"
+          />
         </div>
       </div>
     );

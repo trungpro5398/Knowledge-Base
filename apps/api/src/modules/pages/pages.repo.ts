@@ -439,9 +439,46 @@ export async function softDeletePage(pageId: string, userId: string): Promise<vo
   await pool.query("INSERT INTO trash (page_id, deleted_by) VALUES ($1, $2) ON CONFLICT (page_id) DO UPDATE SET deleted_at = NOW(), deleted_by = $2", [pageId, userId]);
 }
 
+export async function softDeleteSubtree(pageId: string, userId: string): Promise<number> {
+  if (!pool) return 0;
+  const { rowCount } = await pool.query(
+    `WITH target AS (
+       SELECT id, space_id, path FROM pages WHERE id = $1
+     ),
+     subtree AS (
+       SELECT p.id
+       FROM pages p
+       JOIN target t ON p.space_id = t.space_id
+       WHERE p.path <@ t.path
+     )
+     INSERT INTO trash (page_id, deleted_by)
+     SELECT id, $2 FROM subtree
+     ON CONFLICT (page_id)
+     DO UPDATE SET deleted_at = NOW(), deleted_by = $2`,
+    [pageId, userId]
+  );
+  return rowCount ?? 0;
+}
+
 export async function restoreFromTrash(pageId: string): Promise<void> {
   if (!pool) return;
   await pool.query("DELETE FROM trash WHERE page_id = $1", [pageId]);
+}
+
+export async function restoreSubtree(pageId: string): Promise<number> {
+  if (!pool) return 0;
+  const { rowCount } = await pool.query(
+    `WITH target AS (
+       SELECT id, space_id, path FROM pages WHERE id = $1
+     )
+     DELETE FROM trash t
+     USING pages p, target ta
+     WHERE t.page_id = p.id
+       AND p.space_id = ta.space_id
+       AND p.path <@ ta.path`,
+    [pageId]
+  );
+  return rowCount ?? 0;
 }
 
 export async function deletePageSubtree(pageId: string): Promise<number> {

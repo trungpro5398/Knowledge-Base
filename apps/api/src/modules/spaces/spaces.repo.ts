@@ -39,6 +39,20 @@ export async function listPublicSpaces(): Promise<SpaceRow[]> {
   return rows;
 }
 
+export async function getMemberRole(
+  spaceId: string,
+  userId: string
+): Promise<"viewer" | "editor" | "admin" | null> {
+  if (!pool) return null;
+  const { rows } = await pool.query<{ role: string }>(
+    "SELECT role FROM memberships WHERE space_id = $1 AND user_id = $2",
+    [spaceId, userId]
+  );
+  const role = rows[0]?.role;
+  if (role === "viewer" || role === "editor" || role === "admin") return role;
+  return null;
+}
+
 export async function hasMembership(userId: string, spaceId: string): Promise<boolean> {
   if (!pool) return false;
   const { rows } = await pool.query(
@@ -93,6 +107,11 @@ export interface SpaceStats {
   total_pages: number;
   published_pages: number;
   draft_pages: number;
+}
+
+export async function deleteSpace(id: string): Promise<void> {
+  if (!pool) throw new Error("Database not configured");
+  await pool.query("DELETE FROM spaces WHERE id = $1", [id]);
 }
 
 export async function getSpacesStats(userId: string): Promise<SpaceStats[]> {

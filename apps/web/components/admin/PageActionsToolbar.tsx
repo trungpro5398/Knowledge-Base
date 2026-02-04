@@ -188,7 +188,7 @@ export function PageActionsToolbar({
                                             setShowDropdown(false);
                                             if (isDeleting) return;
                                             const confirmed = window.confirm(
-                                                "Chuyển trang này vào thùng rác?"
+                                                "Trang này và tất cả trang con sẽ chuyển vào thùng rác. Tiếp tục?"
                                             );
                                             if (!confirmed) return;
                                             setIsDeleting(true);

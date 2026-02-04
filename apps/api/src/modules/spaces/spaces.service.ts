@@ -1,4 +1,5 @@
 import * as spacesRepo from "./spaces.repo.js";
+import { invalidatePublishedSpace } from "../public/public-cache.js";
 import { NotFoundError, ValidationError } from "../../utils/errors.js";
 import { pool } from "../../db/pool.js";
 import { getSpaceBySlugCached, invalidateSpaceCache } from "./spaces-cache.js";
@@ -24,6 +25,21 @@ export async function getSpace(id: string, userId: string) {
   const space = await spacesRepo.getSpaceForUser(id, userId);
   if (!space) throw new NotFoundError("Space not found");
   return space;
+}
+
+export async function deleteSpace(spaceId: string, userId: string) {
+  const space = await spacesRepo.getSpaceForUser(spaceId, userId);
+  if (!space) throw new NotFoundError("Space not found");
+  const role = await spacesRepo.getMemberRole(spaceId, userId);
+  if (role !== "admin") {
+    throw new (await import("../../utils/errors.js")).ForbiddenError(
+      "Chỉ admin mới được xóa space"
+    );
+  }
+  await spacesRepo.deleteSpace(spaceId);
+  invalidateSpaceCache(spaceId, space.slug);
+  invalidatePublishedSpace(spaceId);
+  invalidateSpacesForUser(userId);
 }
 
 export async function createSpace(

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import { PageTree, type TreeNode, type SidebarGroupConfig } from "./PageTree";
+import { SidebarSearchFilter } from "./SidebarSearchFilter";
+import type { TreeNode } from "./PageTree";
 import type { Space } from "@/lib/api/types";
 
 interface MobileSidebarProps {
@@ -11,7 +12,6 @@ interface MobileSidebarProps {
   spaceSlug: string;
   nodes: TreeNode[];
   showEditLink?: boolean;
-  groupConfig?: readonly SidebarGroupConfig[];
   spaces?: Space[];
 }
 
@@ -20,7 +20,6 @@ export function MobileSidebar({
   spaceSlug,
   nodes,
   showEditLink = false,
-  groupConfig,
   spaces = [],
 }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
@@ -102,12 +101,10 @@ export function MobileSidebar({
                   </div>
                 </div>
               )}
-              <PageTree
-                spaceId={spaceId}
+              <SidebarSearchFilter
                 spaceSlug={spaceSlug}
                 nodes={nodes}
                 showEditLink={showEditLink}
-                groupConfig={groupConfig}
               />
             </div>
           </div>
