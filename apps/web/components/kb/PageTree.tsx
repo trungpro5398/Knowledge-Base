@@ -247,11 +247,47 @@ function getProjection(
   return { depth, parentId };
 }
 
+function getLastDescendantIndex(items: FlattenedItem[], id: string): number {
+  const index = items.findIndex((item) => item.id === id);
+  if (index === -1) return -1;
+  const depth = items[index]!.depth;
+  let lastIndex = index;
+  for (let i = index + 1; i < items.length; i += 1) {
+    if (items[i]!.depth <= depth) break;
+    lastIndex = i;
+  }
+  return lastIndex;
+}
+
+function getProjectedMove(
+  items: FlattenedItem[],
+  activeId: string,
+  overId: string,
+  offsetLeft: number,
+  indentationWidth: number
+) {
+  const base = getProjection(items, activeId, overId, offsetLeft, indentationWidth);
+  if (!base) return null;
+
+  const activeItem = items.find((item) => item.id === activeId);
+  const overItem = items.find((item) => item.id === overId);
+  if (!activeItem || !overItem) return base;
+
+  const dragDepth = Math.round(offsetLeft / indentationWidth);
+  const desiredDepth = activeItem.depth + dragDepth;
+
+  if (desiredDepth > overItem.depth) {
+    return { depth: overItem.depth + 1, parentId: overItem.id, insertAfterId: overItem.id };
+  }
+
+  return base;
+}
+
 function moveSubtree(
   items: FlattenedItem[],
   activeId: string,
   overId: string,
-  projected: { depth: number; parentId: string | null }
+  projected: { depth: number; parentId: string | null; insertAfterId?: string }
 ) {
   const activeIndex = items.findIndex((item) => item.id === activeId);
   if (activeIndex === -1) return items;
@@ -261,7 +297,15 @@ function moveSubtree(
   const subtree = items.filter((item) => subtreeIds.has(item.id));
   const remaining = items.filter((item) => !subtreeIds.has(item.id));
   const overIndex = remaining.findIndex((item) => item.id === overId);
-  const insertIndex = overIndex === -1 ? remaining.length : overIndex;
+  let insertIndex = overIndex === -1 ? remaining.length : overIndex;
+  if (projected.insertAfterId && projected.insertAfterId === overId) {
+    const lastIndex = getLastDescendantIndex(remaining, overId);
+    if (lastIndex !== -1) {
+      insertIndex = lastIndex + 1;
+    } else if (overIndex !== -1) {
+      insertIndex = overIndex + 1;
+    }
+  }
 
   const nextItems = [
     ...remaining.slice(0, insertIndex),
@@ -382,7 +426,7 @@ function DraggablePageTree({
   );
   const projected =
     activeId && overId
-      ? getProjection(visibleItems, activeId, overId, offsetLeft, INDENTATION_WIDTH)
+      ? getProjectedMove(visibleItems, activeId, overId, offsetLeft, INDENTATION_WIDTH)
       : null;
   const itemsToRender = useMemo(
     () =>
@@ -430,7 +474,7 @@ function DraggablePageTree({
     }
 
     const currentItems = flattenTree(treeNodes);
-    const projectedMove = getProjection(
+    const projectedMove = getProjectedMove(
       removeChildrenOf(currentItems, activeKey),
       activeKey,
       overKey,
