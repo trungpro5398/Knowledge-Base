@@ -3,16 +3,13 @@
 import Link from "next/link";
 import { AlertCircle, BookOpen, ArrowRight } from "lucide-react";
 
-// Slugs match seed: lowercase, spaces → hyphens, non-alphanumeric removed
-const START_LINKS = [
-  { label: "Overview", path: "overview" },
-  { label: "ProSys Core Design & Operating Model", path: "prosys-core-design-operating-model" },
-  { label: "Workflow & Status", path: "workflow-status" },
-  { label: "Board Usage Guide", path: "board-usage-guide" },
-  { label: "Task Rules", path: "task-rules" },
-];
-
-export function ReadThisFirst({ spaceSlug }: { spaceSlug: string }) {
+export function ReadThisFirst({
+  spaceSlug,
+  items,
+}: {
+  spaceSlug: string;
+  items: Array<{ label: string; path: string }>;
+}) {
   return (
     <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-5 mb-8">
       <div className="flex items-start gap-3">
@@ -27,7 +24,7 @@ export function ReadThisFirst({ spaceSlug }: { spaceSlug: string }) {
             Nếu bạn mới dùng hệ thống này, hãy đọc lần lượt các mục dưới đây (tổng khoảng 10 phút).
           </p>
           <ul className="space-y-2">
-            {START_LINKS.map((item) => (
+            {items.map((item) => (
               <li key={item.path}>
                 <Link
                   href={`/kb/${spaceSlug}/${item.path}`}

@@ -19,6 +19,45 @@ interface RenderData {
   breadcrumb: { title: string; path: string }[];
 }
 
+type StartLink = { label: string; path: string };
+
+function findNodeBySlugOrTitle(
+  nodes: TreeNode[],
+  predicate: (node: TreeNode) => boolean,
+  parentPath: string[] = []
+): { node: TreeNode; path: string[] } | null {
+  for (const node of nodes) {
+    const currentPath = [...parentPath, node.slug];
+    if (predicate(node)) return { node, path: currentPath };
+    if (node.children && node.children.length > 0) {
+      const found = findNodeBySlugOrTitle(node.children, predicate, currentPath);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function getStartLinks(tree: TreeNode[]): StartLink[] {
+  const match = findNodeBySlugOrTitle(
+    tree,
+    (node) =>
+      node.slug.toLowerCase() === "getting-started" ||
+      node.title.toLowerCase() === "getting started"
+  );
+
+  if (match && (match.node.children?.length ?? 0) > 0) {
+    return (match.node.children ?? []).slice(0, 5).map((child) => ({
+      label: child.title,
+      path: [...match.path, child.slug].join("/"),
+    }));
+  }
+
+  return tree.slice(0, 5).map((node) => ({
+    label: node.title,
+    path: [node.slug].join("/"),
+  }));
+}
+
 async function getRenderData(spaceSlug: string, path: string): Promise<RenderData | null> {
   const res = await fetch(
     `${API_URL}/api/public/render?spaceSlug=${encodeURIComponent(spaceSlug)}&path=${encodeURIComponent(path)}`,
@@ -58,6 +97,7 @@ export default async function KbPage({
 
   if (segments.length < 2) {
     const tree = await getTreeOnly(spaceSlug);
+    const startLinks = getStartLinks(tree);
     return (
       <div className="flex gap-6 py-4 md:py-8">
         <aside className="hidden md:block w-56 shrink-0">
@@ -72,7 +112,9 @@ export default async function KbPage({
         </aside>
         <main className="min-w-0 flex-1 px-4 md:px-0">
           <div className="container max-w-4xl py-4 md:py-8">
-            {spaceSlug === "tet-prosys" && <ReadThisFirst spaceSlug={spaceSlug} />}
+            {spaceSlug === "tet-prosys" && startLinks.length > 0 && (
+              <ReadThisFirst spaceSlug={spaceSlug} items={startLinks} />
+            )}
             
             {!spaceSlug.includes("tet-prosys") && (
               <div className="text-center py-20 sm:py-32">
