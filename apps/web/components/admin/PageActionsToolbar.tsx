@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
     Save,
@@ -15,6 +16,7 @@ import {
     ArrowUpRight
 } from "lucide-react";
 import { CopyLinkButton } from "@/components/ui/copy-link-button";
+import { api } from "@/lib/api/client";
 
 type PageStatus = "draft" | "published" | "archived";
 
@@ -60,6 +62,8 @@ export function PageActionsToolbar({
 }: PageActionsToolbarProps) {
     const [isStarred, setIsStarred] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const router = useRouter();
 
     const statusStyle = statusConfig[status];
     const pageUrl = `/kb/${spaceSlug}/${pageId}`;
@@ -158,14 +162,28 @@ export function PageActionsToolbar({
                                     <div className="border-t border-border my-1" />
 
                                     <button
-                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                                        onClick={() => {
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+                                        disabled={isDeleting}
+                                        onClick={async () => {
                                             setShowDropdown(false);
-                                            // TODO: Implement delete
+                                            if (isDeleting) return;
+                                            const confirmed = window.confirm(
+                                                "Chuyển trang này vào thùng rác?"
+                                            );
+                                            if (!confirmed) return;
+                                            setIsDeleting(true);
+                                            try {
+                                                await api.delete(`/api/pages/${pageId}`);
+                                                router.push(`/admin/spaces/${spaceId}`);
+                                                router.refresh();
+                                            } catch (err) {
+                                                console.error(err);
+                                                setIsDeleting(false);
+                                            }
                                         }}
                                     >
                                         <Trash2 className="h-4 w-4" />
-                                        Move to trash
+                                        {isDeleting ? "Moving..." : "Move to trash"}
                                     </button>
                                 </div>
                             </>
