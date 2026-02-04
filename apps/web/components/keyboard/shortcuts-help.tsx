@@ -37,13 +37,13 @@ export function ShortcutsHelp() {
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div className="flex items-center gap-2">
             <Command className="h-5 w-5 text-primary" aria-hidden="true" />
-            <h2 id="shortcuts-title" className="text-lg font-semibold">Keyboard Shortcuts</h2>
+            <h2 id="shortcuts-title" className="text-lg font-semibold">Phím tắt</h2>
           </div>
           <button
             type="button"
             onClick={() => setShowHelp(false)}
             className="p-2 hover:bg-muted rounded-md transition-colors"
-            aria-label="Close shortcuts help"
+            aria-label="Đóng"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -52,7 +52,7 @@ export function ShortcutsHelp() {
         <div className="flex-1 overflow-auto p-6">
           {Object.keys(grouped).length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
-              No shortcuts registered
+              Nhấn ? để xem phím tắt
             </p>
           ) : (
             <div className="space-y-6">
@@ -82,9 +82,8 @@ export function ShortcutsHelp() {
 
         <div className="px-6 py-4 border-t bg-muted/30">
           <p className="text-xs text-muted-foreground text-center">
-            Press <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs">?</kbd> to
-            show this help • Press <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs">Esc</kbd> to
-            close
+            Nhấn <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs">?</kbd> để mở
+            • <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs">Esc</kbd> để đóng
           </p>
         </div>
       </div>

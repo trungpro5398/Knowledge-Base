@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { BookOpen, Search, LogIn, UserPlus, Settings, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -14,9 +13,6 @@ export function SiteHeader({
   isLoggedIn: boolean;
   signOutAction: SignOutAction;
 }) {
-  const pathname = usePathname() ?? "";
-  if (pathname.startsWith("/admin")) return null;
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">

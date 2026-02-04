@@ -2,13 +2,13 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-interface Shortcut {
+export interface Shortcut {
   key: string;
   ctrl?: boolean;
   meta?: boolean;
   shift?: boolean;
   description: string;
-  action: () => void;
+  action?: () => void;
   category: string;
 }
 
@@ -30,6 +30,12 @@ export function useShortcuts() {
   return context;
 }
 
+const DEFAULT_SHORTCUTS: Shortcut[] = [
+  { key: "k", meta: true, description: "Mở command palette", category: "Chung" },
+  { key: "\\", meta: true, description: "Thu gọn / mở sidebar", category: "Chung" },
+  { key: "?", description: "Xem danh sách phím tắt", category: "Chung" },
+];
+
 interface ShortcutsProviderProps {
   children: ReactNode;
 }
@@ -37,6 +43,8 @@ interface ShortcutsProviderProps {
 export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [showHelp, setShowHelp] = useState(false);
+
+  const allShortcuts = [...DEFAULT_SHORTCUTS, ...shortcuts];
 
   const registerShortcut = (shortcut: Shortcut) => {
     setShortcuts((prev) => [...prev.filter((s) => s.key !== shortcut.key), shortcut]);
@@ -64,8 +72,8 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         return;
       }
 
-      // Match shortcuts
-      for (const shortcut of shortcuts) {
+      // Match shortcuts (only those with action)
+      for (const shortcut of shortcuts.filter((s) => s.action)) {
         const metaMatch = shortcut.meta ? (e.metaKey || e.ctrlKey) : true;
         const ctrlMatch = shortcut.ctrl ? e.ctrlKey : true;
         const shiftMatch = shortcut.shift ? e.shiftKey : !e.shiftKey;
@@ -84,7 +92,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
 
   return (
     <ShortcutsContext.Provider
-      value={{ shortcuts, registerShortcut, unregisterShortcut, showHelp, setShowHelp }}
+      value={{ shortcuts: allShortcuts, registerShortcut, unregisterShortcut, showHelp, setShowHelp }}
     >
       {children}
     </ShortcutsContext.Provider>

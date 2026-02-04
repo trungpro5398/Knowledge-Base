@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/toaster";
 import { CommandProvider } from "@/components/command/command-provider";
+import { ShortcutsProvider } from "@/components/keyboard/shortcuts-provider";
+import { ShortcutsHelp } from "@/components/keyboard/shortcuts-help";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { signOut } from "@/lib/auth/actions";
@@ -36,6 +38,7 @@ export default async function RootLayout({
         <ErrorBoundary>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <CommandProvider>
+              <ShortcutsProvider>
               <a
                 href="#main-content"
                 className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:shadow"
@@ -45,6 +48,8 @@ export default async function RootLayout({
               <SiteHeader isLoggedIn={isLoggedIn} signOutAction={signOut} />
               {children}
               <Toaster />
+              <ShortcutsHelp />
+              </ShortcutsProvider>
             </CommandProvider>
           </ThemeProvider>
         </ErrorBoundary>
