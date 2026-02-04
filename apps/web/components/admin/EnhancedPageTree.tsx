@@ -83,34 +83,36 @@ function TreeNodeItem({
                 style={{ marginLeft: `${depth * 20}px` }}
             >
                 {/* Expand/Collapse button */}
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className={cn(
-                        "p-1 rounded hover:bg-muted transition-colors shrink-0",
-                        !hasChildren && "invisible"
-                    )}
-                    aria-label={isExpanded ? "Collapse section" : "Expand section"}
-                >
-                    <ChevronRight
-                        className={cn(
-                            "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
-                            isExpanded && "rotate-90"
-                        )}
-                        aria-hidden="true"
-                    />
-                </button>
+                {hasChildren ? (
+                  <button
+                      type="button"
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="p-1 rounded hover:bg-muted transition-colors shrink-0"
+                      aria-label={isExpanded ? "Collapse section" : "Expand section"}
+                  >
+                      <ChevronRight
+                          className={cn(
+                              "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+                              isExpanded && "rotate-90"
+                          )}
+                          aria-hidden="true"
+                      />
+                  </button>
+                ) : (
+                  <span className="p-1 shrink-0" aria-hidden="true" />
+                )}
 
                 {/* Icon */}
                 {hasChildren ? (
                     <FolderOpen className={cn(
                         "h-4 w-4 shrink-0 transition-colors",
                         isActive ? "text-primary" : "text-muted-foreground"
-                    )} />
+                    )} aria-hidden="true" />
                 ) : (
                     <FileText className={cn(
                         "h-4 w-4 shrink-0 transition-colors",
                         isActive ? "text-primary" : "text-muted-foreground"
-                    )} />
+                    )} aria-hidden="true" />
                 )}
 
                 {/* Title Link */}
@@ -121,12 +123,13 @@ function TreeNodeItem({
                         isActive ? "text-primary font-medium" : "hover:text-primary"
                     )}
                     title={node.title}
+                    aria-current={isActive ? "page" : undefined}
                 >
                     {node.title}
                 </Link>
 
                 {/* Quick Actions */}
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                     {showEditLink && (
                         <Link
                             href={editHref}
@@ -134,7 +137,7 @@ function TreeNodeItem({
                             title="Edit page"
                             aria-label="Edit page"
                         >
-                            <Pencil className="h-3 w-3" />
+                            <Pencil className="h-3 w-3" aria-hidden="true" />
                         </Link>
                     )}
                     {onCreatePage && (
@@ -144,7 +147,7 @@ function TreeNodeItem({
                             title="Add child page"
                             aria-label="Add child page"
                         >
-                            <Plus className="h-3 w-3" />
+                            <Plus className="h-3 w-3" aria-hidden="true" />
                         </button>
                     )}
                 </div>

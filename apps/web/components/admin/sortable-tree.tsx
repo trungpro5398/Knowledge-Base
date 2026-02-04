@@ -62,7 +62,7 @@ function SortableItem({ node, spaceId, spaceSlug, path }: SortableItemProps) {
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded opacity-0 group-hover:opacity-100 transition-opacity"
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
           aria-label="Drag to reorder"
         >
           <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -80,7 +80,7 @@ function SortableItem({ node, spaceId, spaceSlug, path }: SortableItemProps) {
           title="Chỉnh sửa"
           aria-label="Chỉnh sửa"
         >
-          <Pencil className="h-3.5 w-3.5" />
+          <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
         </Link>
       </div>
     </li>

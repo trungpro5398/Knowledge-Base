@@ -54,7 +54,7 @@ export function CreateSpaceForm() {
         </div>
       </div>
       {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm mt-4">
+        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm mt-4" role="status" aria-live="polite">
           {error}
         </div>
       )}

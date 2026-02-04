@@ -91,6 +91,7 @@
   .prose-kb h1 {
     @apply text-2xl font-bold mt-8 mb-4 first:mt-0;
     text-wrap: balance;
+    scroll-margin-top: 6rem;
   }
 
   .prose-kb h2 {

@@ -80,7 +80,7 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
         </p>
       </div>
       {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm" role="status" aria-live="polite">
           {error}
         </div>
       )}

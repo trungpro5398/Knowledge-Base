@@ -105,22 +105,22 @@ function TreeNodeItem({
         {showCreateChild && linkMode === "admin" && (
           <Link
             href={`/admin/spaces/${spaceId}/pages/new?parentId=${node.id}`}
-            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0"
             title="Tạo trang con"
             aria-label="Tạo trang con"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         )}
         {/* Chỉ hiện nút edit riêng khi đang ở chế độ KB (public) và có quyền edit */}
         {showEditLink && linkMode === "kb" && (
           <Link
             href={editHref}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0"
             title="Chỉnh sửa"
             aria-label="Chỉnh sửa"
           >
-            <Pencil className="h-3.5 w-3.5" />
+            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         )}
       </div>
@@ -375,7 +375,7 @@ function SortableTreeItem({
           title="Kéo để sắp xếp"
           aria-label="Kéo để sắp xếp"
         >
-          <GripVertical className="h-4 w-4" />
+          <GripVertical className="h-4 w-4" aria-hidden="true" />
         </button>
         <FileText className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
         <Link
@@ -392,11 +392,11 @@ function SortableTreeItem({
         {showCreateChild && (
           <Link
             href={`/admin/spaces/${spaceId}/pages/new?parentId=${item.id}`}
-            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0"
             title="Tạo trang con"
             aria-label="Tạo trang con"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         )}
       </div>

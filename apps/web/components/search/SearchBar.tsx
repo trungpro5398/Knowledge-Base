@@ -28,7 +28,7 @@ export function SearchBar() {
   return (
     <div className="relative">
       <div className="relative flex items-center">
-        <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground shrink-0" />
+        <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
         <input
           type="search"
           name="search"

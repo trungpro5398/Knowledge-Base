@@ -104,7 +104,7 @@ export function CreatePageModal({
                         className="p-2 rounded-lg hover:bg-muted transition-colors"
                         aria-label="Close dialog"
                     >
-                        <X className="h-4 w-4" />
+                        <X className="h-4 w-4" aria-hidden="true" />
                     </button>
                 </div>
 
@@ -146,13 +146,16 @@ export function CreatePageModal({
 
                     {/* Error */}
                     {error && (
-                        <p className="text-sm text-destructive">{error}</p>
+                        <p className="text-sm text-destructive" role="status" aria-live="polite">
+                          {error}
+                        </p>
                     )}
                 </div>
 
                 {/* Footer */}
                 <div className="flex items-center justify-end gap-3 px-6 py-4 border-t bg-muted/30">
                     <button
+                        type="button"
                         onClick={onClose}
                         className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-muted transition-colors"
                         disabled={isCreating}
@@ -160,18 +163,19 @@ export function CreatePageModal({
                         Cancel
                     </button>
                     <button
+                        type="button"
                         onClick={handleCreate}
                         disabled={isCreating || !title.trim()}
                         className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
                     >
                         {isCreating ? (
                             <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                                 Creating…
                             </>
                         ) : (
                             <>
-                                <FileText className="h-4 w-4" />
+                                <FileText className="h-4 w-4" aria-hidden="true" />
                                 Create Page
                             </>
                         )}

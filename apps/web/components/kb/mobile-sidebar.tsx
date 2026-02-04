@@ -34,7 +34,7 @@ export function MobileSidebar({
         aria-expanded={open}
         aria-controls="kb-mobile-sidebar"
       >
-        <Menu className="h-6 w-6" />
+        <Menu className="h-6 w-6" aria-hidden="true" />
       </button>
 
       {open && (
@@ -59,7 +59,7 @@ export function MobileSidebar({
                 className="p-2 rounded-md hover:bg-muted"
                 aria-label="Close menu"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
             <div className="p-4 space-y-4">

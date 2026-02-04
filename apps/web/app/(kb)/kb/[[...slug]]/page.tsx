@@ -241,7 +241,7 @@ export default async function KbPage({
           <Breadcrumbs spaceSlug={spaceSlug} path={path} title={page.title} items={breadcrumb} />
           <article className="prose-kb max-w-none">
             <div className="flex flex-wrap items-center gap-2 mb-4">
-              <h1 className="text-2xl md:text-3xl font-bold">{page.title}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-balance">{page.title}</h1>
               <span
                 className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
                   page.status === "published"

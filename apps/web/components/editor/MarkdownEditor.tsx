@@ -249,7 +249,7 @@ export function MarkdownEditor({
             title="Undo (⌘Z)"
             aria-label="Undo"
           >
-            <Undo2 className="h-4 w-4" />
+            <Undo2 className="h-4 w-4" aria-hidden="true" />
           </button>
           <button
             type="button"
@@ -259,7 +259,7 @@ export function MarkdownEditor({
             title="Redo (⌘⇧Z)"
             aria-label="Redo"
           >
-            <Redo2 className="h-4 w-4" />
+            <Redo2 className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       </div>

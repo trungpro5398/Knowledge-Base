@@ -58,6 +58,8 @@ export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) 
         onChange={handleFile}
         className="hidden"
         accept="image/*,.pdf,.txt,.md"
+        aria-hidden="true"
+        tabIndex={-1}
       />
       <button
         type="button"
@@ -65,7 +67,7 @@ export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) 
         disabled={uploading}
         className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium hover:bg-muted disabled:opacity-50 transition-colors"
       >
-        <Paperclip className="h-4 w-4" />
+        <Paperclip className="h-4 w-4" aria-hidden="true" />
         {uploading ? "Đang tải…" : "Đính kèm"}
       </button>
     </div>
