@@ -345,7 +345,7 @@ export async function reorderPages(
       await client.query(
         `UPDATE pages AS p
          SET sort_order = u.sort_order::int,
-             parent_id = CASE WHEN u.parent_id_set THEN u.parent_id::uuid ELSE p.parent_id END,
+             parent_id = CASE WHEN u.parent_id_set::boolean THEN u.parent_id::uuid ELSE p.parent_id END,
              updated_at = NOW()
          FROM (VALUES ${rowsSql}) AS u(id, sort_order, parent_id, parent_id_set)
          WHERE p.id = u.id::uuid AND p.space_id = $${spaceParam}`,
