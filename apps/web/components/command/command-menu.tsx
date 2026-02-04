@@ -30,6 +30,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [recentPages, setRecentPages] = useState<Array<{ id: string; title: string; path: string }>>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -44,17 +45,28 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
   useEffect(() => {
     if (searchQuery.trim().length > 1) {
+      setIsSearching(true);
       const timer = setTimeout(() => {
         api
           .get<PaginatedResponse<SearchResult>>(
             `/api/search?q=${encodeURIComponent(searchQuery)}&limit=8`
           )
-          .then((res) => setSearchResults(res.data || []))
-          .catch(() => setSearchResults([]));
+          .then((res) => {
+            setSearchResults(res.data || []);
+            setIsSearching(false);
+          })
+          .catch(() => {
+            setSearchResults([]);
+            setIsSearching(false);
+          });
       }, 300);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        setIsSearching(false);
+      };
     } else {
       setSearchResults([]);
+      setIsSearching(false);
     }
   }, [searchQuery]);
 
@@ -76,9 +88,16 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
           aria-label="Tìm kiếm nhanh"
         />
         <CommandList>
-          <CommandEmpty>Không tìm thấy kết quả.</CommandEmpty>
+          {isSearching && searchQuery.trim().length > 1 ? (
+            <div className="py-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Đang tìm…
+            </div>
+          ) : (
+            <CommandEmpty>Không tìm thấy kết quả.</CommandEmpty>
+          )}
 
-          {searchResults.length > 0 && (
+          {searchResults.length > 0 && !isSearching && (
             <>
               <CommandGroup heading="Kết quả tìm kiếm">
                 {searchResults.map((result) => (

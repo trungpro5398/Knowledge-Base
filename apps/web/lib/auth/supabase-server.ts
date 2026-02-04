@@ -28,7 +28,12 @@ export async function createServerSupabaseClient() {
                 sameSite: (options.sameSite as "lax" | "strict" | "none") ?? "lax",
               }
               : { path: "/", sameSite: "lax" as const, secure: process.env.NODE_ENV === "production" };
-            cookieStore.set(name, value, opts);
+            try {
+              // In Server Components, cookies are read-only and will throw if modified.
+              cookieStore.set(name, value, opts);
+            } catch {
+              // Ignore in read-only contexts (e.g. RSC) to avoid hard failures.
+            }
           });
         },
       },
