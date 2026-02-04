@@ -8,6 +8,10 @@ export async function listSpaces(userId: string) {
   return getSpacesForUserCached(userId);
 }
 
+export async function listPublicSpaces() {
+  return spacesRepo.listPublicSpaces();
+}
+
 export async function getSpacesStats(userId: string) {
   return getSpacesStatsCached(userId);
 }

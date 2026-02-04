@@ -8,6 +8,7 @@ import { MobileSidebar } from "@/components/kb/mobile-sidebar";
 import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
 import { CopyLinkButton } from "@/components/ui/copy-link-button";
 import type { TreeNode } from "@/components/kb/PageTree";
+import type { Space } from "@/lib/api/types";
 import { slugToPath } from "@/lib/routing/slug";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -78,6 +79,13 @@ async function getTreeOnly(spaceSlug: string): Promise<TreeNode[]> {
   return json.data ?? [];
 }
 
+async function getPublicSpaces(): Promise<Space[]> {
+  const res = await fetch(`${API_URL}/api/spaces/public`, { next: { tags: ["kb"] } });
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data ?? [];
+}
+
 const DEFAULT_SPACE_SLUG = "tet-prosys";
 
 export default async function KbPage({
@@ -96,12 +104,38 @@ export default async function KbPage({
   const spaceSlug = segments[0]!;
 
   if (segments.length < 2) {
-    const tree = await getTreeOnly(spaceSlug);
+    const [tree, spaces] = await Promise.all([
+      getTreeOnly(spaceSlug),
+      getPublicSpaces(),
+    ]);
     const startLinks = getStartLinks(tree);
     return (
       <div className="flex gap-6 py-4 md:py-8">
-        <aside className="hidden md:block w-56 shrink-0">
-          <nav className="sticky top-8">
+        <aside className="hidden md:block w-60 shrink-0">
+          <nav className="sticky top-8 space-y-4">
+            {spaces.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Spaces
+                </p>
+                <div className="space-y-1">
+                  {spaces.map((space) => (
+                    <Link
+                      key={space.id}
+                      href={`/kb/${space.slug}`}
+                      className={`flex flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
+                        space.slug === spaceSlug ? "bg-primary/10 text-primary" : ""
+                      }`}
+                    >
+                      <span className="font-medium truncate">{space.name}</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        /kb/{space.slug}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
             <PageTree
               spaceId=""
               spaceSlug={spaceSlug}
@@ -138,14 +172,23 @@ export default async function KbPage({
             )}
           </div>
         </main>
-        <MobileSidebar spaceId="" spaceSlug={spaceSlug} nodes={tree} showEditLink={false} />
+        <MobileSidebar
+          spaceId=""
+          spaceSlug={spaceSlug}
+          nodes={tree}
+          showEditLink={false}
+          spaces={spaces}
+        />
       </div>
     );
   }
 
   const pathParts = segments.slice(1);
   const path = slugToPath(pathParts);
-  const data = await getRenderData(spaceSlug, path);
+  const [data, spaces] = await Promise.all([
+    getRenderData(spaceSlug, path),
+    getPublicSpaces(),
+  ]);
 
   if (!data) notFound();
 
@@ -153,8 +196,31 @@ export default async function KbPage({
   const useRenderedHtml = !!version.rendered_html;
   return (
     <div className="flex gap-6 py-4 md:py-8">
-      <aside className="hidden md:block w-56 shrink-0">
-        <nav className="sticky top-8">
+      <aside className="hidden md:block w-60 shrink-0">
+        <nav className="sticky top-8 space-y-4">
+          {spaces.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Spaces
+              </p>
+              <div className="space-y-1">
+                {spaces.map((space) => (
+                  <Link
+                    key={space.id}
+                    href={`/kb/${space.slug}`}
+                    className={`flex flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
+                      space.slug === spaceSlug ? "bg-primary/10 text-primary" : ""
+                    }`}
+                  >
+                    <span className="font-medium truncate">{space.name}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      /kb/{space.slug}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
           <PageTree
             spaceId=""
             spaceSlug={spaceSlug}
@@ -201,7 +267,13 @@ export default async function KbPage({
           )}
         </div>
       </main>
-      <MobileSidebar spaceId="" spaceSlug={spaceSlug} nodes={tree} showEditLink={false} />
+      <MobileSidebar
+        spaceId=""
+        spaceSlug={spaceSlug}
+        nodes={tree}
+        showEditLink={false}
+        spaces={spaces}
+      />
     </div>
   );
 }

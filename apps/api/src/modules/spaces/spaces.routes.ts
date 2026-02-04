@@ -7,6 +7,11 @@ import { createSpaceSchema } from "@kb/shared";
 export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   const { authenticate } = auth;
 
+  fastify.get("/spaces/public", async () => {
+    const spaces = await spacesService.listPublicSpaces();
+    return { data: spaces };
+  });
+
   fastify.get("/spaces", { preHandler: [authenticate] }, async (request) => {
     const userId = request.user!.id;
     const spaces = await spacesService.listSpaces(userId);

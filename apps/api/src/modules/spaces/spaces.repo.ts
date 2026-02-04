@@ -22,6 +22,23 @@ export async function listSpacesForUser(userId: string): Promise<SpaceRow[]> {
   return rows;
 }
 
+export async function listPublicSpaces(): Promise<SpaceRow[]> {
+  if (!pool) return [];
+  const { rows } = await pool.query<SpaceRow>(
+    `SELECT s.* FROM spaces s
+     WHERE EXISTS (
+       SELECT 1
+       FROM pages p
+       LEFT JOIN trash t ON t.page_id = p.id
+       WHERE p.space_id = s.id
+         AND p.status = 'published'
+         AND t.page_id IS NULL
+     )
+     ORDER BY s.name`
+  );
+  return rows;
+}
+
 export async function hasMembership(userId: string, spaceId: string): Promise<boolean> {
   if (!pool) return false;
   const { rows } = await pool.query(

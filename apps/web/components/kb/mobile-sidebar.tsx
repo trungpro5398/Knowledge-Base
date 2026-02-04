@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
 import { PageTree, type TreeNode, type SidebarGroupConfig } from "./PageTree";
+import type { Space } from "@/lib/api/types";
 
 interface MobileSidebarProps {
   spaceId: string;
@@ -10,6 +12,7 @@ interface MobileSidebarProps {
   nodes: TreeNode[];
   showEditLink?: boolean;
   groupConfig?: readonly SidebarGroupConfig[];
+  spaces?: Space[];
 }
 
 export function MobileSidebar({
@@ -18,6 +21,7 @@ export function MobileSidebar({
   nodes,
   showEditLink = false,
   groupConfig,
+  spaces = [],
 }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
 
@@ -55,7 +59,30 @@ export function MobileSidebar({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-4">
+            <div className="p-4 space-y-4">
+              {spaces.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Spaces
+                  </p>
+                  <div className="space-y-1">
+                    {spaces.map((space) => (
+                      <Link
+                        key={space.id}
+                        href={`/kb/${space.slug}`}
+                        className={`flex flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
+                          space.slug === spaceSlug ? "bg-primary/10 text-primary" : ""
+                        }`}
+                      >
+                        <span className="font-medium truncate">{space.name}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">
+                          /kb/{space.slug}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
               <PageTree
                 spaceId={spaceId}
                 spaceSlug={spaceSlug}
