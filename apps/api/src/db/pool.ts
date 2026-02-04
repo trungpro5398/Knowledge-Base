@@ -39,7 +39,12 @@ export const pool = {
   end: (): Promise<void> => {
     if (_pool && !_closing) {
       _closing = true;
-      return _pool.end();
+      return _pool.end().catch((err) => {
+        if (err instanceof Error && err.message.includes("Called end on pool more than once")) {
+          return;
+        }
+        throw err;
+      });
     }
     return Promise.resolve();
   },
@@ -47,7 +52,14 @@ export const pool = {
 
 // Graceful shutdown
 const shutdown = async () => {
-  await pool.end();
+  try {
+    await pool.end();
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("Called end on pool more than once")) {
+      return;
+    }
+    throw err;
+  }
 };
 process.once("SIGTERM", shutdown);
 process.once("SIGINT", shutdown);
