@@ -1,5 +1,6 @@
 import * as membershipsRepo from "./memberships.repo.js";
 import * as spacesRepo from "../spaces/spaces.repo.js";
+import { invalidateSpacesForUser } from "../spaces/spaces-user-cache.js";
 import { NotFoundError, ValidationError, ForbiddenError } from "../../utils/errors.js";
 
 export async function listMembers(spaceId: string, userId: string) {
@@ -32,7 +33,10 @@ export async function addMember(
     }
   }
 
-  return membershipsRepo.addMembership(spaceId, targetUserId, role);
+  const membership = await membershipsRepo.addMembership(spaceId, targetUserId, role);
+  // Invalidate cache for the new member so they see the space immediately
+  invalidateSpacesForUser(targetUserId);
+  return membership;
 }
 
 export async function updateMemberRole(
@@ -56,7 +60,10 @@ export async function updateMemberRole(
     }
   }
 
-  return membershipsRepo.updateMembershipRole(spaceId, targetUserId, role);
+  const membership = await membershipsRepo.updateMembershipRole(spaceId, targetUserId, role);
+  // Invalidate cache for the updated member
+  invalidateSpacesForUser(targetUserId);
+  return membership;
 }
 
 export async function removeMember(spaceId: string, targetUserId: string, adminUserId: string) {
@@ -75,6 +82,8 @@ export async function removeMember(spaceId: string, targetUserId: string, adminU
   }
 
   await membershipsRepo.removeMembership(spaceId, targetUserId);
+  // Invalidate cache for the removed member so they don't see the space anymore
+  invalidateSpacesForUser(targetUserId);
 }
 
 export async function searchUsers(query: string, limit = 10) {

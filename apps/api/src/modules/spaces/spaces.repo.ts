@@ -13,9 +13,19 @@ export interface SpaceRow {
 export async function listSpacesForUser(userId: string): Promise<SpaceRow[]> {
   if (!pool) return [];
   const { rows } = await pool.query<SpaceRow>(
-    `SELECT s.* FROM spaces s
-     JOIN memberships m ON m.space_id = s.id
-     WHERE m.user_id = $1
+    `SELECT DISTINCT s.* FROM spaces s
+     WHERE 
+       -- Direct space membership
+       EXISTS (
+         SELECT 1 FROM memberships m 
+         WHERE m.space_id = s.id AND m.user_id = $1
+       )
+       OR
+       -- Organization membership (if space belongs to org)
+       (s.organization_id IS NOT NULL AND EXISTS (
+         SELECT 1 FROM organization_memberships om
+         WHERE om.organization_id = s.organization_id AND om.user_id = $1
+       ))
      ORDER BY s.name`,
     [userId]
   );

@@ -113,7 +113,7 @@ export default async function KbPage({
     return (
       <>
         <div className="flex gap-6 py-4 md:py-8">
-        <CollapsibleSidebar storageKey="kb" expandedWidth="w-64" responsive="hidden md:flex">
+        <CollapsibleSidebar storageKey="kb" resizable responsive="hidden md:flex">
           <KbSidebarContent spaces={spaces} spaceSlug={spaceSlug} tree={tree} />
         </CollapsibleSidebar>
         <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
@@ -171,7 +171,7 @@ export default async function KbPage({
   return (
     <>
       <div className="flex gap-6 py-4 md:py-8">
-      <CollapsibleSidebar storageKey="kb" expandedWidth="w-64" responsive="hidden md:flex">
+      <CollapsibleSidebar storageKey="kb" resizable responsive="hidden md:flex">
         <KbSidebarContent spaces={spaces} spaceSlug={spaceSlug} tree={tree} />
       </CollapsibleSidebar>
       <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">

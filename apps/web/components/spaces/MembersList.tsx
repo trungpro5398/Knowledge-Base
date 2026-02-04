@@ -178,7 +178,10 @@ function AddMemberForm({ spaceId, onSuccess }: { spaceId: string; onSuccess: () 
         method: "POST",
         body: { email: email.trim(), role },
       });
-      toast.success("Đã thêm member");
+      toast.success("Đã thêm member", {
+        description: "User cần refresh trang để thấy space mới",
+        duration: 5000,
+      });
       setEmail("");
       setRole("viewer");
       onSuccess();
