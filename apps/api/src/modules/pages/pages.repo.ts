@@ -46,6 +46,23 @@ export async function getPagesTree(
   return rows;
 }
 
+export async function getPublishedTreeEtag(spaceId: string): Promise<string> {
+  if (!pool) return "0:0";
+  const { rows } = await pool.query<{ count: string; max_updated: Date | null }>(
+    `SELECT COUNT(*)::text as count, MAX(p.updated_at) as max_updated
+     FROM pages p
+     LEFT JOIN trash t ON t.page_id = p.id
+     WHERE p.space_id = $1
+       AND p.status = 'published'
+       AND t.page_id IS NULL`,
+    [spaceId]
+  );
+  const row = rows[0];
+  const count = row?.count ? Number(row.count) : 0;
+  const maxUpdated = row?.max_updated ? new Date(row.max_updated).getTime() : 0;
+  return `${count}:${maxUpdated}`;
+}
+
 type PageWithVersionRow = PageRow & {
   version_id: string | null;
   version_page_id: string | null;

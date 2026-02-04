@@ -36,7 +36,7 @@ function buildTitleMap(tree: PageNode[]): Map<string, string> {
   return map;
 }
 
-function computeTreeEtag(pages: { updated_at: Date }[]): string {
+function computeTreeEtagFromPages(pages: { updated_at: Date }[]): string {
   let maxUpdated = 0;
   for (const page of pages) {
     const ts = page.updated_at instanceof Date ? page.updated_at.getTime() : new Date(page.updated_at).getTime();
@@ -49,14 +49,10 @@ export async function getPublishedTreeCached(
   spaceId: string,
   ttlMs = DEFAULT_TTL_MS
 ) {
-  if (ttlMs <= 0) {
-    const pages = await pagesRepo.getPagesTree(spaceId, { publishedOnly: true });
-    const tree = buildPagesTree(pages);
-    return { tree, pageTitleByPath: buildTitleMap(tree), etag: computeTreeEtag(pages) };
-  }
+  const currentEtag = await pagesRepo.getPublishedTreeEtag(spaceId);
   const key = `tree:${spaceId}`;
   const cached = treeCache.get(key);
-  if (cached) return cached;
+  if (cached && cached.etag === currentEtag) return cached;
   const inflight = inflightTree.get(key);
   if (inflight) return inflight;
 
@@ -64,7 +60,7 @@ export async function getPublishedTreeCached(
     const pages = await pagesRepo.getPagesTree(spaceId, { publishedOnly: true });
     const tree = buildPagesTree(pages);
     const pageTitleByPath = buildTitleMap(tree);
-    const value = { tree, pageTitleByPath, etag: computeTreeEtag(pages) };
+    const value = { tree, pageTitleByPath, etag: computeTreeEtagFromPages(pages) };
     treeCache.set(key, value, ttlMs);
     return value;
   })();
