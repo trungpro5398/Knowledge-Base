@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -352,6 +352,176 @@ function SortableTreeItem({
   );
 }
 
+function DraggablePageTree({
+  spaceId,
+  nodes,
+  createLink,
+  activePageId,
+  showCreateChild,
+}: {
+  spaceId: string;
+  nodes: TreeNode[];
+  createLink: ReactNode;
+  activePageId: string | null;
+  showCreateChild: boolean;
+}) {
+  const reorderPages = useReorderPages(spaceId);
+  const [treeNodes, setTreeNodes] = useState<TreeNode[]>(nodes);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [offsetLeft, setOffsetLeft] = useState(0);
+
+  useEffect(() => {
+    setTreeNodes(nodes);
+  }, [nodes]);
+
+  const flattenedItems = useMemo(() => flattenTree(treeNodes), [treeNodes]);
+  const visibleItems = useMemo(
+    () => removeChildrenOf(flattenedItems, activeId),
+    [flattenedItems, activeId]
+  );
+  const projected =
+    activeId && overId
+      ? getProjection(visibleItems, activeId, overId, offsetLeft, INDENTATION_WIDTH)
+      : null;
+  const itemsToRender = useMemo(
+    () =>
+      visibleItems.map((item) =>
+        item.id === activeId && projected ? { ...item, depth: projected.depth } : item
+      ),
+    [visibleItems, activeId, projected]
+  );
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
+  );
+
+  const activeItem = flattenedItems.find((item) => item.id === activeId) ?? null;
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(String(event.active.id));
+    setOverId(String(event.active.id));
+    setOffsetLeft(0);
+  };
+
+  const handleDragMove = (event: DragMoveEvent) => {
+    setOffsetLeft(event.delta.x);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    setOverId(event.over ? String(event.over.id) : null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) {
+      setActiveId(null);
+      setOverId(null);
+      setOffsetLeft(0);
+      return;
+    }
+
+    const activeKey = String(active.id);
+    const overKey = String(over.id);
+    if (activeKey === overKey) {
+      setActiveId(null);
+      setOverId(null);
+      setOffsetLeft(0);
+      return;
+    }
+
+    const currentItems = flattenTree(treeNodes);
+    const projectedMove = getProjection(
+      removeChildrenOf(currentItems, activeKey),
+      activeKey,
+      overKey,
+      offsetLeft,
+      INDENTATION_WIDTH
+    );
+
+    if (!projectedMove) {
+      setActiveId(null);
+      setOverId(null);
+      setOffsetLeft(0);
+      return;
+    }
+
+    const descendants = new Set(getDescendantIds(currentItems, activeKey));
+    if (projectedMove.parentId && descendants.has(projectedMove.parentId)) {
+      setActiveId(null);
+      setOverId(null);
+      setOffsetLeft(0);
+      return;
+    }
+
+    const nextItems = moveSubtree(currentItems, activeKey, overKey, projectedMove);
+    const previousTree = treeNodes;
+    setTreeNodes(buildTree(nextItems));
+
+    const orderMap = new Map<string | null, number>();
+    const updates = nextItems.map((item) => {
+      const parentId = item.parentId ?? null;
+      const order = orderMap.get(parentId) ?? 0;
+      orderMap.set(parentId, order + 1);
+      return { id: item.id, sort_order: order, parent_id: parentId };
+    });
+
+    try {
+      await reorderPages.mutateAsync(updates);
+    } catch {
+      setTreeNodes(previousTree);
+    } finally {
+      setActiveId(null);
+      setOverId(null);
+      setOffsetLeft(0);
+    }
+  };
+
+  return (
+    <div>
+      {createLink}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragMove={handleDragMove}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+        onDragCancel={() => {
+          setActiveId(null);
+          setOverId(null);
+          setOffsetLeft(0);
+        }}
+      >
+        <SortableContext
+          items={itemsToRender.map((item) => item.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <ul className="space-y-1">
+            {itemsToRender.map((item) => (
+              <SortableTreeItem
+                key={item.id}
+                item={item}
+                depth={item.depth}
+                spaceId={spaceId}
+                isActive={activePageId === item.id}
+                showCreateChild={showCreateChild}
+              />
+            ))}
+          </ul>
+        </SortableContext>
+
+        <DragOverlay>
+          {activeItem ? (
+            <div className="rounded-md border bg-card shadow-lg px-3 py-2 text-sm font-medium">
+              {activeItem.title}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
+  );
+}
+
 export function PageTree({
   spaceId,
   spaceSlug,
@@ -371,17 +541,7 @@ export function PageTree({
       ? pathname.match(/\/admin\/spaces\/[^/]+\/([^/]+)$/)?.[1] ?? null
       : null;
   const canDrag = enableDragAndDrop && linkMode === "admin" && !(groupConfig && groupConfig.length > 0);
-  const reorderPages = useReorderPages(spaceId);
-  const [treeNodes, setTreeNodes] = useState<TreeNode[]>(nodes);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
-  const [offsetLeft, setOffsetLeft] = useState(0);
-
-  useEffect(() => {
-    setTreeNodes(nodes);
-  }, [nodes]);
-
-  const effectiveNodes = canDrag ? treeNodes : nodes;
+  const effectiveNodes = nodes;
 
   if (isLoading) {
     return (
@@ -429,151 +589,15 @@ export function PageTree({
       </div>
     ) : null;
 
-  const flattenedItems = useMemo(() => flattenTree(treeNodes), [treeNodes]);
-  const visibleItems = useMemo(
-    () => removeChildrenOf(flattenedItems, activeId),
-    [flattenedItems, activeId]
-  );
-  const projected =
-    activeId && overId
-      ? getProjection(visibleItems, activeId, overId, offsetLeft, INDENTATION_WIDTH)
-      : null;
-  const itemsToRender = useMemo(
-    () =>
-      visibleItems.map((item) =>
-        item.id === activeId && projected ? { ...item, depth: projected.depth } : item
-      ),
-    [visibleItems, activeId, projected]
-  );
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
-  );
-
   if (canDrag) {
-    const activeItem = flattenedItems.find((item) => item.id === activeId) ?? null;
-
-    const handleDragStart = (event: DragStartEvent) => {
-      setActiveId(String(event.active.id));
-      setOverId(String(event.active.id));
-      setOffsetLeft(0);
-    };
-
-    const handleDragMove = (event: DragMoveEvent) => {
-      setOffsetLeft(event.delta.x);
-    };
-
-    const handleDragOver = (event: DragOverEvent) => {
-      setOverId(event.over ? String(event.over.id) : null);
-    };
-
-    const handleDragEnd = async (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over) {
-        setActiveId(null);
-        setOverId(null);
-        setOffsetLeft(0);
-        return;
-      }
-
-      const activeKey = String(active.id);
-      const overKey = String(over.id);
-      if (activeKey === overKey) {
-        setActiveId(null);
-        setOverId(null);
-        setOffsetLeft(0);
-        return;
-      }
-
-      const currentItems = flattenTree(treeNodes);
-      const projectedMove = getProjection(
-        removeChildrenOf(currentItems, activeKey),
-        activeKey,
-        overKey,
-        offsetLeft,
-        INDENTATION_WIDTH
-      );
-
-      if (!projectedMove) {
-        setActiveId(null);
-        setOverId(null);
-        setOffsetLeft(0);
-        return;
-      }
-
-      const descendants = new Set(getDescendantIds(currentItems, activeKey));
-      if (projectedMove.parentId && descendants.has(projectedMove.parentId)) {
-        setActiveId(null);
-        setOverId(null);
-        setOffsetLeft(0);
-        return;
-      }
-
-      const nextItems = moveSubtree(currentItems, activeKey, overKey, projectedMove);
-      const previousTree = treeNodes;
-      setTreeNodes(buildTree(nextItems));
-
-      const orderMap = new Map<string | null, number>();
-      const updates = nextItems.map((item) => {
-        const parentId = item.parentId ?? null;
-        const order = orderMap.get(parentId) ?? 0;
-        orderMap.set(parentId, order + 1);
-        return { id: item.id, sort_order: order, parent_id: parentId };
-      });
-
-      try {
-        await reorderPages.mutateAsync(updates);
-      } catch {
-        setTreeNodes(previousTree);
-      } finally {
-        setActiveId(null);
-        setOverId(null);
-        setOffsetLeft(0);
-      }
-    };
-
     return (
-      <div>
-        {createLink}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragMove={handleDragMove}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-          onDragCancel={() => {
-            setActiveId(null);
-            setOverId(null);
-            setOffsetLeft(0);
-          }}
-        >
-          <SortableContext
-            items={itemsToRender.map((item) => item.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <ul className="space-y-1">
-              {itemsToRender.map((item) => (
-                <SortableTreeItem
-                  key={item.id}
-                  item={item}
-                  depth={item.depth}
-                  spaceId={spaceId}
-                  isActive={activePageId === item.id}
-                  showCreateChild={showCreateChild}
-                />
-              ))}
-            </ul>
-          </SortableContext>
-
-          <DragOverlay>
-            {activeItem ? (
-              <div className="rounded-md border bg-card shadow-lg px-3 py-2 text-sm font-medium">
-                {activeItem.title}
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      </div>
+      <DraggablePageTree
+        spaceId={spaceId}
+        nodes={effectiveNodes}
+        createLink={createLink}
+        activePageId={activePageId}
+        showCreateChild={showCreateChild}
+      />
     );
   }
 

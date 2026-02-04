@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import compress from "@fastify/compress";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
@@ -15,6 +16,7 @@ await fastify.register(cors, {
   origin: config.corsOrigins,
   credentials: true,
 });
+await fastify.register(compress);
 await fastify.register(rateLimit, {
   max: 100,
   timeWindow: "15 minutes",

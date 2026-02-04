@@ -46,9 +46,6 @@ export async function publicRoutes(fastify: FastifyInstance) {
       return reply.status(404).send({ status: "error", message: "Page not found" });
     }
 
-    const { tree, pageTitleByPath } = await getPublishedTreeCached(space.id);
-    const breadcrumb = buildBreadcrumb(spaceSlug, path, page.title, pageTitleByPath);
-
     const etag = `"${page.id}:${page.current_version_id ?? "none"}"`;
     const ifNoneMatch = request.headers["if-none-match"];
     if (ifNoneMatch === etag || ifNoneMatch === `W/${etag}`) {
@@ -57,6 +54,8 @@ export async function publicRoutes(fastify: FastifyInstance) {
       return reply.status(304).send();
     }
 
+    const { tree, pageTitleByPath } = await getPublishedTreeCached(space.id);
+    const breadcrumb = buildBreadcrumb(spaceSlug, path, page.title, pageTitleByPath);
     const version = page.version as { content_md?: string; rendered_html?: string; toc_json?: unknown[] } | undefined;
     const data = {
       page: { id: page.id, title: page.title, path: page.path, status: page.status },

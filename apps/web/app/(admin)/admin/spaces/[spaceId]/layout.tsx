@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import type { ApiResponse, Space, PageNode } from "@/lib/api/types";
 import { TET_PROSYS_GROUPS } from "@/lib/kb/sidebar-groups";
+import { cn } from "@/lib/utils";
 
 async function getSpace(spaceId: string, token: string): Promise<Space | null> {
   try {
@@ -24,6 +25,15 @@ async function getTree(spaceId: string, token: string): Promise<TreeNode[]> {
   }
 }
 
+async function getSpaces(token: string): Promise<Space[]> {
+  try {
+    const res = await apiClient<ApiResponse<Space[]>>("/api/spaces", { token });
+    return res.data;
+  } catch {
+    return [];
+  }
+}
+
 export default async function SpaceLayout({
   children,
   params,
@@ -36,9 +46,10 @@ export default async function SpaceLayout({
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token ?? "";
 
-  const [space, tree] = await Promise.all([
+  const [space, tree, spaces] = await Promise.all([
     getSpace(spaceId, token),
     getTree(spaceId, token),
+    getSpaces(token),
   ]);
 
   if (!space) {
@@ -78,6 +89,36 @@ export default async function SpaceLayout({
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Sidebar: Page Tree */}
         <aside className="hidden lg:block w-72 border-r border-border bg-card/40 overflow-y-auto shrink-0">
+          <div className="p-4 border-b border-border/70">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Spaces
+              </span>
+              <Link
+                href="/admin"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                + Tạo
+              </Link>
+            </div>
+            <div className="mt-3 space-y-1">
+              {spaces.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/admin/spaces/${item.id}`}
+                  className={cn(
+                    "flex flex-col gap-0.5 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-muted/60",
+                    item.id === space.id && "bg-primary/10 text-primary"
+                  )}
+                >
+                  <span className="font-medium truncate">{item.name}</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    /kb/{item.slug}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
           <div className="p-4">
             <PageTree
               spaceId={spaceId}

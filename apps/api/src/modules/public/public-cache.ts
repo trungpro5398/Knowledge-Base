@@ -1,27 +1,28 @@
 import * as pagesRepo from "../pages/pages.repo.js";
-import * as pagesService from "../pages/pages.service.js";
 import { TtlCache } from "../../utils/ttl-cache.js";
 import { config } from "../../config/env.js";
-import type { PageRow } from "../pages/pages.repo.js";
-
-type TreeNode = PageRow & { children: TreeNode[] };
+import { buildPagesTree, type PageNode } from "../pages/pages-tree.js";
 
 const DEFAULT_TTL_MS = Math.max(0, config.publicCacheTtlMs);
 const MAX_ENTRIES = Math.max(1, config.publicCacheMaxEntries || 200);
 
 const treeCache = new TtlCache<{
-  tree: TreeNode[];
+  tree: PageNode[];
   pageTitleByPath: Map<string, string>;
 }>({ defaultTtlMs: DEFAULT_TTL_MS, maxEntries: MAX_ENTRIES });
 
-const pageCache = new TtlCache<Awaited<ReturnType<typeof pagesRepo.getPageByPath>>>(
-  { defaultTtlMs: DEFAULT_TTL_MS, maxEntries: MAX_ENTRIES }
-);
+const pageCache = new TtlCache<Awaited<ReturnType<typeof pagesRepo.getPageByPath>>>({
+  defaultTtlMs: DEFAULT_TTL_MS,
+  maxEntries: MAX_ENTRIES,
+});
 
-const inflightTree = new Map<string, Promise<{ tree: TreeNode[]; pageTitleByPath: Map<string, string> }>>();
+const inflightTree = new Map<
+  string,
+  Promise<{ tree: PageNode[]; pageTitleByPath: Map<string, string> }>
+>();
 const inflightPage = new Map<string, Promise<Awaited<ReturnType<typeof pagesRepo.getPageByPath>>>>();
 
-function buildTitleMap(tree: TreeNode[]): Map<string, string> {
+function buildTitleMap(tree: PageNode[]): Map<string, string> {
   const map = new Map<string, string>();
   const stack = [...tree];
   while (stack.length > 0) {
@@ -39,9 +40,8 @@ export async function getPublishedTreeCached(
   ttlMs = DEFAULT_TTL_MS
 ) {
   if (ttlMs <= 0) {
-    const tree = (await pagesService.getPagesTree(spaceId, {
-      publishedOnly: true,
-    })) as TreeNode[];
+    const pages = await pagesRepo.getPagesTree(spaceId, { publishedOnly: true });
+    const tree = buildPagesTree(pages);
     return { tree, pageTitleByPath: buildTitleMap(tree) };
   }
   const key = `tree:${spaceId}`;
@@ -51,9 +51,8 @@ export async function getPublishedTreeCached(
   if (inflight) return inflight;
 
   const promise = (async () => {
-    const tree = (await pagesService.getPagesTree(spaceId, {
-      publishedOnly: true,
-    })) as TreeNode[];
+    const pages = await pagesRepo.getPagesTree(spaceId, { publishedOnly: true });
+    const tree = buildPagesTree(pages);
     const pageTitleByPath = buildTitleMap(tree);
     const value = { tree, pageTitleByPath };
     treeCache.set(key, value, ttlMs);

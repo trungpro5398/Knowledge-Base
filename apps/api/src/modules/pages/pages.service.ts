@@ -6,6 +6,7 @@ import { config } from "../../config/env.js";
 import { NotFoundError, ValidationError } from "../../utils/errors.js";
 import { compileMarkdown } from "../../utils/markdown.js";
 import type { PageRow } from "./pages.repo.js";
+import { buildPagesTree } from "./pages-tree.js";
 
 async function callRevalidate(path: string, tag: string): Promise<void> {
   if (!config.webRevalidateUrl || !config.revalidateSecret) return;
@@ -26,45 +27,12 @@ async function callRevalidate(path: string, tag: string): Promise<void> {
   }
 }
 
-type PageNode = PageRow & { children: PageNode[] };
-
-function buildTree(pages: PageRow[]): PageNode[] {
-  const childrenByParent = new Map<string | null, PageRow[]>();
-  for (const page of pages) {
-    const key = page.parent_id ?? null;
-    const list = childrenByParent.get(key);
-    if (list) {
-      list.push(page);
-    } else {
-      childrenByParent.set(key, [page]);
-    }
-  }
-
-  for (const list of childrenByParent.values()) {
-    list.sort(
-      (a, b) =>
-        (a.sort_order ?? 0) - (b.sort_order ?? 0) ||
-        String(a.path).localeCompare(String(b.path))
-    );
-  }
-
-  const build = (parentId: string | null): PageNode[] => {
-    const children = childrenByParent.get(parentId) ?? [];
-    return children.map((child) => ({
-      ...child,
-      children: build(child.id),
-    }));
-  };
-
-  return build(null);
-}
-
 export async function getPagesTree(
   spaceId: string,
   options?: { publishedOnly?: boolean }
 ) {
   const pages = await pagesRepo.getPagesTree(spaceId, options);
-  return buildTree(pages);
+  return buildPagesTree(pages);
 }
 
 export async function getPage(id: string) {
@@ -155,7 +123,7 @@ export async function publishPage(pageId: string, versionId: string) {
     const kbPath = pathSegments.length > 0
       ? `/kb/${space.slug}/${pathSegments.join("/")}`
       : `/kb/${space.slug}`;
-    await callRevalidate(kbPath, "kb");
+    void callRevalidate(kbPath, "kb");
   }
   invalidatePublishedSpace(page.space_id);
 
