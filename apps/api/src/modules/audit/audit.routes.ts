@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import type { AuthHandlers } from "../../routes/auth-types.js";
-import * as auditRepo from "./audit.repo.js";
+import { listAuditEventsCached } from "./audit-cache.js";
 
 export async function auditRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   const { authenticate, requireSpaceRole } = auth;
@@ -29,7 +29,7 @@ export async function auditRoutes(fastify: FastifyInstance, auth: AuthHandlers) 
       const spaceId = query.space;
       const page = Math.max(1, parseInt(query.page || "1", 10));
       const limit = Math.min(100, Math.max(1, parseInt(query.limit || "20", 10)));
-      const { events, total } = await auditRepo.listAuditEvents({
+      const { events, total } = await listAuditEventsCached({
         spaceId,
         actorId: query.actor,
         resourceType: query.resource_type,

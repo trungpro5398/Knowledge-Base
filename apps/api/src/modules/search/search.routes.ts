@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import type { AuthHandlers } from "../../routes/auth-types.js";
-import * as searchRepo from "./search.repo.js";
+import { searchCached } from "./search-cache.js";
 import { searchQuerySchema } from "@kb/shared";
 
 export async function searchRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
@@ -19,7 +19,7 @@ export async function searchRoutes(fastify: FastifyInstance, auth: AuthHandlers)
       const { q, space, tags, status, page, limit } = parsed.data;
       const tagIds = tags?.split(",").filter(Boolean);
       const userId = request.user!.id;
-      const { results, total } = await searchRepo.search({
+      const { results, total } = await searchCached({
         userId,
         q,
         spaceId: space,

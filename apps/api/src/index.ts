@@ -8,8 +8,22 @@ import { logger } from "./config/logger.js";
 import authPlugin from "./plugins/auth.js";
 import rbacPlugin from "./plugins/rbac.js";
 import { registerRoutes } from "./routes/index.js";
+import { recordRequest } from "./utils/metrics.js";
 
 const fastify = Fastify({ logger: logger as any });
+
+fastify.addHook("onRequest", (request, _reply, done) => {
+  request._startAt = process.hrtime.bigint();
+  done();
+});
+
+fastify.addHook("onResponse", (request, reply, done) => {
+  if (request._startAt) {
+    const durationMs = Number(process.hrtime.bigint() - request._startAt) / 1_000_000;
+    recordRequest(request, reply, durationMs);
+  }
+  done();
+});
 
 await fastify.register(helmet, { contentSecurityPolicy: false });
 await fastify.register(cors, {

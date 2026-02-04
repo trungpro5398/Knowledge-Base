@@ -1,5 +1,7 @@
 import { FastifyInstance } from "fastify";
 import type { AuthHandlers } from "./auth-types.js";
+import { config } from "../config/env.js";
+import { getMetricsSnapshot } from "../utils/metrics.js";
 import { publicRoutes } from "../modules/public/public.routes.js";
 import { organizationsRoutes } from "../modules/organizations/organizations.routes.js";
 import { spacesRoutes } from "../modules/spaces/spaces.routes.js";
@@ -25,6 +27,17 @@ export async function registerRoutes(fastify: FastifyInstance) {
   });
 
   fastify.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
+  fastify.get("/metrics", async (request, reply) => {
+    if (!config.metricsToken) {
+      return reply.status(404).send();
+    }
+    const authHeader = request.headers.authorization;
+    const token = authHeader?.replace(/^Bearer\s+/i, "");
+    if (!token || token !== config.metricsToken) {
+      return reply.status(401).send({ status: "error", message: "Unauthorized" });
+    }
+    return { data: getMetricsSnapshot() };
+  });
 
   if (typeof fastify.authenticate !== "function") {
     throw new Error("Auth plugin must be registered before routes. Ensure authPlugin runs and decorates fastify.authenticate.");

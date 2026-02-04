@@ -17,4 +17,5 @@ export const config = {
   publicCacheMaxEntries: parseIntOr(process.env.PUBLIC_CACHE_MAX_ENTRIES, 200),
   internalCacheTtlMs: parseIntOr(process.env.INTERNAL_CACHE_TTL_MS, 5000),
   internalCacheMaxEntries: parseIntOr(process.env.INTERNAL_CACHE_MAX_ENTRIES, 500),
+  metricsToken: process.env.METRICS_TOKEN || "",
 };
