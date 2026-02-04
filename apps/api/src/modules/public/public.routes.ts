@@ -13,7 +13,7 @@ function buildBreadcrumb(
   spaceSlug: string,
   path: string,
   pageTitle: string,
-  flatPages: { path: string; title: string }[]
+  pageTitleByPath: Map<string, string>
 ): { title: string; path: string }[] {
   const parts = path.split(".").filter(Boolean);
   const crumbs: { title: string; path: string }[] = [
@@ -23,8 +23,7 @@ function buildBreadcrumb(
   let acc = "";
   for (let i = 0; i < parts.length; i++) {
     acc += (acc ? "." : "") + parts[i];
-    const page = flatPages.find((p) => p.path === acc);
-    crumbs.push({ title: page?.title ?? parts[i], path: acc });
+    crumbs.push({ title: pageTitleByPath.get(acc) ?? parts[i], path: acc });
   }
   if (parts.length > 0 && crumbs[crumbs.length - 1]!.title !== pageTitle) {
     crumbs[crumbs.length - 1]!.title = pageTitle;
@@ -68,7 +67,8 @@ export async function publicRoutes(fastify: FastifyInstance) {
 
     const tree = await pagesService.getPagesTree(space.id, { publishedOnly: true });
     const flatPages = flattenTree(tree as unknown as (PageRow & { children?: unknown[] })[]);
-    const breadcrumb = buildBreadcrumb(spaceSlug, path, page.title, flatPages);
+    const pageTitleByPath = new Map(flatPages.map((item) => [item.path, item.title]));
+    const breadcrumb = buildBreadcrumb(spaceSlug, path, page.title, pageTitleByPath);
 
     const etag = `"${page.id}:${page.current_version_id ?? "none"}"`;
     const ifNoneMatch = request.headers["if-none-match"];

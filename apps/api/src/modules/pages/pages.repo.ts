@@ -35,51 +35,109 @@ export async function getPagesTree(
   if (!pool) return [];
   const publishedOnly = options?.publishedOnly === true;
   const { rows } = await pool.query<PageRow>(
-    `SELECT * FROM pages
-     WHERE space_id = $1
-     AND id NOT IN (SELECT page_id FROM trash)
-     ${publishedOnly ? "AND status = 'published'" : ""}
-     ORDER BY path`,
+    `SELECT p.* FROM pages p
+     LEFT JOIN trash t ON t.page_id = p.id
+     WHERE p.space_id = $1
+     AND t.page_id IS NULL
+     ${publishedOnly ? "AND p.status = 'published'" : ""}`,
     [spaceId]
   );
   return rows;
 }
 
+type PageWithVersionRow = PageRow & {
+  version_id: string | null;
+  version_page_id: string | null;
+  content_md: string | null;
+  content_json: Record<string, unknown> | null;
+  summary: string | null;
+  rendered_html: string | null;
+  toc_json: Record<string, unknown>[] | null;
+  version_created_by: string | null;
+  version_created_at: Date | null;
+};
+
+function mapPageWithVersion(row: PageWithVersionRow): PageRow & { version?: PageVersionRow } {
+  const version = row.version_id
+    ? {
+        id: row.version_id,
+        page_id: row.version_page_id!,
+        content_md: row.content_md,
+        content_json: row.content_json,
+        summary: row.summary,
+        rendered_html: row.rendered_html,
+        toc_json: row.toc_json,
+        created_by: row.version_created_by!,
+        created_at: row.version_created_at!,
+      }
+    : undefined;
+
+  const {
+    version_id: _versionId,
+    version_page_id: _versionPageId,
+    content_md: _contentMd,
+    content_json: _contentJson,
+    summary: _summary,
+    rendered_html: _renderedHtml,
+    toc_json: _tocJson,
+    version_created_by: _versionCreatedBy,
+    version_created_at: _versionCreatedAt,
+    ...page
+  } = row;
+
+  return { ...page, version };
+}
+
 export async function getPageById(id: string, includeTrashed = false): Promise<(PageRow & { version?: PageVersionRow }) | null> {
   if (!pool) return null;
-  let query = "SELECT * FROM pages WHERE id = $1";
-  if (!includeTrashed) query += " AND id NOT IN (SELECT page_id FROM trash)";
-  const { rows } = await pool.query<PageRow>(query, [id]);
-  const page = rows[0];
-  if (!page) return null;
-
-  if (page.current_version_id) {
-    const { rows: vRows } = await pool.query<PageVersionRow>(
-      "SELECT * FROM page_versions WHERE id = $1",
-      [page.current_version_id]
-    );
-    return { ...page, version: vRows[0] ?? undefined };
-  }
-  return { ...page, version: undefined };
+  const { rows } = await pool.query<PageWithVersionRow>(
+    `SELECT 
+       p.*,
+       pv.id as version_id,
+       pv.page_id as version_page_id,
+       pv.content_md,
+       pv.content_json,
+       pv.summary,
+       pv.rendered_html,
+       pv.toc_json,
+       pv.created_by as version_created_by,
+       pv.created_at as version_created_at
+     FROM pages p
+     LEFT JOIN page_versions pv ON pv.id = p.current_version_id
+     LEFT JOIN trash t ON t.page_id = p.id
+     WHERE p.id = $1
+     ${includeTrashed ? "" : "AND t.page_id IS NULL"}`,
+    [id]
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return mapPageWithVersion(row);
 }
 
 export async function getPageByPath(spaceId: string, path: string): Promise<(PageRow & { version?: PageVersionRow }) | null> {
   if (!pool) return null;
-  const { rows } = await pool.query<PageRow>(
-    "SELECT * FROM pages WHERE space_id = $1 AND path = $2 AND status = 'published'",
+  const { rows } = await pool.query<PageWithVersionRow>(
+    `SELECT 
+       p.*,
+       pv.id as version_id,
+       pv.page_id as version_page_id,
+       pv.content_md,
+       pv.content_json,
+       pv.summary,
+       pv.rendered_html,
+       pv.toc_json,
+       pv.created_by as version_created_by,
+       pv.created_at as version_created_at
+     FROM pages p
+     LEFT JOIN page_versions pv ON pv.id = p.current_version_id
+     LEFT JOIN trash t ON t.page_id = p.id
+     WHERE p.space_id = $1 AND p.path = $2 AND p.status = 'published'
+     AND t.page_id IS NULL`,
     [spaceId, path]
   );
-  const page = rows[0];
-  if (!page) return null;
-
-  if (page.current_version_id) {
-    const { rows: vRows } = await pool.query<PageVersionRow>(
-      "SELECT * FROM page_versions WHERE id = $1",
-      [page.current_version_id]
-    );
-    return { ...page, version: vRows[0] ?? undefined };
-  }
-  return { ...page, version: undefined };
+  const row = rows[0];
+  if (!row) return null;
+  return mapPageWithVersion(row);
 }
 
 export async function createPage(data: {
@@ -159,6 +217,41 @@ export async function updatePage(
     values
   );
   return rows[0] ?? null;
+}
+
+export async function reorderPages(
+  spaceId: string,
+  updates: Array<{ id: string; sort_order: number; parent_id?: string | null }>
+): Promise<void> {
+  if (!pool || updates.length === 0) return;
+
+  const values: unknown[] = [];
+  const rowsSql = updates
+    .map((update, index) => {
+      const parentIdProvided = Object.prototype.hasOwnProperty.call(update, "parent_id");
+      const base = index * 4;
+      values.push(
+        update.id,
+        update.sort_order,
+        parentIdProvided ? update.parent_id ?? null : null,
+        parentIdProvided
+      );
+      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
+    })
+    .join(", ");
+
+  values.push(spaceId);
+  const spaceParam = values.length;
+
+  await pool.query(
+    `UPDATE pages AS p
+     SET sort_order = u.sort_order,
+         parent_id = CASE WHEN u.parent_id_set THEN u.parent_id ELSE p.parent_id END,
+         updated_at = NOW()
+     FROM (VALUES ${rowsSql}) AS u(id, sort_order, parent_id, parent_id_set)
+     WHERE p.id = u.id AND p.space_id = $${spaceParam}`,
+    values
+  );
 }
 
 export async function createVersion(data: {

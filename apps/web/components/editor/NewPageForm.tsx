@@ -52,7 +52,7 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
       };
       if (templateId) body.template_id = templateId;
       const res = await api.post<ApiResponse<Page>>("/api/pages", body);
-      router.push(`/admin/spaces/${spaceId}/pages/${res.data.id}/edit`);
+      router.push(`/admin/spaces/${spaceId}/${res.data.id}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Tạo thất bại");
     } finally {

@@ -21,7 +21,7 @@ export async function search(params: {
   if (!pool) return { results: [], total: 0 };
 
   const conditions: string[] = [
-    "p.id NOT IN (SELECT page_id FROM trash)",
+    "t.page_id IS NULL",
     "EXISTS (SELECT 1 FROM memberships m WHERE m.space_id = p.space_id AND m.user_id = $1)",
   ];
   const values: unknown[] = [params.userId];
@@ -57,6 +57,7 @@ export async function search(params: {
             left(COALESCE(pv.content_md, ''), 200) as content_snippet, p.space_id,
             count(*) OVER()::text as total
      FROM pages p
+     LEFT JOIN trash t ON t.page_id = p.id
      LEFT JOIN page_versions pv ON pv.id = p.current_version_id
      WHERE ${whereClause}
      ORDER BY p.updated_at DESC

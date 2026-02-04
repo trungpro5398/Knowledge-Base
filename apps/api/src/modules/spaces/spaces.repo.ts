@@ -22,6 +22,15 @@ export async function listSpacesForUser(userId: string): Promise<SpaceRow[]> {
   return rows;
 }
 
+export async function hasMembership(userId: string, spaceId: string): Promise<boolean> {
+  if (!pool) return false;
+  const { rows } = await pool.query(
+    "SELECT 1 FROM memberships WHERE user_id = $1 AND space_id = $2",
+    [userId, spaceId]
+  );
+  return rows.length > 0;
+}
+
 export async function getSpaceById(id: string): Promise<SpaceRow | null> {
   if (!pool) return null;
   const { rows } = await pool.query<SpaceRow>("SELECT * FROM spaces WHERE id = $1", [id]);
@@ -63,12 +72,13 @@ export async function getSpacesStats(userId: string): Promise<SpaceStats[]> {
   const { rows } = await pool.query<SpaceStats>(
     `SELECT 
        s.id as space_id,
-       COUNT(p.id)::int as total_pages,
-       COUNT(CASE WHEN p.status = 'published' THEN 1 END)::int as published_pages,
-       COUNT(CASE WHEN p.status = 'draft' THEN 1 END)::int as draft_pages
+       COUNT(p.id) FILTER (WHERE t.page_id IS NULL)::int as total_pages,
+       COUNT(p.id) FILTER (WHERE t.page_id IS NULL AND p.status = 'published')::int as published_pages,
+       COUNT(p.id) FILTER (WHERE t.page_id IS NULL AND p.status = 'draft')::int as draft_pages
      FROM spaces s
      JOIN memberships m ON m.space_id = s.id
-     LEFT JOIN pages p ON s.id = p.space_id AND p.deleted_at IS NULL
+     LEFT JOIN pages p ON s.id = p.space_id
+     LEFT JOIN trash t ON t.page_id = p.id
      WHERE m.user_id = $1
      GROUP BY s.id`,
     [userId]

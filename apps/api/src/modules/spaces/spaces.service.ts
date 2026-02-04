@@ -17,8 +17,8 @@ export async function getSpace(id: string, userId: string) {
   const space = await spacesRepo.getSpaceById(id);
   if (!space) throw new NotFoundError("Space not found");
 
-  const membership = await spacesRepo.listSpacesForUser(userId);
-  if (!membership.some((s) => s.id === id)) {
+  const hasAccess = await spacesRepo.hasMembership(userId, id);
+  if (!hasAccess) {
     throw new NotFoundError("Space not found");
   }
   return space;

@@ -1,7 +1,7 @@
 import * as pagesRepo from "./pages.repo.js";
 import * as templatesRepo from "./templates.repo.js";
 import { config } from "../../config/env.js";
-import { NotFoundError, ValidationError } from "../../utils/errors.js";
+import { NotFoundError } from "../../utils/errors.js";
 import { compileMarkdown } from "../../utils/markdown.js";
 import type { PageRow } from "./pages.repo.js";
 
@@ -24,14 +24,37 @@ async function callRevalidate(path: string, tag: string): Promise<void> {
   }
 }
 
-function buildTree(pages: PageRow[], parentId: string | null = null): (PageRow & { children: (PageRow & { children: unknown[] })[] })[] {
-  return pages
-    .filter((p) => p.parent_id === parentId)
-    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || String(a.path).localeCompare(String(b.path)))
-    .map((p) => ({
-      ...p,
-      children: buildTree(pages, p.id),
+type PageNode = PageRow & { children: PageNode[] };
+
+function buildTree(pages: PageRow[]): PageNode[] {
+  const childrenByParent = new Map<string | null, PageRow[]>();
+  for (const page of pages) {
+    const key = page.parent_id ?? null;
+    const list = childrenByParent.get(key);
+    if (list) {
+      list.push(page);
+    } else {
+      childrenByParent.set(key, [page]);
+    }
+  }
+
+  for (const list of childrenByParent.values()) {
+    list.sort(
+      (a, b) =>
+        (a.sort_order ?? 0) - (b.sort_order ?? 0) ||
+        String(a.path).localeCompare(String(b.path))
+    );
+  }
+
+  const build = (parentId: string | null): PageNode[] => {
+    const children = childrenByParent.get(parentId) ?? [];
+    return children.map((child) => ({
+      ...child,
+      children: build(child.id),
     }));
+  };
+
+  return build(null);
 }
 
 export async function getPagesTree(
@@ -141,16 +164,7 @@ export async function reorderPages(
   spaceId: string,
   updates: Array<{ id: string; sort_order: number; parent_id?: string | null }>
 ): Promise<void> {
-  // Batch update all pages in a transaction
-  for (const update of updates) {
-    const data: { sort_order?: number; parent_id?: string | null } = {};
-    if (update.sort_order !== undefined) data.sort_order = update.sort_order;
-    if (update.parent_id !== undefined) data.parent_id = update.parent_id;
-    
-    if (Object.keys(data).length > 0) {
-      await pagesRepo.updatePage(update.id, data);
-    }
-  }
+  await pagesRepo.reorderPages(spaceId, updates);
 }
 
 export async function softDeletePage(pageId: string, userId: string) {

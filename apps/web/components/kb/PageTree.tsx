@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FileText, Pencil, FolderOpen } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -41,6 +42,7 @@ function TreeNodeItem({
   path,
   showEditLink,
   linkMode,
+  activePageId,
 }: {
   node: TreeNode;
   spaceId: string;
@@ -48,19 +50,26 @@ function TreeNodeItem({
   path: string[];
   showEditLink: boolean;
   linkMode: "kb" | "admin";
+  activePageId?: string | null;
 }) {
   const href =
     linkMode === "admin"
-      ? `/admin/spaces/${spaceId}/pages/${node.id}/edit`
+      ? `/admin/spaces/${spaceId}/${node.id}`
       : `/kb/${spaceSlug}/${path.join("/")}`;
   const editHref = `/admin/spaces/${spaceId}/pages/${node.id}/edit`;
+  const isActive = linkMode === "admin" && activePageId === node.id;
+  
   return (
     <li className="border-l border-border pl-4 py-2 first:pt-0">
-      <div className="flex items-center gap-2 group">
+      <div className={`flex items-center gap-2 group ${isActive ? "bg-primary/10 rounded-md px-2 py-1 -ml-2" : ""}`}>
         <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
         <Link
           href={href}
-          className="text-sm font-medium hover:text-primary transition-colors flex-1 truncate"
+          className={`text-sm font-medium transition-colors flex-1 truncate ${
+            isActive
+              ? "text-primary font-semibold"
+              : "hover:text-primary"
+          }`}
           prefetch={true}
         >
           {node.title}
@@ -87,6 +96,7 @@ function TreeNodeItem({
               path={[...path, child.slug]}
               showEditLink={showEditLink}
               linkMode={linkMode}
+              activePageId={activePageId}
             />
           ))}
         </ul>
@@ -111,6 +121,12 @@ export function PageTree({
   groupConfig,
   linkMode = "kb",
 }: PageTreeProps) {
+  const pathname = usePathname();
+  // Extract active pageId from URL if in admin mode
+  const activePageId =
+    linkMode === "admin" && pathname
+      ? pathname.match(/\/admin\/spaces\/[^/]+\/([^/]+)$/)?.[1] ?? null
+      : null;
 
   if (isLoading) {
     return (
@@ -167,6 +183,7 @@ export function PageTree({
                     path={[node.slug]}
                     showEditLink={showEditLink}
                     linkMode={linkMode}
+                    activePageId={activePageId}
                   />
                 ))}
               </ul>
@@ -188,6 +205,7 @@ export function PageTree({
                   path={[node.slug]}
                   showEditLink={showEditLink}
                   linkMode={linkMode}
+                  activePageId={activePageId}
                 />
               ))}
             </ul>
@@ -208,6 +226,7 @@ export function PageTree({
           path={[node.slug]}
           showEditLink={showEditLink}
           linkMode={linkMode}
+          activePageId={activePageId}
         />
       ))}
     </ul>

@@ -12,12 +12,3 @@ export async function removeWatcher(pageId: string, userId: string): Promise<voi
   if (!pool) return;
   await pool.query("DELETE FROM watchers WHERE user_id = $1 AND page_id = $2", [userId, pageId]);
 }
-
-export async function isWatching(pageId: string, userId: string): Promise<boolean> {
-  if (!pool) return false;
-  const { rows } = await pool.query(
-    "SELECT 1 FROM watchers WHERE user_id = $1 AND page_id = $2",
-    [userId, pageId]
-  );
-  return rows.length > 0;
-}

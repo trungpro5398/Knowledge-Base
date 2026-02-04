@@ -24,7 +24,7 @@ export function CreateSpaceForm() {
       const finalSlug = slug || generateSlug(name) || "new-space";
       await apiClient("/api/spaces", {
         method: "POST",
-        body: JSON.stringify({ name: finalName, slug: finalSlug }),
+        body: { name: finalName, slug: finalSlug },
       });
       router.refresh();
       setName("");

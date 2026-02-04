@@ -6,17 +6,16 @@ export async function watchersRoutes(fastify: FastifyInstance, auth: AuthHandler
   fastify.post(
     "/pages/:id/watchers",
     { preHandler: [auth.authenticate, auth.requirePageRole("viewer")] },
-    async (request, reply) => {
+    async (request) => {
       const { id } = request.params as { id: string };
-      const body = request.body as { watch?: boolean };
+      const body = (request.body ?? {}) as { watch?: boolean };
       const userId = request.user!.id;
       if (body.watch !== false) {
         await watchersRepo.addWatcher(id, userId);
       } else {
         await watchersRepo.removeWatcher(id, userId);
       }
-      const watching = await watchersRepo.isWatching(id, userId);
-      return { data: { watching } };
+      return { data: { watching: body.watch !== false } };
     }
   );
 }

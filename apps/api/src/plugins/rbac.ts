@@ -5,6 +5,10 @@ import { pool } from "../db/pool.js";
 type Role = "viewer" | "editor" | "admin";
 const ROLE_HIERARCHY: Record<Role, number> = { viewer: 0, editor: 1, admin: 2 };
 
+function hasMinRole(role: Role, minRole: Role): boolean {
+  return ROLE_HIERARCHY[role] >= ROLE_HIERARCHY[minRole];
+}
+
 async function getMemberRole(userId: string, spaceId: string): Promise<Role | null> {
   const { rows } = await pool.query<{ role: Role }>(
     "SELECT role FROM memberships WHERE user_id = $1 AND space_id = $2",
@@ -13,12 +17,20 @@ async function getMemberRole(userId: string, spaceId: string): Promise<Role | nu
   return rows[0]?.role ?? null;
 }
 
-async function getPageSpaceId(pageId: string): Promise<string | null> {
-  const { rows } = await pool.query<{ space_id: string }>(
-    "SELECT space_id FROM pages WHERE id = $1",
-    [pageId]
+async function getPageAccess(
+  userId: string,
+  pageId: string
+): Promise<{ spaceId: string; role: Role | null } | null> {
+  const { rows } = await pool.query<{ space_id: string; role: Role | null }>(
+    `SELECT p.space_id, m.role
+     FROM pages p
+     LEFT JOIN memberships m ON m.space_id = p.space_id AND m.user_id = $1
+     WHERE p.id = $2`,
+    [userId, pageId]
   );
-  return rows[0]?.space_id ?? null;
+  const row = rows[0];
+  if (!row) return null;
+  return { spaceId: row.space_id, role: row.role ?? null };
 }
 
 async function checkRole(
@@ -33,7 +45,7 @@ async function checkRole(
     reply.status(403).send({ status: "error", message: "Not a member of this space" });
     return false;
   }
-  if (ROLE_HIERARCHY[role] < ROLE_HIERARCHY[minRole]) {
+  if (!hasMinRole(role, minRole)) {
     reply.status(403).send({ status: "error", message: `Requires ${minRole} role or higher` });
     return false;
   }
@@ -74,13 +86,20 @@ async function rbacPlugin(fastify: FastifyInstance) {
         reply.status(400).send({ status: "error", message: "Page ID required" });
         return;
       }
-      const spaceId = await getPageSpaceId(pageId);
-      if (!spaceId) {
+      const access = await getPageAccess(userId, pageId);
+      if (!access) {
         reply.status(404).send({ status: "error", message: "Page not found" });
         return;
       }
-      const allowed = await checkRole(userId, spaceId, minRole, request, reply);
-      if (!allowed) return;
+      if (!access.role) {
+        reply.status(403).send({ status: "error", message: "Not a member of this space" });
+        return;
+      }
+      if (!hasMinRole(access.role, minRole)) {
+        reply.status(403).send({ status: "error", message: `Requires ${minRole} role or higher` });
+        return;
+      }
+      (request as any).spaceRole = access.role;
     };
   });
 }

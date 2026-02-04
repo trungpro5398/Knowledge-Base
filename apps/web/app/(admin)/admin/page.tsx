@@ -161,7 +161,7 @@ export default async function AdminDashboard() {
                             {/* Quick Actions */}
                             <div className="flex items-center gap-2">
                               <Link
-                                href={`/admin/spaces/${space.id}/tree`}
+                                href={`/admin/spaces/${space.id}`}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-md hover:bg-muted transition-colors"
                               >
                                 <Edit className="h-3.5 w-3.5" />
@@ -236,7 +236,7 @@ export default async function AdminDashboard() {
 
                         <div className="flex items-center gap-2">
                           <Link
-                            href={`/admin/spaces/${space.id}/tree`}
+                            href={`/admin/spaces/${space.id}`}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-md hover:bg-muted transition-colors"
                           >
                             <Edit className="h-3.5 w-3.5" />
