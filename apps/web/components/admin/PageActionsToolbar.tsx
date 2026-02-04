@@ -83,70 +83,87 @@ export function PageActionsToolbar({
                 <div className="flex items-center gap-2">
                     {/* Star Button */}
                     <button
+                        type="button"
                         onClick={() => setIsStarred(!isStarred)}
                         className="p-2 rounded-lg hover:bg-muted transition-colors"
                         title={isStarred ? "Remove from favorites" : "Add to favorites"}
+                        aria-label={isStarred ? "Remove from favorites" : "Add to favorites"}
                     >
                         <Star
                             className={`h-4 w-4 ${isStarred ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
+                            aria-hidden="true"
                         />
                     </button>
 
                     {/* Save Button */}
                     <button
+                        type="button"
                         onClick={onSave}
                         disabled={saving}
                         className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border hover:bg-muted disabled:opacity-50 transition-colors"
                     >
                         {saving ? (
-                            <Save className="h-4 w-4 animate-pulse" />
+                            <Save className="h-4 w-4 animate-pulse" aria-hidden="true" />
                         ) : savedAt ? (
-                            <Check className="h-4 w-4 text-emerald-500" />
+                            <Check className="h-4 w-4 text-emerald-500" aria-hidden="true" />
                         ) : (
-                            <Save className="h-4 w-4" />
+                            <Save className="h-4 w-4" aria-hidden="true" />
                         )}
                         <span className="hidden sm:inline">
-                            {saving ? "Saving..." : savedAt ? "Saved" : "Save"}
+                            {saving ? "Saving…" : savedAt ? "Saved" : "Save"}
                         </span>
                     </button>
 
                     {/* Publish Button */}
                     <button
+                        type="button"
                         onClick={onPublish}
                         disabled={publishing || status === "published"}
                         className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
                     >
-                        <Send className="h-4 w-4" />
+                        <Send className="h-4 w-4" aria-hidden="true" />
                         <span className="hidden sm:inline">
-                            {publishing ? "Publishing..." : "Publish"}
+                            {publishing ? "Publishing…" : "Publish"}
                         </span>
                     </button>
 
                     {/* History Button */}
                     <button
+                        type="button"
                         onClick={onShowHistory}
                         className="p-2 rounded-lg hover:bg-muted transition-colors"
                         title="Version history"
+                        aria-label="Version history"
                     >
-                        <History className="h-4 w-4 text-muted-foreground" />
+                        <History className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     </button>
 
                     {/* More Actions Dropdown */}
                     <div className="relative">
                         <button
+                            type="button"
                             onClick={() => setShowDropdown(!showDropdown)}
                             className="p-2 rounded-lg hover:bg-muted transition-colors"
+                            aria-label="More actions"
+                            aria-expanded={showDropdown}
+                            aria-controls="page-actions-dropdown"
+                            aria-haspopup="menu"
                         >
-                            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                            <MoreHorizontal className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         </button>
 
                         {showDropdown && (
                             <>
-                                <div
+                                <button
+                                    type="button"
                                     className="fixed inset-0 z-30"
                                     onClick={() => setShowDropdown(false)}
+                                    aria-label="Close menu"
                                 />
-                                <div className="absolute right-0 top-full mt-1 z-40 min-w-[180px] rounded-lg border bg-card shadow-lg py-1 animate-fade-in">
+                                <div
+                                    id="page-actions-dropdown"
+                                    className="absolute right-0 top-full mt-1 z-40 min-w-[180px] rounded-lg border bg-card shadow-lg py-1 animate-fade-in"
+                                >
                                     <CopyLinkButton className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors text-left" />
 
                                     <Link
@@ -155,13 +172,14 @@ export function PageActionsToolbar({
                                         className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
                                         onClick={() => setShowDropdown(false)}
                                     >
-                                        <ArrowUpRight className="h-4 w-4" />
+                                        <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                                         View published
                                     </Link>
 
                                     <div className="border-t border-border my-1" />
 
                                     <button
+                                        type="button"
                                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
                                         disabled={isDeleting}
                                         onClick={async () => {
@@ -182,8 +200,8 @@ export function PageActionsToolbar({
                                             }
                                         }}
                                     >
-                                        <Trash2 className="h-4 w-4" />
-                                        {isDeleting ? "Moving..." : "Move to trash"}
+                                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                        {isDeleting ? "Moving…" : "Move to trash"}
                                     </button>
                                 </div>
                             </>

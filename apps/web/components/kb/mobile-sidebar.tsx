@@ -31,6 +31,8 @@ export function MobileSidebar({
         onClick={() => setOpen(true)}
         className="md:hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-40 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:opacity-90 transition-opacity"
         aria-label="Open menu"
+        aria-expanded={open}
+        aria-controls="kb-mobile-sidebar"
       >
         <Menu className="h-6 w-6" />
       </button>
@@ -44,6 +46,7 @@ export function MobileSidebar({
             aria-label="Close menu"
           />
           <div
+            id="kb-mobile-sidebar"
             className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-card border-r z-50 md:hidden overflow-auto overscroll-contain"
             role="dialog"
             aria-modal="true"

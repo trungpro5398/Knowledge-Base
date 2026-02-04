@@ -60,9 +60,11 @@ export function CreateSpaceForm() {
       )}
       <div className="mt-4 space-y-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium">Tên space</label>
+          <label htmlFor="space-name" className="block text-sm font-medium">Tên space</label>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
+              id="space-name"
+              name="name"
               value={name}
               onChange={(e) => {
               const value = e.target.value;
@@ -73,11 +75,12 @@ export function CreateSpaceForm() {
                 setSlug(nextSlug);
               }
             }}
-              placeholder="Ví dụ: TET ProSys – Operation Manual"
+              placeholder="Ví dụ: TET ProSys – Operation Manual…"
               className="flex-1"
+              autoComplete="off"
             />
             <button type="submit" disabled={loading} className="btn-primary shrink-0">
-              {loading ? "Đang tạo..." : "Tạo space"}
+              {loading ? "Đang tạo…" : "Tạo space"}
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -103,15 +106,19 @@ export function CreateSpaceForm() {
 
           {showAdvanced && (
             <div className="mt-3 space-y-2 text-sm">
-              <label className="block font-medium">Đường dẫn URL (slug)</label>
+              <label htmlFor="space-slug" className="block font-medium">Đường dẫn URL (slug)</label>
               <input
+                id="space-slug"
+                name="slug"
                 value={slug}
                 onChange={(e) => {
                   setSlug(e.target.value);
                   setManualSlug(true);
                 }}
-                placeholder="tu-dong-tao-tu-ten-space"
+                placeholder="tu-dong-tao-tu-ten-space…"
                 className="w-full font-mono text-xs sm:text-sm"
+                autoComplete="off"
+                spellCheck={false}
               />
               <p className="text-xs text-muted-foreground">
                 <span className="font-medium">URL hiện tại:</span>{" "}

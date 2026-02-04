@@ -81,19 +81,28 @@ export function CreatePageModal({
             onKeyDown={handleKeyDown}
         >
             {/* Backdrop */}
-            <div
+            <button
+                type="button"
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
                 onClick={onClose}
+                aria-label="Close dialog"
             />
 
             {/* Modal */}
-            <div className="relative z-10 w-full max-w-lg mx-4 bg-card rounded-xl shadow-2xl animate-fade-in overflow-hidden">
+            <div
+                className="relative z-10 w-full max-w-lg mx-4 bg-card rounded-xl shadow-2xl animate-fade-in overflow-hidden overscroll-contain"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="create-page-title"
+            >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b">
-                    <h2 className="text-lg font-semibold">Create New Page</h2>
+                    <h2 id="create-page-title" className="text-lg font-semibold">Create New Page</h2>
                     <button
+                        type="button"
                         onClick={onClose}
                         className="p-2 rounded-lg hover:bg-muted transition-colors"
+                        aria-label="Close dialog"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -103,16 +112,18 @@ export function CreatePageModal({
                 <div className="p-6 space-y-6">
                     {/* Title Input */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">
+                        <label htmlFor="create-page-title-input" className="text-sm font-medium">
                             Page Title
                         </label>
                         <input
+                            id="create-page-title-input"
+                            name="title"
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Enter page title..."
+                            placeholder="Enter page title…"
                             className="w-full"
-                            autoFocus
+                            autoComplete="off"
                         />
                     </div>
 
@@ -156,7 +167,7 @@ export function CreatePageModal({
                         {isCreating ? (
                             <>
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                Creating...
+                                Creating…
                             </>
                         ) : (
                             <>
@@ -182,9 +193,10 @@ function TemplateCard({
 }) {
     return (
         <button
+            type="button"
             onClick={onClick}
             className={cn(
-                "flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
+                "flex items-start gap-3 p-3 rounded-lg border text-left transition-colors",
                 isSelected
                     ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                     : "border-border hover:border-primary/50 hover:bg-muted/50"

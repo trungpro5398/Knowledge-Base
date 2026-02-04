@@ -80,6 +80,9 @@ export function SpaceSwitcher({
                     "hover:bg-muted/50",
                     isOpen && "bg-muted"
                 )}
+                aria-expanded={isOpen}
+                aria-controls="space-switcher-panel"
+                aria-haspopup="listbox"
             >
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary shrink-0">
                     <FolderOpen className="h-4 w-4" />
@@ -101,22 +104,29 @@ export function SpaceSwitcher({
             {/* Dropdown */}
             {isOpen && (
                 <>
-                    <div
+                    <button
+                        type="button"
                         className="fixed inset-0 z-40"
                         onClick={() => setIsOpen(false)}
+                        aria-label="Close space switcher"
                     />
-                    <div className="absolute left-0 top-full mt-2 z-50 w-72 rounded-lg border bg-card shadow-lg animate-fade-in overflow-hidden">
+                    <div
+                        id="space-switcher-panel"
+                        className="absolute left-0 top-full mt-2 z-50 w-72 rounded-lg border bg-card shadow-lg animate-fade-in overflow-hidden"
+                    >
                         {/* Search */}
                         <div className="p-2 border-b">
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <input
                                     type="text"
-                                    placeholder="Search spaces..."
+                                    placeholder="Search spaces…"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full pl-9 pr-3 py-2 text-sm rounded-md border bg-background"
-                                    autoFocus
+                                    aria-label="Search spaces"
+                                    autoComplete="off"
+                                    spellCheck={false}
                                 />
                             </div>
                         </div>

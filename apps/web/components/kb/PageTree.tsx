@@ -97,6 +97,7 @@ function TreeNodeItem({
             "text-sm font-medium transition-colors flex-1 truncate",
             isActive ? "text-primary font-semibold" : "hover:text-primary"
           )}
+          aria-current={isActive ? "page" : undefined}
           prefetch={true}
         >
           {node.title}
@@ -383,6 +384,7 @@ function SortableTreeItem({
             "text-sm font-medium transition-colors flex-1 truncate",
             isActive ? "text-primary font-semibold" : "hover:text-primary"
           )}
+          aria-current={isActive ? "page" : undefined}
           prefetch={true}
         >
           {item.title}

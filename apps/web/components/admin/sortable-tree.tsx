@@ -67,7 +67,7 @@ function SortableItem({ node, spaceId, spaceSlug, path }: SortableItemProps) {
         >
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </button>
-        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+        <FileText className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
         <Link
           href={href}
           className="text-sm font-medium hover:text-primary transition-colors flex-1 truncate"
@@ -78,6 +78,7 @@ function SortableItem({ node, spaceId, spaceSlug, path }: SortableItemProps) {
           href={editHref}
           className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
           title="Chỉnh sửa"
+          aria-label="Chỉnh sửa"
         >
           <Pencil className="h-3.5 w-3.5" />
         </Link>

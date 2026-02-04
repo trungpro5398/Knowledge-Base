@@ -28,7 +28,7 @@ export function RestoreButton({ pageId }: { pageId: string }) {
       aria-label="Khôi phục"
     >
       <RotateCcw className="h-3.5 w-3.5" />
-      {loading ? "Đang khôi phục..." : "Khôi phục"}
+      {loading ? "Đang khôi phục…" : "Khôi phục"}
     </button>
   );
 }

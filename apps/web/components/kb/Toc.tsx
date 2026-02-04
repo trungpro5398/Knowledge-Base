@@ -51,7 +51,11 @@ export function Toc({ headings, items: tocItems }: TocProps) {
             style={{ paddingLeft: (item.level - 1) * 12 }}
             className={activeId === item.id ? "text-primary font-medium" : ""}
           >
-            <a href={`#${item.id}`} className="hover:underline">
+            <a
+              href={`#${item.id}`}
+              className="hover:underline"
+              aria-current={activeId === item.id ? "location" : undefined}
+            >
               {item.text}
             </a>
           </li>

@@ -26,6 +26,7 @@ export function CopyLinkButton({ url, className = "" }: CopyLinkButtonProps) {
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium border hover:bg-muted transition-colors ${className}`}
       title="Copy link to clipboard"

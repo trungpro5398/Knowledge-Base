@@ -89,12 +89,14 @@ function TreeNodeItem({
                         "p-1 rounded hover:bg-muted transition-colors shrink-0",
                         !hasChildren && "invisible"
                     )}
+                    aria-label={isExpanded ? "Collapse section" : "Expand section"}
                 >
                     <ChevronRight
                         className={cn(
                             "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
                             isExpanded && "rotate-90"
                         )}
+                        aria-hidden="true"
                     />
                 </button>
 
@@ -130,6 +132,7 @@ function TreeNodeItem({
                             href={editHref}
                             className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                             title="Edit page"
+                            aria-label="Edit page"
                         >
                             <Pencil className="h-3 w-3" />
                         </Link>
@@ -139,6 +142,7 @@ function TreeNodeItem({
                             onClick={() => onCreatePage(node.id)}
                             className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                             title="Add child page"
+                            aria-label="Add child page"
                         >
                             <Plus className="h-3 w-3" />
                         </button>
@@ -150,7 +154,7 @@ function TreeNodeItem({
             {hasChildren && (
                 <ul
                     className={cn(
-                        "overflow-hidden transition-all duration-200",
+                        "overflow-hidden transition-[max-height,opacity] duration-200",
                         isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
                     )}
                 >

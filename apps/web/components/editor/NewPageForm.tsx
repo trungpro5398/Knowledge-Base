@@ -86,9 +86,11 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
       )}
       {templates.length > 0 && (
         <div>
-          <label className="block text-sm font-medium mb-2">Từ template (tùy chọn)</label>
-          <select
-            value={templateId}
+        <label htmlFor="page-template" className="block text-sm font-medium mb-2">Từ template (tùy chọn)</label>
+        <select
+          id="page-template"
+          name="template"
+          value={templateId}
             onChange={(e) => {
               setTemplateId(e.target.value);
               const t = templates.find((x) => x.id === e.target.value);
@@ -109,13 +111,15 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
         </div>
       )}
       <div>
-        <label className="block text-sm font-medium mb-2">Tiêu đề</label>
+        <label htmlFor="page-title" className="block text-sm font-medium mb-2">Tiêu đề</label>
         <input
+          id="page-title"
+          name="title"
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
-          placeholder="Ví dụ: Quy trình duyệt hóa đơn"
+          placeholder="Ví dụ: Quy trình duyệt hóa đơn…"
           className="w-full"
-          autoFocus
+          autoComplete="off"
         />
         <p className="text-xs text-muted-foreground mt-2">
           Slug tự tạo:{" "}
@@ -141,15 +145,19 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
         {showAdvanced && (
           <div className="mt-4 space-y-3">
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label htmlFor="page-slug" className="block text-sm font-medium mb-2">
                 Đường dẫn URL (slug)
               </label>
               <div className="space-y-2">
                 <input
+                  id="page-slug"
+                  name="slug"
                   value={slug}
                   onChange={(e) => handleSlugChange(e.target.value)}
                   className="w-full font-mono text-sm"
-                  placeholder="tu-dong-tao-tu-tieu-de"
+                  placeholder="tu-dong-tao-tu-tieu-de…"
+                  autoComplete="off"
+                  spellCheck={false}
                 />
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>
@@ -170,7 +178,7 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
 
       <div className="flex items-center justify-end">
         <button type="submit" disabled={loading} className="btn-primary w-full sm:w-auto">
-          {loading ? "Đang tạo..." : "Tạo trang"}
+          {loading ? "Đang tạo…" : "Tạo trang"}
         </button>
       </div>
     </form>

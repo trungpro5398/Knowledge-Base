@@ -48,16 +48,18 @@ export function ResizableSidebar({
 
         const startX = e.clientX;
         const startWidth = width;
+        let latestWidth = width;
 
         const handleMouseMove = (moveEvent: MouseEvent) => {
             const delta = moveEvent.clientX - startX;
             const newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, startWidth + delta));
+            latestWidth = newWidth;
             setWidth(newWidth);
         };
 
         const handleMouseUp = () => {
             setIsResizing(false);
-            localStorage.setItem(SIDEBAR_WIDTH_KEY, width.toString());
+            localStorage.setItem(SIDEBAR_WIDTH_KEY, latestWidth.toString());
             document.removeEventListener("mousemove", handleMouseMove);
             document.removeEventListener("mouseup", handleMouseUp);
         };
@@ -85,6 +87,28 @@ export function ResizableSidebar({
             {!isCollapsed && (
                 <div
                     onMouseDown={handleMouseDown}
+                    onKeyDown={(event) => {
+                        if (event.key === "ArrowLeft") {
+                            event.preventDefault();
+                            setWidth((current) => {
+                                const next = Math.max(MIN_WIDTH, current - 10);
+                                localStorage.setItem(SIDEBAR_WIDTH_KEY, next.toString());
+                                return next;
+                            });
+                        }
+                        if (event.key === "ArrowRight") {
+                            event.preventDefault();
+                            setWidth((current) => {
+                                const next = Math.min(MAX_WIDTH, current + 10);
+                                localStorage.setItem(SIDEBAR_WIDTH_KEY, next.toString());
+                                return next;
+                            });
+                        }
+                    }}
+                    role="separator"
+                    aria-orientation="vertical"
+                    aria-label="Resize sidebar"
+                    tabIndex={0}
                     className={cn(
                         "w-1.5 bg-transparent hover:bg-primary/20 cursor-col-resize transition-colors shrink-0",
                         isResizing && "bg-primary/30"

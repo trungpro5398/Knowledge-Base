@@ -49,10 +49,15 @@ export function VersionHistoryModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-card border rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div
+        className="bg-card border rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col overscroll-contain"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="version-history-title"
+      >
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">Version History</h2>
-          <button onClick={onClose} className="p-2 hover:bg-muted rounded-md">
+          <h2 id="version-history-title" className="text-lg font-semibold">Version History</h2>
+          <button type="button" onClick={onClose} className="p-2 hover:bg-muted rounded-md" aria-label="Close version history">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -74,16 +79,16 @@ export function VersionHistoryModal({
                 const prevVersion = idx < versions.length - 1 ? versions[idx + 1] : null;
 
                 return (
-                  <div
-                    key={version.id}
-                    className="border rounded-lg overflow-hidden hover:border-primary/50 transition-colors"
-                  >
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : version.id)}
-                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
+                  <div key={version.id} className="border rounded-lg overflow-hidden hover:border-primary/50 transition-colors">
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-muted/50 transition-colors">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedId(isExpanded ? null : version.id)}
+                        className="flex items-center gap-3 text-left flex-1"
+                        aria-expanded={isExpanded}
+                        aria-controls={`version-panel-${version.id}`}
+                      >
+                        <Clock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         <div>
                           <p className="text-sm font-medium">
                             {formatDate(version.created_at)}
@@ -97,31 +102,38 @@ export function VersionHistoryModal({
                             <p className="text-xs text-muted-foreground">{version.summary}</p>
                           )}
                         </div>
-                      </div>
+                      </button>
                       <div className="flex items-center gap-2">
                         {!isLatest && (
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRestore(version);
-                            }}
+                            type="button"
+                            onClick={() => handleRestore(version)}
                             className="p-1.5 hover:bg-muted rounded text-xs flex items-center gap-1"
                             title="Restore this version"
                           >
-                            <RotateCcw className="h-3.5 w-3.5" />
+                            <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                             Restore
                           </button>
                         )}
-                        {isExpanded ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setExpandedId(isExpanded ? null : version.id)}
+                          className="p-1.5 hover:bg-muted rounded"
+                          aria-label={isExpanded ? "Collapse version details" : "Expand version details"}
+                          aria-expanded={isExpanded}
+                          aria-controls={`version-panel-${version.id}`}
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                          )}
+                        </button>
                       </div>
-                    </button>
+                    </div>
 
                     {isExpanded && (
-                      <div className="px-4 pb-4">
+                      <div id={`version-panel-${version.id}`} className="px-4 pb-4">
                         <DiffViewer
                           oldText={compareWithCurrent ? currentContent : (prevVersion?.content_md || "")}
                           newText={version.content_md || ""}

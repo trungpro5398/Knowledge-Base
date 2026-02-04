@@ -70,9 +70,10 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <Command className="rounded-lg border shadow-md">
         <CommandInput
-          placeholder="Tìm kiếm trang, actions..."
+          placeholder="Tìm kiếm trang, actions…"
           value={searchQuery}
           onValueChange={setSearchQuery}
+          aria-label="Tìm kiếm nhanh"
         />
         <CommandList>
           <CommandEmpty>Không tìm thấy kết quả.</CommandEmpty>

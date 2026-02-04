@@ -66,7 +66,7 @@ export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) 
         className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium hover:bg-muted disabled:opacity-50 transition-colors"
       >
         <Paperclip className="h-4 w-4" />
-        {uploading ? "Đang tải..." : "Đính kèm"}
+        {uploading ? "Đang tải…" : "Đính kèm"}
       </button>
     </div>
   );

@@ -247,6 +247,7 @@ export function MarkdownEditor({
             disabled={!historyRef.current.canUndo()}
             className="p-2 rounded-md hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             title="Undo (⌘Z)"
+            aria-label="Undo"
           >
             <Undo2 className="h-4 w-4" />
           </button>
@@ -256,6 +257,7 @@ export function MarkdownEditor({
             disabled={!historyRef.current.canRedo()}
             className="p-2 rounded-md hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             title="Redo (⌘⇧Z)"
+            aria-label="Redo"
           >
             <Redo2 className="h-4 w-4" />
           </button>
@@ -274,17 +276,19 @@ export function MarkdownEditor({
         )}
         {uploading && (
           <div className="absolute inset-0 z-10 bg-background/80 flex items-center justify-center">
-            <p className="text-sm font-medium">Uploading...</p>
+            <p className="text-sm font-medium">Uploading…</p>
           </div>
         )}
         <textarea
+          id="markdown-editor"
           ref={textareaRef}
           value={local}
           onChange={handleChange}
           onPaste={handlePaste}
           onKeyDown={handleKeyDown}
           className="font-mono text-sm p-4 border rounded-lg bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-          placeholder="Write markdown... (Paste images directly or drag & drop)"
+          placeholder="Write markdown… (Paste images directly or drag & drop)"
+          aria-label="Markdown editor"
           spellCheck={false}
         />
         <div className="p-4 border rounded-lg overflow-auto prose-kb text-sm max-w-none">

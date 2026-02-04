@@ -31,7 +31,7 @@ export function DeleteButton({ pageId }: { pageId: string }) {
       aria-label="Xóa vĩnh viễn"
     >
       <Trash2 className="h-3.5 w-3.5" />
-      {loading ? "Đang xóa..." : "Xóa hẳn"}
+      {loading ? "Đang xóa…" : "Xóa hẳn"}
     </button>
   );
 }

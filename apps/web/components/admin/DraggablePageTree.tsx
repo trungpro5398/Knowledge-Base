@@ -79,15 +79,16 @@ function SortableItem({ node, depth }: SortableItemProps) {
                     {...attributes}
                     {...listeners}
                     className="p-1 rounded hover:bg-muted cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Drag to reorder"
                 >
-                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    <GripVertical className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </button>
 
                 {/* Icon */}
                 {hasChildren ? (
-                    <FolderOpen className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <FolderOpen className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
                 ) : (
-                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
                 )}
 
                 {/* Title */}
@@ -113,8 +114,8 @@ function SortableItem({ node, depth }: SortableItemProps) {
 function DragOverlayItem({ node }: { node: DraggableNode }) {
     return (
         <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-card shadow-lg border">
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <GripVertical className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+            <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <span className="text-sm font-medium">{node.title}</span>
         </div>
     );

@@ -41,7 +41,10 @@ export function EditorShell({
   const [showHistory, setShowHistory] = useState(false);
   const [status, setStatus] = useState(initialStatus);
   const lastSavedContentHash = useRef(contentHash(initialContent));
+  const lastSavedTitleRef = useRef(initialTitle);
   const { registerShortcut, unregisterShortcut } = useShortcuts();
+  const isDirty =
+    contentHash(content) !== lastSavedContentHash.current || title !== lastSavedTitleRef.current;
 
   const saveDraft = async () => {
     const hash = contentHash(content);
@@ -69,6 +72,7 @@ export function EditorShell({
         summary: "Auto-save",
       });
       lastSavedContentHash.current = hash;
+      lastSavedTitleRef.current = title;
       setSavedAt(new Date());
     } catch (e) {
       console.error(e);
@@ -87,6 +91,8 @@ export function EditorShell({
       const versionId = versionRes.data.id;
       await api.post(`/api/pages/${pageId}/publish`, { version_id: versionId });
       setStatus("published");
+      lastSavedContentHash.current = contentHash(content);
+      lastSavedTitleRef.current = title;
       setSavedAt(new Date());
     } catch (e) {
       console.error(e);
@@ -121,6 +127,16 @@ export function EditorShell({
     };
   }, [content, title, status]);
 
+  useEffect(() => {
+    if (!isDirty) return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
   return (
     <div className="space-y-4">
       {/* Sticky Actions Toolbar */}
@@ -139,11 +155,17 @@ export function EditorShell({
 
       {/* Title Input */}
       <div className="space-y-2">
+        <label htmlFor="page-title-input" className="sr-only">
+          Tiêu đề trang
+        </label>
         <input
+          id="page-title-input"
+          name="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="text-2xl font-bold w-full bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-muted-foreground/50"
-          placeholder="Page title..."
+          className="text-2xl font-bold w-full bg-transparent border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background placeholder:text-muted-foreground/50 rounded-md px-1 -mx-1"
+          placeholder="Page title…"
+          autoComplete="off"
         />
       </div>
 
@@ -176,4 +198,3 @@ export function EditorShell({
     </div>
   );
 }
-

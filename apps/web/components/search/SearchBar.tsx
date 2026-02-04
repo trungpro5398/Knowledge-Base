@@ -31,10 +31,15 @@ export function SearchBar() {
         <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground shrink-0" />
         <input
           type="search"
+          name="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), search())}
-          placeholder="Tìm trang... (Enter)"
+          placeholder="Tìm trang… (Enter)"
+          aria-label="Tìm trang"
+          inputMode="search"
+          autoComplete="off"
+          spellCheck={false}
           className="w-full pl-9 pr-3 py-2 text-sm"
         />
       </div>
@@ -43,6 +48,7 @@ export function SearchBar() {
           {results.map((r) => (
             <button
               key={r.id}
+              type="button"
               onClick={() => {
                 router.push(`/admin/spaces/${r.space_id}/pages/${r.id}/edit`);
                 setOpen(false);
