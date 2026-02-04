@@ -62,7 +62,7 @@ function getStartLinks(tree: TreeNode[]): StartLink[] {
 async function getRenderData(spaceSlug: string, path: string): Promise<RenderData | null> {
   const res = await fetch(
     `${API_URL}/api/public/render?spaceSlug=${encodeURIComponent(spaceSlug)}&path=${encodeURIComponent(path)}`,
-    { next: { tags: ["kb"] } }
+    { cache: "no-store" }
   );
   if (!res.ok) return null;
   const json = await res.json();
@@ -72,7 +72,7 @@ async function getRenderData(spaceSlug: string, path: string): Promise<RenderDat
 async function getTreeOnly(spaceSlug: string): Promise<TreeNode[]> {
   const res = await fetch(
     `${API_URL}/api/spaces/by-slug/${spaceSlug}/pages/tree`,
-    { next: { tags: ["kb"] } }
+    { cache: "no-store" }
   );
   if (!res.ok) return [];
   const json = await res.json();
@@ -80,7 +80,7 @@ async function getTreeOnly(spaceSlug: string): Promise<TreeNode[]> {
 }
 
 async function getPublicSpaces(): Promise<Space[]> {
-  const res = await fetch(`${API_URL}/api/spaces/public`, { next: { tags: ["kb"] } });
+  const res = await fetch(`${API_URL}/api/spaces/public`, { cache: "no-store" });
   if (!res.ok) return [];
   const json = await res.json();
   return json.data ?? [];
