@@ -23,7 +23,9 @@ export function RestoreButton({ pageId }: { pageId: string }) {
     <button
       onClick={restore}
       disabled={loading}
-      className="btn-primary text-sm py-2 px-3 inline-flex items-center gap-2 shrink-0"
+      className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-emerald-600 hover:bg-emerald-500/10 transition-colors disabled:opacity-50"
+      title="Khôi phục"
+      aria-label="Khôi phục"
     >
       <RotateCcw className="h-3.5 w-3.5" />
       {loading ? "Đang khôi phục..." : "Khôi phục"}

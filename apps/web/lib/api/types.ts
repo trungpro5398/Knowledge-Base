@@ -80,9 +80,10 @@ export interface SearchResult {
 
 // Trash types
 export interface TrashItem {
-  id: string;
   page_id: string;
   title: string;
+  path: string;
+  space_id: string;
   deleted_at: string;
   deleted_by: string;
 }

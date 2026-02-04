@@ -155,9 +155,27 @@ export async function pagesRoutes(fastify: FastifyInstance, auth: AuthHandlers) 
     async (request, reply) => {
       const { spaceId } = request.params as { spaceId: string };
       const body = request.body as unknown;
-      const updates = Array.isArray(body)
-        ? body
-        : (body as { updates?: Array<{ id: string; sort_order: number; parent_id?: string | null }> } | null)?.updates;
+      let updates:
+        | Array<{ id: string; sort_order: number; parent_id?: string | null }>
+        | undefined;
+
+      if (Array.isArray(body)) {
+        updates = body as Array<{ id: string; sort_order: number; parent_id?: string | null }>;
+      } else if (typeof body === "string" && body.trim().length > 0) {
+        try {
+          const parsed = JSON.parse(body);
+          if (Array.isArray(parsed)) {
+            updates = parsed;
+          } else if (parsed && typeof parsed === "object" && Array.isArray((parsed as any).updates)) {
+            updates = (parsed as any).updates;
+          }
+        } catch {
+          // ignore parse errors
+        }
+      } else if (body && typeof body === "object") {
+        const candidate = (body as { updates?: Array<{ id: string; sort_order: number; parent_id?: string | null }> }).updates;
+        if (Array.isArray(candidate)) updates = candidate;
+      }
 
       if (!Array.isArray(updates)) {
         return reply.status(400).send({
