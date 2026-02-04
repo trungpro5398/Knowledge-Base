@@ -43,7 +43,9 @@ export default async function SpaceLayout({
 }) {
   const { spaceId } = await params;
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = supabase
+    ? await supabase.auth.getSession()
+    : { data: { session: null } };
   const token = session?.access_token ?? "";
 
   const [space, tree, spaces] = await Promise.all([

@@ -53,7 +53,9 @@ async function getSpacesStats(token: string): Promise<SpaceStats[]> {
 
 export default async function AdminDashboard() {
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = supabase
+    ? await supabase.auth.getSession()
+    : { data: { session: null } };
   const token = session?.access_token ?? "";
 
   const [organizations, spaces, stats] = await Promise.all([

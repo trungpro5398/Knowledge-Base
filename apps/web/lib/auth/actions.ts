@@ -9,6 +9,9 @@ export async function signInWithPassword(formData: {
   redirectTo?: string;
 }) {
   const supabase = await createServerSupabaseClient();
+  if (!supabase) {
+    return { error: "Supabase chưa được cấu hình" };
+  }
   const { error } = await supabase.auth.signInWithPassword({
     email: formData.email,
     password: formData.password,
@@ -21,6 +24,8 @@ export async function signInWithPassword(formData: {
 
 export async function signOut() {
   const supabase = await createServerSupabaseClient();
-  await supabase.auth.signOut();
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
   redirect("/");
 }

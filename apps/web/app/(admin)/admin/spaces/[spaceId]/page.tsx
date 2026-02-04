@@ -28,7 +28,9 @@ export default async function SpacePage({
 }) {
   const { spaceId } = await params;
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = supabase
+    ? await supabase.auth.getSession()
+    : { data: { session: null } };
   const token = session?.access_token ?? "";
 
   const firstPageId = await getFirstPageId(spaceId, token);

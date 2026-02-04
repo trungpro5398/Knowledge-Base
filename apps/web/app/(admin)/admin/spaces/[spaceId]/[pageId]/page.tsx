@@ -19,7 +19,9 @@ export default async function PageEditor({
 }) {
   const { spaceId, pageId } = await params;
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = supabase
+    ? await supabase.auth.getSession()
+    : { data: { session: null } };
   const token = session?.access_token ?? "";
 
   const page = await getPage(pageId, token);
