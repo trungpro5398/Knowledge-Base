@@ -141,6 +141,10 @@ export async function reorderPages(
   try {
     await pagesRepo.reorderPages(spaceId, updates);
     invalidatePublishedSpace(spaceId);
+    const space = await spacesRepo.getSpaceById(spaceId);
+    if (space) {
+      void callRevalidate(`/kb/${space.slug}`, "kb");
+    }
   } catch (error: any) {
     if (error instanceof ValidationError) throw error;
     if (error?.code === "23505") {
