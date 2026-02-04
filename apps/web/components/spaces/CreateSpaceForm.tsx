@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
 import { Plus, ChevronDown, ChevronUp } from "lucide-react";
@@ -14,6 +14,7 @@ export function CreateSpaceForm() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const nameRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const derivedSlug = name.trim() ? generateSlug(name) : "";
   const slugPreview = slug || derivedSlug || "ten-space";
@@ -39,6 +40,7 @@ export function CreateSpaceForm() {
       const message = err instanceof Error ? err.message : "Tạo thất bại";
       setError(message);
       toast.error("Tạo space thất bại", { description: message });
+      nameRef.current?.focus();
     } finally {
       setLoading(false);
     }
@@ -58,7 +60,7 @@ export function CreateSpaceForm() {
         </div>
       </div>
       {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm mt-4" role="status" aria-live="polite">
+        <div id="create-space-error" className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm mt-4" role="status" aria-live="polite">
           {error}
         </div>
       )}
@@ -69,6 +71,7 @@ export function CreateSpaceForm() {
             <input
               id="space-name"
               name="name"
+              ref={nameRef}
               value={name}
               onChange={(e) => {
               const value = e.target.value;
@@ -82,6 +85,8 @@ export function CreateSpaceForm() {
               placeholder="Ví dụ: TET ProSys – Operation Manual…"
               className="flex-1"
               autoComplete="off"
+              aria-invalid={!!error}
+              aria-describedby={error ? "create-space-error" : undefined}
             />
             <button type="submit" disabled={loading} className="btn-primary shrink-0">
               {loading ? "Đang tạo…" : "Tạo space"}

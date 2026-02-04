@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, FileText, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PAGE_TEMPLATES, type PageTemplate } from "@/lib/kb/templates";
 import { api } from "@/lib/api/client";
+import { toast } from "sonner";
 
 interface CreatePageModalProps {
     isOpen: boolean;
@@ -25,12 +26,14 @@ export function CreatePageModal({
     const [selectedTemplate, setSelectedTemplate] = useState<string>("blank");
     const [isCreating, setIsCreating] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const titleRef = useRef<HTMLInputElement>(null);
 
     if (!isOpen) return null;
 
     const handleCreate = async () => {
         if (!title.trim()) {
             setError("Please enter a page title");
+            titleRef.current?.focus();
             return;
         }
 
@@ -57,11 +60,15 @@ export function CreatePageModal({
                 });
             }
 
+            toast.success("Đã tạo trang", { description: title.trim() });
             // Navigate to edit page
             router.push(`/admin/spaces/${spaceId}/pages/${pageId}/edit`);
             onClose();
         } catch (err: any) {
-            setError(err.message || "Failed to create page");
+            const message = err?.message || "Failed to create page";
+            setError(message);
+            toast.error("Tạo trang thất bại", { description: message });
+            titleRef.current?.focus();
         } finally {
             setIsCreating(false);
         }
@@ -118,13 +125,21 @@ export function CreatePageModal({
                         <input
                             id="create-page-title-input"
                             name="title"
+                            ref={titleRef}
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="Enter page title…"
                             className="w-full"
                             autoComplete="off"
+                            aria-invalid={!!error}
+                            aria-describedby={error ? "create-page-error" : undefined}
                         />
+                        {error && (
+                          <p id="create-page-error" className="text-sm text-destructive" role="status" aria-live="polite">
+                            {error}
+                          </p>
+                        )}
                     </div>
 
                     {/* Template Selection */}
@@ -144,12 +159,6 @@ export function CreatePageModal({
                         </div>
                     </div>
 
-                    {/* Error */}
-                    {error && (
-                        <p className="text-sm text-destructive" role="status" aria-live="polite">
-                          {error}
-                        </p>
-                    )}
                 </div>
 
                 {/* Footer */}

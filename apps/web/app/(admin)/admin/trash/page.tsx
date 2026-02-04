@@ -5,6 +5,10 @@ import { DeleteButton } from "@/components/trash/DeleteButton";
 import { Trash2, FileText, Clock } from "lucide-react";
 import type { ApiResponse, TrashItem } from "@/lib/api/types";
 
+function formatPath(path: string) {
+  return path.split(".").join(" / ");
+}
+
 async function getTrash(token: string): Promise<TrashItem[]> {
   try {
     const res = await apiClient<ApiResponse<TrashItem[]>>("/api/trash", { token });
@@ -45,30 +49,39 @@ export default async function TrashPage() {
           <p className="text-muted-foreground">Chưa có trang nào trong thùng rác</p>
         </div>
       ) : (
-        <ul className="rounded-xl border bg-card/70 divide-y">
+        <ul className="rounded-xl border bg-card/70 divide-y shadow-sm">
           {items.map((item) => (
             <li
               key={item.page_id}
-              className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
+              className="flex flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between hover:bg-muted/40 transition-colors"
             >
               <div className="flex items-start gap-3 flex-1">
-                <div className="mt-1 rounded-md bg-muted p-2">
+                <div className="mt-0.5 rounded-md border bg-muted/60 p-2">
                   <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <div className="font-semibold truncate">{item.title || "Untitled"}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-semibold truncate">{item.title || "Untitled"}</div>
+                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">
+                      Trash
+                    </span>
+                  </div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {item.path}
+                    {formatPath(item.path)}
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 text-xs text-muted-foreground tabular-nums md:mr-2">
                 <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                {new Date(item.deleted_at).toLocaleDateString("vi-VN")}
+                {new Date(item.deleted_at).toLocaleDateString("vi-VN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <RestoreButton pageId={item.page_id} />
                 <DeleteButton pageId={item.page_id} />
               </div>

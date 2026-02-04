@@ -137,7 +137,9 @@ export default async function SpaceLayout({
         </aside>
 
         {/* Main content area */}
-        <main className="flex-1 overflow-y-auto min-w-0">{children}</main>
+        <section className="flex-1 overflow-y-auto min-w-0" aria-label="Editor content">
+          {children}
+        </section>
       </div>
     </div>
   );

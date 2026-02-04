@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function DeleteButton({ pageId }: { pageId: string }) {
@@ -27,14 +27,19 @@ export function DeleteButton({ pageId }: { pageId: string }) {
 
   return (
     <button
+      type="button"
       onClick={destroy}
       disabled={loading}
-      className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
       title="Xóa vĩnh viễn"
       aria-label="Xóa vĩnh viễn"
     >
-      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-      {loading ? "Đang xóa…" : "Xóa hẳn"}
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+      ) : (
+        <Trash2 className="h-4 w-4" aria-hidden="true" />
+      )}
+      <span className="sr-only">Xóa vĩnh viễn</span>
     </button>
   );
 }

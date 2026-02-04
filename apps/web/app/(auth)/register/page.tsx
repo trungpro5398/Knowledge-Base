@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/auth/supabase-browser";
 import Link from "next/link";
@@ -14,26 +14,37 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    confirm?: string;
+    form?: string;
+  }>({});
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setErrors({});
     try {
       if (!email.toLowerCase().endsWith(ALLOWED_DOMAIN)) {
-        setError(`Chỉ cho phép đăng ký bằng email ${ALLOWED_DOMAIN}`);
+        setErrors({ email: `Chỉ cho phép đăng ký bằng email ${ALLOWED_DOMAIN}` });
+        emailRef.current?.focus();
         setLoading(false);
         return;
       }
       if (password.length < 6) {
-        setError("Mật khẩu phải có ít nhất 6 ký tự");
+        setErrors({ password: "Mật khẩu phải có ít nhất 6 ký tự" });
+        passwordRef.current?.focus();
         setLoading(false);
         return;
       }
       if (password !== confirmPassword) {
-        setError("Mật khẩu xác nhận không khớp");
+        setErrors({ confirm: "Mật khẩu xác nhận không khớp" });
+        confirmRef.current?.focus();
         setLoading(false);
         return;
       }
@@ -49,7 +60,8 @@ export default function RegisterPage() {
       return;
       // setSuccess(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Đăng ký thất bại");
+      setErrors({ form: err instanceof Error ? err.message : "Đăng ký thất bại" });
+      emailRef.current?.focus();
     } finally {
       setLoading(false);
     }
@@ -94,9 +106,9 @@ export default function RegisterPage() {
             </div>
           </div>
           <form onSubmit={handleRegister} className="space-y-5">
-            {error && (
+            {errors.form && (
               <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm" role="status" aria-live="polite">
-                {error}
+                {errors.form}
               </div>
             )}
             <div>
@@ -106,6 +118,7 @@ export default function RegisterPage() {
               <input
                 id="register-email"
                 name="email"
+                ref={emailRef}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -115,8 +128,15 @@ export default function RegisterPage() {
                 autoCapitalize="none"
                 inputMode="email"
                 spellCheck={false}
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "register-email-error" : undefined}
                 className="w-full"
               />
+              {errors.email && (
+                <p id="register-email-error" className="mt-2 text-xs text-destructive" role="status" aria-live="polite">
+                  {errors.email}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="register-password" className="block text-sm font-medium mb-2">
@@ -125,6 +145,7 @@ export default function RegisterPage() {
               <input
                 id="register-password"
                 name="password"
+                ref={passwordRef}
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -132,9 +153,16 @@ export default function RegisterPage() {
                 minLength={6}
                 autoComplete="new-password"
                 autoCapitalize="none"
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? "register-password-error" : undefined}
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground mt-1.5">Tối thiểu 6 ký tự</p>
+              {errors.password && (
+                <p id="register-password-error" className="mt-2 text-xs text-destructive" role="status" aria-live="polite">
+                  {errors.password}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="register-confirm-password" className="block text-sm font-medium mb-2">
@@ -143,6 +171,7 @@ export default function RegisterPage() {
               <input
                 id="register-confirm-password"
                 name="confirmPassword"
+                ref={confirmRef}
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -150,8 +179,15 @@ export default function RegisterPage() {
                 minLength={6}
                 autoComplete="new-password"
                 autoCapitalize="none"
+                aria-invalid={!!errors.confirm}
+                aria-describedby={errors.confirm ? "register-confirm-error" : undefined}
                 className="w-full"
               />
+              {errors.confirm && (
+                <p id="register-confirm-error" className="mt-2 text-xs text-destructive" role="status" aria-live="polite">
+                  {errors.confirm}
+                </p>
+              )}
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
               {loading ? "Đang đăng ký…" : "Đăng ký"}

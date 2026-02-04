@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { api } from "@/lib/api/client";
@@ -23,6 +23,7 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
   const [error, setError] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [manualSlug, setManualSlug] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const derivedSlug = title.trim() ? generateSlug(title) : "";
   const slugPreview = slug || derivedSlug || "duong-dan-trang";
@@ -70,6 +71,7 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
       const message = err instanceof Error ? err.message : "Tạo thất bại";
       setError(message);
       toast.error("Tạo trang thất bại", { description: message });
+      titleRef.current?.focus();
     } finally {
       setLoading(false);
     }
@@ -84,7 +86,7 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
         </p>
       </div>
       {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm" role="status" aria-live="polite">
+        <div id="new-page-error" className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm" role="status" aria-live="polite">
           {error}
         </div>
       )}
@@ -119,11 +121,14 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
         <input
           id="page-title"
           name="title"
+          ref={titleRef}
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="Ví dụ: Quy trình duyệt hóa đơn…"
           className="w-full"
           autoComplete="off"
+          aria-invalid={!!error}
+          aria-describedby={error ? "new-page-error" : undefined}
         />
         <p className="text-xs text-muted-foreground mt-2">
           Slug tự tạo:{" "}

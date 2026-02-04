@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Paperclip } from "lucide-react";
 import { createClient } from "@/lib/auth/supabase-browser";
 import { api } from "@/lib/api/client";
+import { toast } from "sonner";
 
 interface AttachmentUploadProps {
   pageId: string;
@@ -42,8 +43,12 @@ export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) 
         size_bytes: file.size,
       });
       onUploaded?.();
+      toast.success("Đã tải tệp đính kèm", { description: file.name });
     } catch (err) {
       console.error(err);
+      toast.error("Tải tệp thất bại", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
     } finally {
       setUploading(false);
     }
