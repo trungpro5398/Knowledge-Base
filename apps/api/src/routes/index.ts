@@ -13,6 +13,7 @@ import { watchersRoutes } from "../modules/watchers/watchers.routes.js";
 import { labelsRoutes } from "../modules/labels/labels.routes.js";
 import { trashRoutes } from "../modules/trash/trash.routes.js";
 import { attachmentsRoutes } from "../modules/attachments/attachments.routes.js";
+import { membershipsRoutes } from "../modules/memberships/memberships.routes.js";
 import { AppError, ValidationError } from "../utils/errors.js";
 
 export async function registerRoutes(fastify: FastifyInstance) {
@@ -65,6 +66,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
       await api.register(async (instance) => { await labelsRoutes(instance, auth); });
       await api.register(async (instance) => { await trashRoutes(instance, auth); });
       await api.register(async (instance) => { await attachmentsRoutes(instance, auth); });
+      await api.register(async (instance) => { await membershipsRoutes(instance, auth); });
     },
     { prefix: "/api" }
   );

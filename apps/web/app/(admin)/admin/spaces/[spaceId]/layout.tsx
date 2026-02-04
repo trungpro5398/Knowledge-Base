@@ -2,7 +2,7 @@ import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
 import { CollapsibleSidebar } from "@/components/ui/collapsible-sidebar";
 import { PageTree, type TreeNode } from "@/components/kb/PageTree";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import Link from "next/link";
 import type { ApiResponse, Space, PageNode } from "@/lib/api/types";
 import { TET_PROSYS_GROUPS } from "@/lib/kb/sidebar-groups";
@@ -78,13 +78,22 @@ export default async function SpaceLayout({
               /kb/{space.slug}
             </span>
           </div>
-          <Link
-            href={`/admin/spaces/${spaceId}/pages/new`}
-            className="btn-primary h-9 px-3 text-sm gap-2"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Tạo trang
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/admin/spaces/${spaceId}/settings`}
+              className="h-9 px-3 text-sm border rounded-lg hover:bg-muted transition-colors flex items-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Cài đặt
+            </Link>
+            <Link
+              href={`/admin/spaces/${spaceId}/pages/new`}
+              className="btn-primary h-9 px-3 text-sm gap-2"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Tạo trang
+            </Link>
+          </div>
         </div>
       </header>
 
