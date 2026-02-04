@@ -9,7 +9,6 @@ import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
 import { CopyLinkButton } from "@/components/ui/copy-link-button";
 import type { TreeNode } from "@/components/kb/PageTree";
 import { slugToPath } from "@/lib/routing/slug";
-import { TET_PROSYS_GROUPS } from "@/lib/kb/sidebar-groups";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -59,7 +58,6 @@ export default async function KbPage({
 
   if (segments.length < 2) {
     const tree = await getTreeOnly(spaceSlug);
-    const useGroupedSidebar = spaceSlug === "tet-prosys";
     return (
       <div className="flex gap-6 py-4 md:py-8">
         <aside className="hidden md:block w-56 shrink-0">
@@ -69,7 +67,6 @@ export default async function KbPage({
               spaceSlug={spaceSlug}
               nodes={tree}
               showEditLink={false}
-              groupConfig={useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
             />
           </nav>
         </aside>
@@ -98,13 +95,7 @@ export default async function KbPage({
             )}
           </div>
         </main>
-        <MobileSidebar
-          spaceId=""
-          spaceSlug={spaceSlug}
-          nodes={tree}
-          showEditLink={false}
-          groupConfig={useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
-        />
+        <MobileSidebar spaceId="" spaceSlug={spaceSlug} nodes={tree} showEditLink={false} />
       </div>
     );
   }
@@ -117,8 +108,6 @@ export default async function KbPage({
 
   const { page, version, tree, breadcrumb } = data;
   const useRenderedHtml = !!version.rendered_html;
-  const useGroupedSidebar = spaceSlug === "tet-prosys";
-
   return (
     <div className="flex gap-6 py-4 md:py-8">
       <aside className="hidden md:block w-56 shrink-0">
@@ -128,7 +117,6 @@ export default async function KbPage({
             spaceSlug={spaceSlug}
             nodes={tree}
             showEditLink={false}
-            groupConfig={useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
           />
         </nav>
       </aside>
@@ -170,13 +158,7 @@ export default async function KbPage({
           )}
         </div>
       </main>
-      <MobileSidebar
-        spaceId=""
-        spaceSlug={spaceSlug}
-        nodes={tree}
-        showEditLink={false}
-        groupConfig={useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
-      />
+      <MobileSidebar spaceId="" spaceSlug={spaceSlug} nodes={tree} showEditLink={false} />
     </div>
   );
 }
