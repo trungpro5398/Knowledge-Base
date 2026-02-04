@@ -185,14 +185,15 @@ export default async function KbPage({
 
   const pathParts = segments.slice(1);
   const path = slugToPath(pathParts);
-  const [data, spaces] = await Promise.all([
+  const [data, spaces, tree] = await Promise.all([
     getRenderData(spaceSlug, path),
     getPublicSpaces(),
+    getTreeOnly(spaceSlug),
   ]);
 
   if (!data) notFound();
 
-  const { page, version, tree, breadcrumb } = data;
+  const { page, version, breadcrumb } = data;
   const useRenderedHtml = !!version.rendered_html;
   return (
     <div className="flex gap-6 py-4 md:py-8">
