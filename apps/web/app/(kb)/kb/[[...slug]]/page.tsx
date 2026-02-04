@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PageRenderer } from "@/components/kb/PageRenderer";
 import { Breadcrumbs } from "@/components/kb/Breadcrumbs";
 import { Toc } from "@/components/kb/Toc";
+import { CollapsibleSidebar } from "@/components/ui/collapsible-sidebar";
 import { SidebarSearchFilter } from "@/components/kb/SidebarSearchFilter";
 import { MobileSidebar } from "@/components/kb/mobile-sidebar";
 import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
@@ -10,7 +11,6 @@ import { CopyLinkButton } from "@/components/ui/copy-link-button";
 import type { TreeNode } from "@/components/kb/PageTree";
 import type { Space } from "@/lib/api/types";
 import { slugToPath } from "@/lib/routing/slug";
-import { fetchWithRetry } from "@/lib/utils/fetch-with-retry";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -61,75 +61,30 @@ function getStartLinks(tree: TreeNode[]): StartLink[] {
 }
 
 async function getRenderData(spaceSlug: string, path: string): Promise<RenderData | null> {
-  try {
-    const res = await fetchWithRetry(
-      `${API_URL}/api/public/render?spaceSlug=${encodeURIComponent(spaceSlug)}&path=${encodeURIComponent(path)}`,
-      { cache: "no-store" },
-      {
-        maxRetries: 3,
-        initialDelay: 1000,
-        maxDelay: 10000,
-        timeout: 30000,
-      }
-    );
-    if (!res.ok) {
-      // 404 là real error, không phải cold start
-      if (res.status === 404) return null;
-      // Các lỗi khác có thể là cold start, nhưng đã retry rồi nên return null
-      return null;
-    }
-    const json = await res.json();
-    return json.data;
-  } catch (error) {
-    // Network errors sau khi retry - có thể là cold start nhưng đã retry hết
-    // Return null để trigger notFound() thay vì crash
-    console.error("Failed to fetch render data:", error);
-    return null;
-  }
+  const res = await fetch(
+    `${API_URL}/api/public/render?spaceSlug=${encodeURIComponent(spaceSlug)}&path=${encodeURIComponent(path)}`,
+    { cache: "no-store" }
+  );
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json.data;
 }
 
 async function getTreeOnly(spaceSlug: string): Promise<TreeNode[]> {
-  try {
-    const res = await fetchWithRetry(
-      `${API_URL}/api/spaces/by-slug/${spaceSlug}/pages/tree`,
-      { cache: "no-store" },
-      {
-        maxRetries: 3,
-        initialDelay: 1000,
-        maxDelay: 10000,
-        timeout: 30000,
-      }
-    );
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data ?? [];
-  } catch (error) {
-    // Network errors sau khi retry - return empty array để không crash page
-    console.error("Failed to fetch tree:", error);
-    return [];
-  }
+  const res = await fetch(
+    `${API_URL}/api/spaces/by-slug/${spaceSlug}/pages/tree`,
+    { cache: "no-store" }
+  );
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data ?? [];
 }
 
 async function getPublicSpaces(): Promise<Space[]> {
-  try {
-    const res = await fetchWithRetry(
-      `${API_URL}/api/spaces/public`,
-      { cache: "no-store" },
-      {
-        maxRetries: 3,
-        initialDelay: 1000,
-        maxDelay: 10000,
-        timeout: 30000,
-      }
-    );
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data ?? [];
-  } catch (error) {
-    // Network errors sau khi retry - return empty array để không crash page
-    console.error("Failed to fetch public spaces:", error);
-    return [];
-  }
+  const res = await fetch(`${API_URL}/api/spaces/public`, { cache: "no-store" });
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data ?? [];
 }
 
 const DEFAULT_SPACE_SLUG = "tet-prosys";
@@ -158,8 +113,8 @@ export default async function KbPage({
     return (
       <>
         <div className="flex gap-6 py-4 md:py-8">
-        <aside className="hidden md:block w-60 shrink-0">
-          <nav className="sticky top-8 space-y-4">
+        <CollapsibleSidebar storageKey="kb" expandedWidth="w-60" responsive="hidden md:flex">
+          <nav className="p-4 space-y-4">
             {spaces.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -189,7 +144,7 @@ export default async function KbPage({
               showEditLink={false}
             />
           </nav>
-        </aside>
+        </CollapsibleSidebar>
         <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
           <div className="container max-w-4xl py-4 md:py-8">
             {spaceSlug === "tet-prosys" && startLinks.length > 0 && (
@@ -245,8 +200,8 @@ export default async function KbPage({
   return (
     <>
       <div className="flex gap-6 py-4 md:py-8">
-      <aside className="hidden md:block w-60 shrink-0">
-        <nav className="sticky top-8 space-y-4">
+      <CollapsibleSidebar storageKey="kb" expandedWidth="w-60" responsive="hidden md:flex">
+        <nav className="p-4 space-y-4">
           {spaces.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -276,7 +231,7 @@ export default async function KbPage({
             showEditLink={false}
           />
         </nav>
-      </aside>
+      </CollapsibleSidebar>
       <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
         <div className="container max-w-4xl py-4 md:py-8">
           {spaceSlug === "tet-prosys" && (

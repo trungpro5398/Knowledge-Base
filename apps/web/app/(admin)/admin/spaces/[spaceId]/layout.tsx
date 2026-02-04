@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
+import { CollapsibleSidebar } from "@/components/ui/collapsible-sidebar";
 import { PageTree, type TreeNode } from "@/components/kb/PageTree";
 import { Plus } from "lucide-react";
 import Link from "next/link";
@@ -90,7 +91,12 @@ export default async function SpaceLayout({
       {/* Main content: sidebar + editor */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Sidebar: Page Tree */}
-        <aside className="hidden lg:block w-72 border-r border-border bg-card/40 overflow-y-auto shrink-0">
+        <CollapsibleSidebar
+          storageKey="admin-space-sidebar"
+          expandedWidth="w-72"
+          responsive="hidden lg:flex"
+          className="bg-card/40"
+        >
           <div className="p-4 border-b border-border/70">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -134,7 +140,7 @@ export default async function SpaceLayout({
               groupConfig={!enableDragAndDrop && useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
             />
           </div>
-        </aside>
+        </CollapsibleSidebar>
 
         {/* Main content area */}
         <section className="flex-1 overflow-y-auto min-w-0" aria-label="Editor content">
