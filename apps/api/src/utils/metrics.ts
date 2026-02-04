@@ -28,7 +28,8 @@ export function recordRequest(
   reply: FastifyReply,
   durationMs: number
 ): void {
-  const route = request.routerPath ?? request.url;
+  // Use routeOptions.url (new API) instead of routerPath (deprecated)
+  const route = (request.routeOptions?.url as string | undefined) ?? request.url;
   const key = `${request.method} ${route}`;
   let stats = routes.get(key);
   if (!stats) {
