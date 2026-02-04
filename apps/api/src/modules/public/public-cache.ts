@@ -9,6 +9,7 @@ const MAX_ENTRIES = Math.max(1, config.publicCacheMaxEntries || 200);
 const treeCache = new TtlCache<{
   tree: PageNode[];
   pageTitleByPath: Map<string, string>;
+  etag: string;
 }>({ defaultTtlMs: DEFAULT_TTL_MS, maxEntries: MAX_ENTRIES });
 
 const pageCache = new TtlCache<Awaited<ReturnType<typeof pagesRepo.getPageByPath>>>({
@@ -18,7 +19,7 @@ const pageCache = new TtlCache<Awaited<ReturnType<typeof pagesRepo.getPageByPath
 
 const inflightTree = new Map<
   string,
-  Promise<{ tree: PageNode[]; pageTitleByPath: Map<string, string> }>
+  Promise<{ tree: PageNode[]; pageTitleByPath: Map<string, string>; etag: string }>
 >();
 const inflightPage = new Map<string, Promise<Awaited<ReturnType<typeof pagesRepo.getPageByPath>>>>();
 
@@ -35,6 +36,15 @@ function buildTitleMap(tree: PageNode[]): Map<string, string> {
   return map;
 }
 
+function computeTreeEtag(pages: { updated_at: Date }[]): string {
+  let maxUpdated = 0;
+  for (const page of pages) {
+    const ts = page.updated_at instanceof Date ? page.updated_at.getTime() : new Date(page.updated_at).getTime();
+    if (ts > maxUpdated) maxUpdated = ts;
+  }
+  return `${pages.length}:${maxUpdated}`;
+}
+
 export async function getPublishedTreeCached(
   spaceId: string,
   ttlMs = DEFAULT_TTL_MS
@@ -42,7 +52,7 @@ export async function getPublishedTreeCached(
   if (ttlMs <= 0) {
     const pages = await pagesRepo.getPagesTree(spaceId, { publishedOnly: true });
     const tree = buildPagesTree(pages);
-    return { tree, pageTitleByPath: buildTitleMap(tree) };
+    return { tree, pageTitleByPath: buildTitleMap(tree), etag: computeTreeEtag(pages) };
   }
   const key = `tree:${spaceId}`;
   const cached = treeCache.get(key);
@@ -54,7 +64,7 @@ export async function getPublishedTreeCached(
     const pages = await pagesRepo.getPagesTree(spaceId, { publishedOnly: true });
     const tree = buildPagesTree(pages);
     const pageTitleByPath = buildTitleMap(tree);
-    const value = { tree, pageTitleByPath };
+    const value = { tree, pageTitleByPath, etag: computeTreeEtag(pages) };
     treeCache.set(key, value, ttlMs);
     return value;
   })();

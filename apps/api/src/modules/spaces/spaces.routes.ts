@@ -62,7 +62,15 @@ export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers)
     if (!space) {
       return reply.status(404).send({ status: "error", message: "Space not found" });
     }
-    const { tree } = await getPublishedTreeCached(space.id);
+    const { tree, etag } = await getPublishedTreeCached(space.id);
+    const treeEtag = `"${space.id}:${etag}"`;
+    const ifNoneMatch = request.headers["if-none-match"];
+    if (ifNoneMatch === treeEtag || ifNoneMatch === `W/${treeEtag}`) {
+      reply.header("ETag", treeEtag);
+      reply.header("Cache-Control", "public, max-age=0, s-maxage=600, stale-while-revalidate=86400");
+      return reply.status(304).send();
+    }
+    reply.header("ETag", treeEtag);
     reply.header("Cache-Control", "public, max-age=0, s-maxage=600, stale-while-revalidate=86400");
     return { data: tree };
   });
