@@ -10,6 +10,7 @@ import { CopyLinkButton } from "@/components/ui/copy-link-button";
 import type { TreeNode } from "@/components/kb/PageTree";
 import type { Space } from "@/lib/api/types";
 import { slugToPath } from "@/lib/routing/slug";
+import { fetchWithRetry } from "@/lib/utils/fetch-with-retry";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -60,30 +61,75 @@ function getStartLinks(tree: TreeNode[]): StartLink[] {
 }
 
 async function getRenderData(spaceSlug: string, path: string): Promise<RenderData | null> {
-  const res = await fetch(
-    `${API_URL}/api/public/render?spaceSlug=${encodeURIComponent(spaceSlug)}&path=${encodeURIComponent(path)}`,
-    { cache: "no-store" }
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data;
+  try {
+    const res = await fetchWithRetry(
+      `${API_URL}/api/public/render?spaceSlug=${encodeURIComponent(spaceSlug)}&path=${encodeURIComponent(path)}`,
+      { cache: "no-store" },
+      {
+        maxRetries: 3,
+        initialDelay: 1000,
+        maxDelay: 10000,
+        timeout: 30000,
+      }
+    );
+    if (!res.ok) {
+      // 404 là real error, không phải cold start
+      if (res.status === 404) return null;
+      // Các lỗi khác có thể là cold start, nhưng đã retry rồi nên return null
+      return null;
+    }
+    const json = await res.json();
+    return json.data;
+  } catch (error) {
+    // Network errors sau khi retry - có thể là cold start nhưng đã retry hết
+    // Return null để trigger notFound() thay vì crash
+    console.error("Failed to fetch render data:", error);
+    return null;
+  }
 }
 
 async function getTreeOnly(spaceSlug: string): Promise<TreeNode[]> {
-  const res = await fetch(
-    `${API_URL}/api/spaces/by-slug/${spaceSlug}/pages/tree`,
-    { cache: "no-store" }
-  );
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json.data ?? [];
+  try {
+    const res = await fetchWithRetry(
+      `${API_URL}/api/spaces/by-slug/${spaceSlug}/pages/tree`,
+      { cache: "no-store" },
+      {
+        maxRetries: 3,
+        initialDelay: 1000,
+        maxDelay: 10000,
+        timeout: 30000,
+      }
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data ?? [];
+  } catch (error) {
+    // Network errors sau khi retry - return empty array để không crash page
+    console.error("Failed to fetch tree:", error);
+    return [];
+  }
 }
 
 async function getPublicSpaces(): Promise<Space[]> {
-  const res = await fetch(`${API_URL}/api/spaces/public`, { cache: "no-store" });
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json.data ?? [];
+  try {
+    const res = await fetchWithRetry(
+      `${API_URL}/api/spaces/public`,
+      { cache: "no-store" },
+      {
+        maxRetries: 3,
+        initialDelay: 1000,
+        maxDelay: 10000,
+        timeout: 30000,
+      }
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data ?? [];
+  } catch (error) {
+    // Network errors sau khi retry - return empty array để không crash page
+    console.error("Failed to fetch public spaces:", error);
+    return [];
+  }
 }
 
 const DEFAULT_SPACE_SLUG = "tet-prosys";
