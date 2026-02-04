@@ -4,7 +4,6 @@ import { apiClient } from "@/lib/api/client";
 import { CreateSpaceForm } from "@/components/spaces/CreateSpaceForm";
 import { DeleteSpaceButton } from "@/components/spaces/DeleteSpaceButton";
 import { FolderOpen, FileText, ExternalLink, Edit, Building2, Settings } from "lucide-react";
-import Link from "next/link";
 import type { ApiResponse, Space } from "@/lib/api/types";
 
 // Disable caching for this page so spaces update immediately

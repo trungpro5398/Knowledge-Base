@@ -78,7 +78,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         const ctrlMatch = shortcut.ctrl ? e.ctrlKey : true;
         const shiftMatch = shortcut.shift ? e.shiftKey : !e.shiftKey;
         
-        if (e.key.toLowerCase() === shortcut.key.toLowerCase() && metaMatch && ctrlMatch && shiftMatch) {
+        if (e.key.toLowerCase() === shortcut.key.toLowerCase() && metaMatch && ctrlMatch && shiftMatch && shortcut.action) {
           e.preventDefault();
           shortcut.action();
           break;
