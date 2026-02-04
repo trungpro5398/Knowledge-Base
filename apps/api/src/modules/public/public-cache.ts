@@ -1,12 +1,13 @@
 import * as pagesRepo from "../pages/pages.repo.js";
 import * as pagesService from "../pages/pages.service.js";
 import { TtlCache } from "../../utils/ttl-cache.js";
+import { config } from "../../config/env.js";
 import type { PageRow } from "../pages/pages.repo.js";
 
 type TreeNode = PageRow & { children: TreeNode[] };
 
-const DEFAULT_TTL_MS = 15_000;
-const MAX_ENTRIES = 200;
+const DEFAULT_TTL_MS = Math.max(0, config.publicCacheTtlMs);
+const MAX_ENTRIES = Math.max(1, config.publicCacheMaxEntries || 200);
 
 const treeCache = new TtlCache<{
   tree: TreeNode[];
@@ -34,6 +35,12 @@ export async function getPublishedTreeCached(
   spaceId: string,
   ttlMs = DEFAULT_TTL_MS
 ) {
+  if (ttlMs <= 0) {
+    const tree = (await pagesService.getPagesTree(spaceId, {
+      publishedOnly: true,
+    })) as TreeNode[];
+    return { tree, pageTitleByPath: buildTitleMap(tree) };
+  }
   const key = `tree:${spaceId}`;
   const cached = treeCache.get(key);
   if (cached) return cached;
@@ -52,6 +59,9 @@ export async function getPublishedPageByPathCached(
   path: string,
   ttlMs = DEFAULT_TTL_MS
 ) {
+  if (ttlMs <= 0) {
+    return pagesRepo.getPageByPath(spaceId, path);
+  }
   const key = `page:${spaceId}:${path}`;
   const cached = pageCache.get(key);
   if (cached) return cached;

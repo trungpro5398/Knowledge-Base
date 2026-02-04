@@ -10,9 +10,10 @@ import type { ApiResponse, Page } from "@/lib/api/types";
 
 interface NewPageFormProps {
   spaceId: string;
+  parentId?: string;
 }
 
-export function NewPageForm({ spaceId }: NewPageFormProps) {
+export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [templateId, setTemplateId] = useState<string>("");
@@ -48,11 +49,18 @@ export function NewPageForm({ spaceId }: NewPageFormProps) {
     setLoading(true);
     setError("");
     try {
-      const body: { space_id: string; title: string; slug: string; template_id?: string } = {
+      const body: {
+        space_id: string;
+        title: string;
+        slug: string;
+        template_id?: string;
+        parent_id?: string | null;
+      } = {
         space_id: spaceId,
         title: title || "Untitled",
         slug: slug || generateSlug(title) || "untitled",
       };
+      if (parentId) body.parent_id = parentId;
       if (templateId) body.template_id = templateId;
       const res = await api.post<ApiResponse<Page>>("/api/pages", body);
       router.push(`/admin/spaces/${spaceId}/${res.data.id}`);

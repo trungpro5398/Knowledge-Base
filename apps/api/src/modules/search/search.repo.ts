@@ -20,10 +20,7 @@ export async function search(params: {
 }): Promise<{ results: SearchResult[]; total: number }> {
   if (!pool) return { results: [], total: 0 };
 
-  const conditions: string[] = [
-    "t.page_id IS NULL",
-    "EXISTS (SELECT 1 FROM memberships m WHERE m.space_id = p.space_id AND m.user_id = $1)",
-  ];
+  const conditions: string[] = ["t.page_id IS NULL"];
   const values: unknown[] = [params.userId];
   let i = 2;
 
@@ -57,6 +54,7 @@ export async function search(params: {
             left(COALESCE(pv.content_md, ''), 200) as content_snippet, p.space_id,
             count(*) OVER()::text as total
      FROM pages p
+     JOIN memberships m ON m.space_id = p.space_id AND m.user_id = $1
      LEFT JOIN trash t ON t.page_id = p.id
      LEFT JOIN page_versions pv ON pv.id = p.current_version_id
      WHERE ${whereClause}

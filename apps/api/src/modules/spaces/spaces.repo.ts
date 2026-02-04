@@ -37,6 +37,17 @@ export async function getSpaceById(id: string): Promise<SpaceRow | null> {
   return rows[0] ?? null;
 }
 
+export async function getSpaceForUser(spaceId: string, userId: string): Promise<SpaceRow | null> {
+  if (!pool) return null;
+  const { rows } = await pool.query<SpaceRow>(
+    `SELECT s.* FROM spaces s
+     JOIN memberships m ON m.space_id = s.id
+     WHERE s.id = $1 AND m.user_id = $2`,
+    [spaceId, userId]
+  );
+  return rows[0] ?? null;
+}
+
 export async function getSpaceBySlug(slug: string): Promise<SpaceRow | null> {
   if (!pool) return null;
   const { rows } = await pool.query<SpaceRow>("SELECT * FROM spaces WHERE slug = $1", [slug]);

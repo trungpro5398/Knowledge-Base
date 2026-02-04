@@ -15,13 +15,8 @@ export async function getSpaceBySlug(slug: string) {
 }
 
 export async function getSpace(id: string, userId: string) {
-  const space = await spacesRepo.getSpaceById(id);
+  const space = await spacesRepo.getSpaceForUser(id, userId);
   if (!space) throw new NotFoundError("Space not found");
-
-  const hasAccess = await spacesRepo.hasMembership(userId, id);
-  if (!hasAccess) {
-    throw new NotFoundError("Space not found");
-  }
   return space;
 }
 

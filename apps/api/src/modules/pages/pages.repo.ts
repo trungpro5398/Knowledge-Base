@@ -148,32 +148,34 @@ export async function createPage(data: {
   createdBy: string;
 }): Promise<PageRow> {
   if (!pool) throw new Error("Database not configured");
-
-  const path = data.parentId
-    ? await getChildPath(data.parentId, data.slug)
-    : data.slug;
-
-  const { rows: maxRows } = await pool.query<{ max: number | null }>(
-    `SELECT COALESCE(MAX(sort_order), -1) + 1 as max
-     FROM pages WHERE space_id = $1 AND (parent_id IS NOT DISTINCT FROM $2)`,
-    [data.spaceId, data.parentId]
-  );
-  const sortOrder = maxRows[0]?.max ?? 0;
-
   const { rows } = await pool.query<PageRow>(
-    `INSERT INTO pages (space_id, parent_id, slug, path, title, status, sort_order, created_by, updated_by)
-     VALUES ($1, $2, $3, $4, $5, 'draft', $6, $7, $7)
+    `WITH parent AS (
+       SELECT path::text AS path_text FROM pages WHERE id = $2
+     ),
+     max_sort AS (
+       SELECT COALESCE(MAX(sort_order), -1) + 1 AS sort_order
+       FROM pages
+       WHERE space_id = $1 AND (parent_id IS NOT DISTINCT FROM $2)
+     )
+     INSERT INTO pages (space_id, parent_id, slug, path, title, status, sort_order, created_by, updated_by)
+     SELECT
+       $1,
+       $2,
+       $3,
+       CASE
+         WHEN $2 IS NULL THEN $3
+         WHEN (SELECT path_text FROM parent) IS NULL OR (SELECT path_text FROM parent) = '' THEN $3
+         ELSE (SELECT path_text FROM parent) || '.' || $3
+       END::ltree,
+       $4,
+       'draft',
+       (SELECT sort_order FROM max_sort),
+       $5,
+       $5
      RETURNING *`,
-    [data.spaceId, data.parentId, data.slug, path, data.title, sortOrder, data.createdBy]
+    [data.spaceId, data.parentId, data.slug, data.title, data.createdBy]
   );
   return rows[0]!;
-}
-
-async function getChildPath(parentId: string, slug: string): Promise<string> {
-  if (!pool) return slug;
-  const { rows } = await pool.query<{ path: string }>("SELECT path FROM pages WHERE id = $1", [parentId]);
-  const parentPath = rows[0]?.path ?? "";
-  return parentPath ? `${parentPath}.${slug}` : slug;
 }
 
 export async function updatePage(
