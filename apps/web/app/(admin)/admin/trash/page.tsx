@@ -15,7 +15,9 @@ async function getTrash(token: string): Promise<TrashItem[]> {
 
 export default async function TrashPage() {
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = supabase
+    ? await supabase.auth.getSession()
+    : { data: { session: null } };
   const token = session?.access_token ?? "";
 
   const items = await getTrash(token);
