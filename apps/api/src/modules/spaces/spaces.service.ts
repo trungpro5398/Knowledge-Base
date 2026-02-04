@@ -1,17 +1,19 @@
 import * as spacesRepo from "./spaces.repo.js";
 import { NotFoundError, ValidationError } from "../../utils/errors.js";
 import { pool } from "../../db/pool.js";
+import { getSpaceBySlugCached, invalidateSpaceCache } from "./spaces-cache.js";
+import { getSpacesForUserCached, getSpacesStatsCached, invalidateSpacesForUser } from "./spaces-user-cache.js";
 
 export async function listSpaces(userId: string) {
-  return spacesRepo.listSpacesForUser(userId);
+  return getSpacesForUserCached(userId);
 }
 
 export async function getSpacesStats(userId: string) {
-  return spacesRepo.getSpacesStats(userId);
+  return getSpacesStatsCached(userId);
 }
 
 export async function getSpaceBySlug(slug: string) {
-  return spacesRepo.getSpaceBySlug(slug);
+  return getSpaceBySlugCached(slug);
 }
 
 export async function getSpace(id: string, userId: string) {
@@ -33,6 +35,8 @@ export async function createSpace(
   });
 
   await addMember(space.id, userId, "admin");
+  invalidateSpaceCache(space.id, space.slug);
+  invalidateSpacesForUser(userId);
   return space;
 }
 
