@@ -114,7 +114,8 @@ export async function pagesRoutes(fastify: FastifyInstance, auth: AuthHandlers) 
           contentJson: parsed.data.content_json ?? undefined,
           summary: parsed.data.summary ?? undefined,
         },
-        userId
+        userId,
+        request.pageMeta
       );
       return reply.status(201).send({ data: version });
     }

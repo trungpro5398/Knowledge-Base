@@ -6,6 +6,7 @@ import { verifyToken } from "../utils/jwt.js";
 declare module "fastify" {
   interface FastifyRequest {
     user?: { id: string; email?: string };
+    pageMeta?: { spaceId: string; path: string; status: string };
   }
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;

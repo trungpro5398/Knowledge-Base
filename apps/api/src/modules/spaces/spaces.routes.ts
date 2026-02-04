@@ -45,6 +45,12 @@ export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers)
       return reply.status(404).send({ status: "error", message: "Page not found" });
     }
     const etag = `"${page.id}:${page.current_version_id ?? "none"}"`;
+    const ifNoneMatch = request.headers["if-none-match"];
+    if (ifNoneMatch === etag || ifNoneMatch === `W/${etag}`) {
+      reply.header("ETag", etag);
+      reply.header("Cache-Control", "public, max-age=0, s-maxage=600, stale-while-revalidate=86400");
+      return reply.status(304).send();
+    }
     reply.header("ETag", etag);
     reply.header("Cache-Control", "public, max-age=0, s-maxage=600, stale-while-revalidate=86400");
     return { data: page };

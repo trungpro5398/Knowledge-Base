@@ -1,4 +1,5 @@
 import { pool } from "../../db/pool.js";
+import { ValidationError } from "../../utils/errors.js";
 
 export interface PageRow {
   id: string;
@@ -227,33 +228,138 @@ export async function reorderPages(
 ): Promise<void> {
   if (!pool || updates.length === 0) return;
 
-  const values: unknown[] = [];
-  const rowsSql = updates
-    .map((update, index) => {
-      const parentIdProvided = Object.prototype.hasOwnProperty.call(update, "parent_id");
-      const base = index * 4;
-      values.push(
-        update.id,
-        update.sort_order,
-        parentIdProvided ? update.parent_id ?? null : null,
-        parentIdProvided
-      );
-      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
-    })
-    .join(", ");
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
 
-  values.push(spaceId);
-  const spaceParam = values.length;
+    const updatesWithParent = updates.filter((update) =>
+      Object.prototype.hasOwnProperty.call(update, "parent_id")
+    );
+    const allIds = new Set<string>();
+    for (const update of updates) allIds.add(update.id);
+    for (const update of updatesWithParent) {
+      if (update.parent_id) allIds.add(update.parent_id);
+    }
 
-  await pool.query(
-    `UPDATE pages AS p
-     SET sort_order = u.sort_order,
-         parent_id = CASE WHEN u.parent_id_set THEN u.parent_id ELSE p.parent_id END,
+    const ids = Array.from(allIds);
+    const pageRows = ids.length
+      ? await client.query<{ id: string; parent_id: string | null; path: string; slug: string }>(
+          `SELECT id, parent_id, path, slug FROM pages WHERE id = ANY($1::uuid[])`,
+          [ids]
+        )
+      : { rows: [] };
+
+    const pagesById = new Map<string, { id: string; parent_id: string | null; path: string; slug: string }>();
+    for (const row of pageRows.rows) {
+      pagesById.set(row.id, row);
+    }
+
+    for (const update of updates) {
+      if (!pagesById.has(update.id)) {
+        throw new ValidationError("Page not found");
+      }
+    }
+
+    const changedParents = updatesWithParent
+      .map((update) => {
+        const current = pagesById.get(update.id);
+        return current
+          ? {
+              update,
+              current,
+              currentParent: current.parent_id ?? null,
+              nextParent: update.parent_id ?? null,
+            }
+          : null;
+      })
+      .filter((item): item is NonNullable<typeof item> => !!item)
+      .filter((item) => item.currentParent !== item.nextParent);
+
+    const isDescendantPath = (path: string, ancestor: string) =>
+      path === ancestor || path.startsWith(`${ancestor}.`);
+
+    const pathDepth = (path: string) => path.split(".").filter(Boolean).length;
+
+    const rootsToMove = changedParents.filter((item) =>
+      !changedParents.some(
+        (other) => other.update.id !== item.update.id && isDescendantPath(item.current.path, other.current.path)
+      )
+    );
+
+    rootsToMove.sort((a, b) => pathDepth(a.current.path) - pathDepth(b.current.path));
+
+    const newPathById = new Map<string, string>();
+
+    for (const { update, current } of rootsToMove) {
+      const nextParentId = update.parent_id ?? null;
+      if (nextParentId === current.id) {
+        throw new ValidationError("Không thể đặt trang làm cha của chính nó");
+      }
+
+      let parentPath: string | null = null;
+      if (nextParentId) {
+        parentPath = newPathById.get(nextParentId) ?? pagesById.get(nextParentId)?.path ?? null;
+        if (!parentPath) {
+          throw new ValidationError("Parent page not found");
+        }
+        if (isDescendantPath(parentPath, current.path)) {
+          throw new ValidationError("Không thể kéo trang vào chính nó hoặc trang con");
+        }
+      }
+
+      const newPath = parentPath ? `${parentPath}.${current.slug}` : current.slug;
+
+      await client.query(
+        `UPDATE pages
+         SET path = CASE
+           WHEN id = $1 THEN $2::ltree
+           ELSE $2::ltree || subpath(path, nlevel($3::ltree))
+         END,
          updated_at = NOW()
-     FROM (VALUES ${rowsSql}) AS u(id, sort_order, parent_id, parent_id_set)
-     WHERE p.id = u.id AND p.space_id = $${spaceParam}`,
-    values
-  );
+         WHERE space_id = $4 AND path <@ $3::ltree`,
+        [current.id, newPath, current.path, spaceId]
+      );
+
+      newPathById.set(current.id, newPath);
+    }
+
+    if (updates.length > 0) {
+      const values: unknown[] = [];
+      const rowsSql = updates
+        .map((update, index) => {
+          const parentIdProvided = Object.prototype.hasOwnProperty.call(update, "parent_id");
+          const base = index * 4;
+          values.push(
+            update.id,
+            update.sort_order,
+            parentIdProvided ? update.parent_id ?? null : null,
+            parentIdProvided
+          );
+          return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
+        })
+        .join(", ");
+
+      values.push(spaceId);
+      const spaceParam = values.length;
+
+      await client.query(
+        `UPDATE pages AS p
+         SET sort_order = u.sort_order,
+             parent_id = CASE WHEN u.parent_id_set THEN u.parent_id ELSE p.parent_id END,
+             updated_at = NOW()
+         FROM (VALUES ${rowsSql}) AS u(id, sort_order, parent_id, parent_id_set)
+         WHERE p.id = u.id AND p.space_id = $${spaceParam}`,
+        values
+      );
+    }
+
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function createVersion(data: {

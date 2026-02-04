@@ -20,9 +20,9 @@ async function getMemberRole(userId: string, spaceId: string): Promise<Role | nu
 async function getPageAccess(
   userId: string,
   pageId: string
-): Promise<{ spaceId: string; role: Role | null } | null> {
-  const { rows } = await pool.query<{ space_id: string; role: Role | null }>(
-    `SELECT p.space_id, m.role
+): Promise<{ spaceId: string; role: Role | null; path: string; status: string } | null> {
+  const { rows } = await pool.query<{ space_id: string; role: Role | null; path: string; status: string }>(
+    `SELECT p.space_id, p.path::text as path, p.status, m.role
      FROM pages p
      LEFT JOIN memberships m ON m.space_id = p.space_id AND m.user_id = $1
      WHERE p.id = $2`,
@@ -30,7 +30,7 @@ async function getPageAccess(
   );
   const row = rows[0];
   if (!row) return null;
-  return { spaceId: row.space_id, role: row.role ?? null };
+  return { spaceId: row.space_id, role: row.role ?? null, path: row.path, status: row.status };
 }
 
 async function checkRole(
@@ -100,6 +100,7 @@ async function rbacPlugin(fastify: FastifyInstance) {
         return;
       }
       (request as any).spaceRole = access.role;
+      request.pageMeta = { spaceId: access.spaceId, path: access.path, status: access.status };
     };
   });
 }

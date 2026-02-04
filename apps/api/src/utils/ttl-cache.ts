@@ -45,4 +45,8 @@ export class TtlCache<T> {
   clear(): void {
     this.store.clear();
   }
+
+  keys(): IterableIterator<string> {
+    return this.store.keys();
+  }
 }

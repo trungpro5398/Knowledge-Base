@@ -1,9 +1,27 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, Pencil, FolderOpen, Plus } from "lucide-react";
+import {
+  DndContext,
+  DragEndEvent,
+  DragMoveEvent,
+  DragOverEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { FileText, Pencil, FolderOpen, Plus, GripVertical } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useReorderPages } from "@/lib/api/hooks";
+import { cn } from "@/lib/utils";
 
 export interface TreeNode {
   id: string;
@@ -26,6 +44,8 @@ interface PageTreeProps {
   showEditLink?: boolean;
   isLoading?: boolean;
   showCreateLink?: boolean;
+  showCreateChild?: boolean;
+  enableDragAndDrop?: boolean;
   /** When set (e.g. tet-prosys), sidebar renders as collapsible groups */
   groupConfig?: readonly SidebarGroupConfig[];
   /**
@@ -42,6 +62,7 @@ function TreeNodeItem({
   spaceSlug,
   path,
   showEditLink,
+  showCreateChild,
   linkMode,
   activePageId,
 }: {
@@ -50,6 +71,7 @@ function TreeNodeItem({
   spaceSlug: string;
   path: string[];
   showEditLink: boolean;
+  showCreateChild: boolean;
   linkMode: "kb" | "admin";
   activePageId?: string | null;
 }) {
@@ -62,19 +84,32 @@ function TreeNodeItem({
   
   return (
     <li className="border-l border-border pl-4 py-2 first:pt-0">
-      <div className={`flex items-center gap-2 group ${isActive ? "bg-primary/10 rounded-md px-2 py-1 -ml-2" : ""}`}>
+      <div
+        className={cn(
+          "flex items-center gap-2 group",
+          isActive && "bg-primary/10 rounded-md px-2 py-1 -ml-2"
+        )}
+      >
         <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
         <Link
           href={href}
-          className={`text-sm font-medium transition-colors flex-1 truncate ${
-            isActive
-              ? "text-primary font-semibold"
-              : "hover:text-primary"
-          }`}
+          className={cn(
+            "text-sm font-medium transition-colors flex-1 truncate",
+            isActive ? "text-primary font-semibold" : "hover:text-primary"
+          )}
           prefetch={true}
         >
           {node.title}
         </Link>
+        {showCreateChild && linkMode === "admin" && (
+          <Link
+            href={`/admin/spaces/${spaceId}/pages/new?parentId=${node.id}`}
+            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+            title="Tạo trang con"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </Link>
+        )}
         {/* Chỉ hiện nút edit riêng khi đang ở chế độ KB (public) và có quyền edit */}
         {showEditLink && linkMode === "kb" && (
           <Link
@@ -96,6 +131,7 @@ function TreeNodeItem({
               spaceSlug={spaceSlug}
               path={[...path, child.slug]}
               showEditLink={showEditLink}
+              showCreateChild={showCreateChild}
               linkMode={linkMode}
               activePageId={activePageId}
             />
@@ -113,6 +149,209 @@ function getGroupId(title: string, config: readonly SidebarGroupConfig[]): strin
   return null;
 }
 
+const INDENTATION_WIDTH = 24;
+
+interface FlattenedItem extends TreeNode {
+  depth: number;
+  parentId: string | null;
+}
+
+function flattenTree(nodes: TreeNode[], parentId: string | null = null, depth = 0): FlattenedItem[] {
+  const items: FlattenedItem[] = [];
+  for (const node of nodes) {
+    items.push({ ...node, depth, parentId });
+    if (node.children && node.children.length > 0) {
+      items.push(...flattenTree(node.children, node.id, depth + 1));
+    }
+  }
+  return items;
+}
+
+function buildTree(items: FlattenedItem[]): TreeNode[] {
+  const nodesById = new Map<string, TreeNode>();
+  const roots: TreeNode[] = [];
+
+  for (const item of items) {
+    nodesById.set(item.id, { id: item.id, title: item.title, slug: item.slug, children: [] });
+  }
+
+  for (const item of items) {
+    const node = nodesById.get(item.id)!;
+    if (item.parentId) {
+      const parent = nodesById.get(item.parentId);
+      if (parent) {
+        parent.children!.push(node);
+      } else {
+        roots.push(node);
+      }
+    } else {
+      roots.push(node);
+    }
+  }
+
+  return roots;
+}
+
+function getDescendantIds(items: FlattenedItem[], id: string): string[] {
+  const index = items.findIndex((item) => item.id === id);
+  if (index === -1) return [];
+  const result: string[] = [];
+  const depth = items[index]!.depth;
+  for (let i = index + 1; i < items.length; i += 1) {
+    if (items[i]!.depth <= depth) break;
+    result.push(items[i]!.id);
+  }
+  return result;
+}
+
+function removeChildrenOf(items: FlattenedItem[], id: string | null): FlattenedItem[] {
+  if (!id) return items;
+  const descendantIds = new Set(getDescendantIds(items, id));
+  return items.filter((item) => !descendantIds.has(item.id));
+}
+
+function getParentId(items: FlattenedItem[], index: number, depth: number): string | null {
+  if (depth === 0) return null;
+  for (let i = index - 1; i >= 0; i -= 1) {
+    const item = items[i]!;
+    if (item.depth === depth - 1) return item.id;
+  }
+  return null;
+}
+
+function getProjection(
+  items: FlattenedItem[],
+  activeId: string,
+  overId: string,
+  offsetLeft: number,
+  indentationWidth: number
+) {
+  const activeIndex = items.findIndex((item) => item.id === activeId);
+  const overIndex = items.findIndex((item) => item.id === overId);
+  const activeItem = items[activeIndex];
+  if (!activeItem || overIndex === -1) return null;
+
+  const reordered = [...items];
+  reordered.splice(activeIndex, 1);
+  reordered.splice(overIndex, 0, activeItem);
+
+  const previousItem = reordered[overIndex - 1];
+  const nextItem = reordered[overIndex + 1];
+  const dragDepth = Math.round(offsetLeft / indentationWidth);
+  const projectedDepth = activeItem.depth + dragDepth;
+  const maxDepth = previousItem ? previousItem.depth + 1 : 0;
+  const minDepth = nextItem ? nextItem.depth : 0;
+  const depth = Math.max(Math.min(projectedDepth, maxDepth), minDepth);
+  const parentId = getParentId(reordered, overIndex, depth);
+
+  return { depth, parentId };
+}
+
+function moveSubtree(
+  items: FlattenedItem[],
+  activeId: string,
+  overId: string,
+  projected: { depth: number; parentId: string | null }
+) {
+  const activeIndex = items.findIndex((item) => item.id === activeId);
+  if (activeIndex === -1) return items;
+
+  const descendantIds = getDescendantIds(items, activeId);
+  const subtreeIds = new Set([activeId, ...descendantIds]);
+  const subtree = items.filter((item) => subtreeIds.has(item.id));
+  const remaining = items.filter((item) => !subtreeIds.has(item.id));
+  const overIndex = remaining.findIndex((item) => item.id === overId);
+  const insertIndex = overIndex === -1 ? remaining.length : overIndex;
+
+  const nextItems = [
+    ...remaining.slice(0, insertIndex),
+    ...subtree,
+    ...remaining.slice(insertIndex),
+  ];
+
+  const activeItem = items[activeIndex]!;
+  const depthDelta = projected.depth - activeItem.depth;
+  return nextItems.map((item) => {
+    if (item.id === activeId) {
+      return { ...item, depth: projected.depth, parentId: projected.parentId };
+    }
+    if (subtreeIds.has(item.id)) {
+      return { ...item, depth: item.depth + depthDelta };
+    }
+    return item;
+  });
+}
+
+function SortableTreeItem({
+  item,
+  depth,
+  spaceId,
+  isActive,
+  showCreateChild,
+}: {
+  item: FlattenedItem;
+  depth: number;
+  spaceId: string;
+  isActive: boolean;
+  showCreateChild: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    paddingLeft: depth * INDENTATION_WIDTH,
+  };
+
+  return (
+    <li ref={setNodeRef} style={style} className={cn(isDragging && "opacity-60")}>
+      <div
+        className={cn(
+          "flex items-center gap-2 rounded-md px-2 py-1.5 group",
+          isActive && "bg-primary/10 text-primary"
+        )}
+      >
+        <button
+          type="button"
+          className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+          {...attributes}
+          {...listeners}
+          title="Kéo để sắp xếp"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+        <Link
+          href={`/admin/spaces/${spaceId}/${item.id}`}
+          className={cn(
+            "text-sm font-medium transition-colors flex-1 truncate",
+            isActive ? "text-primary font-semibold" : "hover:text-primary"
+          )}
+          prefetch={true}
+        >
+          {item.title}
+        </Link>
+        {showCreateChild && (
+          <Link
+            href={`/admin/spaces/${spaceId}/pages/new?parentId=${item.id}`}
+            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+            title="Tạo trang con"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </Link>
+        )}
+      </div>
+    </li>
+  );
+}
+
 export function PageTree({
   spaceId,
   spaceSlug,
@@ -120,6 +359,8 @@ export function PageTree({
   showEditLink = true,
   isLoading = false,
   showCreateLink = false,
+  showCreateChild = false,
+  enableDragAndDrop = false,
   groupConfig,
   linkMode = "kb",
 }: PageTreeProps) {
@@ -129,6 +370,18 @@ export function PageTree({
     linkMode === "admin" && pathname
       ? pathname.match(/\/admin\/spaces\/[^/]+\/([^/]+)$/)?.[1] ?? null
       : null;
+  const canDrag = enableDragAndDrop && linkMode === "admin" && !(groupConfig && groupConfig.length > 0);
+  const reorderPages = useReorderPages(spaceId);
+  const [treeNodes, setTreeNodes] = useState<TreeNode[]>(nodes);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [offsetLeft, setOffsetLeft] = useState(0);
+
+  useEffect(() => {
+    setTreeNodes(nodes);
+  }, [nodes]);
+
+  const effectiveNodes = canDrag ? treeNodes : nodes;
 
   if (isLoading) {
     return (
@@ -142,7 +395,7 @@ export function PageTree({
     );
   }
 
-  if (nodes.length === 0) {
+  if (effectiveNodes.length === 0) {
     return (
       <div className="py-8 text-center">
         <FolderOpen className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
@@ -176,9 +429,157 @@ export function PageTree({
       </div>
     ) : null;
 
+  const flattenedItems = useMemo(() => flattenTree(treeNodes), [treeNodes]);
+  const visibleItems = useMemo(
+    () => removeChildrenOf(flattenedItems, activeId),
+    [flattenedItems, activeId]
+  );
+  const projected =
+    activeId && overId
+      ? getProjection(visibleItems, activeId, overId, offsetLeft, INDENTATION_WIDTH)
+      : null;
+  const itemsToRender = useMemo(
+    () =>
+      visibleItems.map((item) =>
+        item.id === activeId && projected ? { ...item, depth: projected.depth } : item
+      ),
+    [visibleItems, activeId, projected]
+  );
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
+  );
+
+  if (canDrag) {
+    const activeItem = flattenedItems.find((item) => item.id === activeId) ?? null;
+
+    const handleDragStart = (event: DragStartEvent) => {
+      setActiveId(String(event.active.id));
+      setOverId(String(event.active.id));
+      setOffsetLeft(0);
+    };
+
+    const handleDragMove = (event: DragMoveEvent) => {
+      setOffsetLeft(event.delta.x);
+    };
+
+    const handleDragOver = (event: DragOverEvent) => {
+      setOverId(event.over ? String(event.over.id) : null);
+    };
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over) {
+        setActiveId(null);
+        setOverId(null);
+        setOffsetLeft(0);
+        return;
+      }
+
+      const activeKey = String(active.id);
+      const overKey = String(over.id);
+      if (activeKey === overKey) {
+        setActiveId(null);
+        setOverId(null);
+        setOffsetLeft(0);
+        return;
+      }
+
+      const currentItems = flattenTree(treeNodes);
+      const projectedMove = getProjection(
+        removeChildrenOf(currentItems, activeKey),
+        activeKey,
+        overKey,
+        offsetLeft,
+        INDENTATION_WIDTH
+      );
+
+      if (!projectedMove) {
+        setActiveId(null);
+        setOverId(null);
+        setOffsetLeft(0);
+        return;
+      }
+
+      const descendants = new Set(getDescendantIds(currentItems, activeKey));
+      if (projectedMove.parentId && descendants.has(projectedMove.parentId)) {
+        setActiveId(null);
+        setOverId(null);
+        setOffsetLeft(0);
+        return;
+      }
+
+      const nextItems = moveSubtree(currentItems, activeKey, overKey, projectedMove);
+      const previousTree = treeNodes;
+      setTreeNodes(buildTree(nextItems));
+
+      const orderMap = new Map<string | null, number>();
+      const updates = nextItems.map((item) => {
+        const parentId = item.parentId ?? null;
+        const order = orderMap.get(parentId) ?? 0;
+        orderMap.set(parentId, order + 1);
+        return { id: item.id, sort_order: order, parent_id: parentId };
+      });
+
+      try {
+        await reorderPages.mutateAsync(updates);
+      } catch {
+        setTreeNodes(previousTree);
+      } finally {
+        setActiveId(null);
+        setOverId(null);
+        setOffsetLeft(0);
+      }
+    };
+
+    return (
+      <div>
+        {createLink}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => {
+            setActiveId(null);
+            setOverId(null);
+            setOffsetLeft(0);
+          }}
+        >
+          <SortableContext
+            items={itemsToRender.map((item) => item.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <ul className="space-y-1">
+              {itemsToRender.map((item) => (
+                <SortableTreeItem
+                  key={item.id}
+                  item={item}
+                  depth={item.depth}
+                  spaceId={spaceId}
+                  isActive={activePageId === item.id}
+                  showCreateChild={showCreateChild}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+
+          <DragOverlay>
+            {activeItem ? (
+              <div className="rounded-md border bg-card shadow-lg px-3 py-2 text-sm font-medium">
+                {activeItem.title}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </div>
+    );
+  }
+
   if (groupConfig && groupConfig.length > 0) {
     const byGroup = new Map<string | "other", TreeNode[]>();
-    for (const node of nodes) {
+    for (const node of effectiveNodes) {
       const gid = getGroupId(node.title, groupConfig);
       const key = gid ?? "other";
       if (!byGroup.has(key)) byGroup.set(key, []);
@@ -209,6 +610,7 @@ export function PageTree({
                     spaceSlug={spaceSlug}
                     path={[node.slug]}
                     showEditLink={showEditLink}
+                    showCreateChild={showCreateChild}
                     linkMode={linkMode}
                     activePageId={activePageId}
                   />
@@ -231,6 +633,7 @@ export function PageTree({
                   spaceSlug={spaceSlug}
                   path={[node.slug]}
                   showEditLink={showEditLink}
+                  showCreateChild={showCreateChild}
                   linkMode={linkMode}
                   activePageId={activePageId}
                 />
@@ -246,7 +649,7 @@ export function PageTree({
     <div>
       {createLink}
       <ul className="space-y-1">
-        {nodes.map((node) => (
+        {effectiveNodes.map((node) => (
           <TreeNodeItem
             key={node.id}
             node={node}
@@ -254,6 +657,7 @@ export function PageTree({
             spaceSlug={spaceSlug}
             path={[node.slug]}
             showEditLink={showEditLink}
+            showCreateChild={showCreateChild}
             linkMode={linkMode}
             activePageId={activePageId}
           />

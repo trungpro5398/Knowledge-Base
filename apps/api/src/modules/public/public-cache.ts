@@ -18,6 +18,9 @@ const pageCache = new TtlCache<Awaited<ReturnType<typeof pagesRepo.getPageByPath
   { defaultTtlMs: DEFAULT_TTL_MS, maxEntries: MAX_ENTRIES }
 );
 
+const inflightTree = new Map<string, Promise<{ tree: TreeNode[]; pageTitleByPath: Map<string, string> }>>();
+const inflightPage = new Map<string, Promise<Awaited<ReturnType<typeof pagesRepo.getPageByPath>>>>();
+
 function buildTitleMap(tree: TreeNode[]): Map<string, string> {
   const map = new Map<string, string>();
   const stack = [...tree];
@@ -44,14 +47,25 @@ export async function getPublishedTreeCached(
   const key = `tree:${spaceId}`;
   const cached = treeCache.get(key);
   if (cached) return cached;
+  const inflight = inflightTree.get(key);
+  if (inflight) return inflight;
 
-  const tree = (await pagesService.getPagesTree(spaceId, {
-    publishedOnly: true,
-  })) as TreeNode[];
-  const pageTitleByPath = buildTitleMap(tree);
-  const value = { tree, pageTitleByPath };
-  treeCache.set(key, value, ttlMs);
-  return value;
+  const promise = (async () => {
+    const tree = (await pagesService.getPagesTree(spaceId, {
+      publishedOnly: true,
+    })) as TreeNode[];
+    const pageTitleByPath = buildTitleMap(tree);
+    const value = { tree, pageTitleByPath };
+    treeCache.set(key, value, ttlMs);
+    return value;
+  })();
+
+  inflightTree.set(key, promise);
+  try {
+    return await promise;
+  } finally {
+    inflightTree.delete(key);
+  }
 }
 
 export async function getPublishedPageByPathCached(
@@ -65,14 +79,35 @@ export async function getPublishedPageByPathCached(
   const key = `page:${spaceId}:${path}`;
   const cached = pageCache.get(key);
   if (cached) return cached;
+  const inflight = inflightPage.get(key);
+  if (inflight) return inflight;
 
-  const page = await pagesRepo.getPageByPath(spaceId, path);
-  if (page) {
-    pageCache.set(key, page, ttlMs);
+  const promise = (async () => {
+    const page = await pagesRepo.getPageByPath(spaceId, path);
+    if (page) {
+      pageCache.set(key, page, ttlMs);
+    }
+    return page;
+  })();
+
+  inflightPage.set(key, promise);
+  try {
+    return await promise;
+  } finally {
+    inflightPage.delete(key);
   }
-  return page;
 }
 
 export function invalidatePublishedSpace(spaceId: string): void {
   treeCache.delete(`tree:${spaceId}`);
+  const prefix = `page:${spaceId}:`;
+  for (const key of pageCache.keys()) {
+    if (key.startsWith(prefix)) {
+      pageCache.delete(key);
+    }
+  }
+}
+
+export function invalidatePublishedPage(spaceId: string, path: string): void {
+  pageCache.delete(`page:${spaceId}:${path}`);
 }

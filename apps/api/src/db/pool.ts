@@ -32,6 +32,9 @@ export const pool = {
   ): Promise<pg.QueryResult<T>> => {
     return getPool().query<T>(text, params);
   },
+  connect: (): Promise<pg.PoolClient> => {
+    return getPool().connect();
+  },
   end: (): Promise<void> => {
     if (_pool) {
       return _pool.end();

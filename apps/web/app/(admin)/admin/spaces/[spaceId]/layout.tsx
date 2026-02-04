@@ -50,6 +50,7 @@ export default async function SpaceLayout({
   }
 
   const useGroupedSidebar = space.slug === "tet-prosys";
+  const enableDragAndDrop = true;
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
@@ -85,7 +86,9 @@ export default async function SpaceLayout({
               linkMode="admin"
               showEditLink={false}
               showCreateLink
-              groupConfig={useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
+              showCreateChild
+              enableDragAndDrop={enableDragAndDrop}
+              groupConfig={!enableDragAndDrop && useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
             />
           </div>
         </aside>

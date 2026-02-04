@@ -1,8 +1,9 @@
 import * as pagesRepo from "./pages.repo.js";
 import * as templatesRepo from "./templates.repo.js";
 import * as spacesRepo from "../spaces/spaces.repo.js";
+import { invalidatePublishedPage, invalidatePublishedSpace } from "../public/public-cache.js";
 import { config } from "../../config/env.js";
-import { NotFoundError } from "../../utils/errors.js";
+import { NotFoundError, ValidationError } from "../../utils/errors.js";
 import { compileMarkdown } from "../../utils/markdown.js";
 import type { PageRow } from "./pages.repo.js";
 
@@ -112,13 +113,15 @@ export async function updatePage(
 ) {
   const updated = await pagesRepo.updatePage(id, data);
   if (!updated) throw new NotFoundError("Page not found");
+  invalidatePublishedSpace(updated.space_id);
   return updated;
 }
 
 export async function createVersion(
   pageId: string,
   data: { contentMd?: string; contentJson?: Record<string, unknown>; summary?: string },
-  userId: string
+  userId: string,
+  meta?: { spaceId: string; path: string; status: string }
 ) {
   const version = await pagesRepo.createVersion({
     pageId,
@@ -129,6 +132,9 @@ export async function createVersion(
   });
   // Luôn cập nhật current_version để reload hiển thị đúng bản mới (autosave hoặc publish)
   await pagesRepo.setCurrentVersion(pageId, version.id);
+  if (meta?.status === "published") {
+    invalidatePublishedPage(meta.spaceId, meta.path);
+  }
   return version;
 }
 
@@ -151,6 +157,7 @@ export async function publishPage(pageId: string, versionId: string) {
       : `/kb/${space.slug}`;
     await callRevalidate(kbPath, "kb");
   }
+  invalidatePublishedSpace(page.space_id);
 
   return pagesRepo.getPageById(pageId);
 }
@@ -163,15 +170,31 @@ export async function reorderPages(
   spaceId: string,
   updates: Array<{ id: string; sort_order: number; parent_id?: string | null }>
 ): Promise<void> {
-  await pagesRepo.reorderPages(spaceId, updates);
+  try {
+    await pagesRepo.reorderPages(spaceId, updates);
+    invalidatePublishedSpace(spaceId);
+  } catch (error: any) {
+    if (error instanceof ValidationError) throw error;
+    if (error?.code === "23505") {
+      throw new ValidationError("Đường dẫn trang đã tồn tại, vui lòng đổi vị trí khác");
+    }
+    throw error;
+  }
 }
 
 export async function softDeletePage(pageId: string, userId: string) {
   const page = await pagesRepo.getPageById(pageId);
   if (!page) throw new NotFoundError("Page not found");
   await pagesRepo.softDeletePage(pageId, userId);
+  if (page.status === "published") {
+    invalidatePublishedSpace(page.space_id);
+  }
 }
 
 export async function restorePage(pageId: string) {
+  const page = await pagesRepo.getPageById(pageId, true);
   await pagesRepo.restoreFromTrash(pageId);
+  if (page?.status === "published") {
+    invalidatePublishedSpace(page.space_id);
+  }
 }
