@@ -154,13 +154,19 @@ export async function pagesRoutes(fastify: FastifyInstance, auth: AuthHandlers) 
     { preHandler: [authenticate, requireSpaceRole("editor")] },
     async (request, reply) => {
       const { spaceId } = request.params as { spaceId: string };
-      const { updates } = request.body as { updates: Array<{ id: string; sort_order: number; parent_id?: string | null }> };
-      
-      if (!Array.isArray(updates) || updates.length === 0) {
+      const body = request.body as unknown;
+      const updates = Array.isArray(body)
+        ? body
+        : (body as { updates?: Array<{ id: string; sort_order: number; parent_id?: string | null }> } | null)?.updates;
+
+      if (!Array.isArray(updates)) {
         return reply.status(400).send({
           status: "error",
           message: "Updates array is required",
         });
+      }
+      if (updates.length === 0) {
+        return { data: { success: true } };
       }
 
       await pagesService.reorderPages(spaceId, updates);
