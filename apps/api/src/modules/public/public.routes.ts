@@ -1,14 +1,6 @@
 import { FastifyInstance } from "fastify";
 import * as spacesService from "../spaces/spaces.service.js";
-import * as pagesService from "../pages/pages.service.js";
-import * as pagesRepo from "../pages/pages.repo.js";
-
-interface PageRow {
-  id: string;
-  path: string;
-  title: string;
-  [key: string]: unknown;
-}
+import { getPublishedPageByPathCached, getPublishedTreeCached } from "./public-cache.js";
 
 function buildBreadcrumb(
   spaceSlug: string,
@@ -32,16 +24,6 @@ function buildBreadcrumb(
   return crumbs;
 }
 
-function flattenTree(nodes: (PageRow & { children?: unknown[] })[], acc: { path: string; title: string }[] = []): { path: string; title: string }[] {
-  for (const node of nodes) {
-    acc.push({ path: node.path, title: node.title });
-    if (node.children && (node.children as PageRow[]).length > 0) {
-      flattenTree(node.children as (PageRow & { children?: unknown[] })[], acc);
-    }
-  }
-  return acc;
-}
-
 export async function publicRoutes(fastify: FastifyInstance) {
   fastify.get("/render", async (request, reply) => {
     const spaceSlug = (request.query as { spaceSlug?: string }).spaceSlug;
@@ -59,14 +41,12 @@ export async function publicRoutes(fastify: FastifyInstance) {
       return reply.status(404).send({ status: "error", message: "Space not found" });
     }
 
-    const page = await pagesRepo.getPageByPath(space.id, path);
+    const page = await getPublishedPageByPathCached(space.id, path);
     if (!page) {
       return reply.status(404).send({ status: "error", message: "Page not found" });
     }
 
-    const tree = await pagesService.getPagesTree(space.id, { publishedOnly: true });
-    const flatPages = flattenTree(tree as unknown as (PageRow & { children?: unknown[] })[]);
-    const pageTitleByPath = new Map(flatPages.map((item) => [item.path, item.title]));
+    const { tree, pageTitleByPath } = await getPublishedTreeCached(space.id);
     const breadcrumb = buildBreadcrumb(spaceSlug, path, page.title, pageTitleByPath);
 
     const etag = `"${page.id}:${page.current_version_id ?? "none"}"`;

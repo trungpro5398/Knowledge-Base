@@ -1,8 +1,7 @@
 import { FastifyInstance } from "fastify";
 import type { AuthHandlers } from "../../routes/auth-types.js";
 import * as spacesService from "./spaces.service.js";
-import * as pagesService from "../pages/pages.service.js";
-import * as pagesRepo from "../pages/pages.repo.js";
+import { getPublishedPageByPathCached, getPublishedTreeCached } from "../public/public-cache.js";
 import { createSpaceSchema } from "@kb/shared";
 
 export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
@@ -41,7 +40,7 @@ export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers)
     if (!space) {
       return reply.status(404).send({ status: "error", message: "Space not found" });
     }
-    const page = await pagesRepo.getPageByPath(space.id, path);
+    const page = await getPublishedPageByPathCached(space.id, path);
     if (!page) {
       return reply.status(404).send({ status: "error", message: "Page not found" });
     }
@@ -57,7 +56,7 @@ export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers)
     if (!space) {
       return reply.status(404).send({ status: "error", message: "Space not found" });
     }
-    const tree = await pagesService.getPagesTree(space.id, { publishedOnly: true });
+    const { tree } = await getPublishedTreeCached(space.id);
     reply.header("Cache-Control", "public, max-age=0, s-maxage=600, stale-while-revalidate=86400");
     return { data: tree };
   });
