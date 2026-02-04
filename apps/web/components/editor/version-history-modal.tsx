@@ -28,7 +28,7 @@ export function VersionHistoryModal({
   const handleRestore = (version: PageVersion) => {
     if (confirm(`Restore to version from ${new Date(version.created_at).toLocaleString()}?`)) {
       onRestore(version.content_md || "");
-      toast.success("Version restored", { description: "Don't forget to save!" });
+      toast.success("Version restored", { description: "Don’t forget to save!" });
     }
   };
 

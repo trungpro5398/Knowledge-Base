@@ -32,7 +32,9 @@ export default function LoginPage() {
     }
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError((data.error as string) ?? "Đăng nhập thất bại");
+      setError(
+        (data.error as string) ?? "Đăng nhập thất bại. Kiểm tra email/mật khẩu và thử lại."
+      );
       passwordRef.current?.focus();
     }
     setLoading(false);

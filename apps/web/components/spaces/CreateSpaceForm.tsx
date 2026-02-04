@@ -37,7 +37,7 @@ export function CreateSpaceForm() {
       setManualSlug(false);
       setShowAdvanced(false);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Tạo thất bại";
+      const message = err instanceof Error ? err.message : "Tạo thất bại. Vui lòng thử lại.";
       setError(message);
       toast.error("Tạo space thất bại", { description: message });
       nameRef.current?.focus();

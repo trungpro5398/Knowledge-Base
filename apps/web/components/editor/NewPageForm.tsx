@@ -68,7 +68,7 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
       toast.success("Đã tạo trang", { description: body.title });
       router.push(`/admin/spaces/${spaceId}/${res.data.id}`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Tạo thất bại";
+      const message = err instanceof Error ? err.message : "Tạo thất bại. Vui lòng thử lại.";
       setError(message);
       toast.error("Tạo trang thất bại", { description: message });
       titleRef.current?.focus();

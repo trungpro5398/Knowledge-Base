@@ -32,7 +32,7 @@ export function CreatePageModal({
 
     const handleCreate = async () => {
         if (!title.trim()) {
-            setError("Please enter a page title");
+            setError("Please enter a page title to continue.");
             titleRef.current?.focus();
             return;
         }
@@ -65,7 +65,7 @@ export function CreatePageModal({
             router.push(`/admin/spaces/${spaceId}/pages/${pageId}/edit`);
             onClose();
         } catch (err: any) {
-            const message = err?.message || "Failed to create page";
+            const message = err?.message || "Failed to create page. Try again.";
             setError(message);
             toast.error("Tạo trang thất bại", { description: message });
             titleRef.current?.focus();

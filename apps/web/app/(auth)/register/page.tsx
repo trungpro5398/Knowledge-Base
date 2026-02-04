@@ -60,7 +60,9 @@ export default function RegisterPage() {
       return;
       // setSuccess(true);
     } catch (err: unknown) {
-      setErrors({ form: err instanceof Error ? err.message : "Đăng ký thất bại" });
+      setErrors({
+        form: err instanceof Error ? err.message : "Đăng ký thất bại. Vui lòng thử lại.",
+      });
       emailRef.current?.focus();
     } finally {
       setLoading(false);
