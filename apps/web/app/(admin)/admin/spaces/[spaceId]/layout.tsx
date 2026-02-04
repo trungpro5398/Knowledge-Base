@@ -95,7 +95,7 @@ export default async function SpaceLayout({
           storageKey="admin-space-sidebar"
           expandedWidth="w-72"
           responsive="hidden lg:flex"
-          className="bg-card/40"
+          className="bg-card/80 dark:bg-card/90"
         >
           <div className="p-4 border-b border-border/70">
             <div className="flex items-center justify-between">

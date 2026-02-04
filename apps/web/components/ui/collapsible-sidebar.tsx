@@ -63,8 +63,9 @@ export function CollapsibleSidebar({
     <aside
       className={cn(
         responsive,
-        "shrink-0 overflow-hidden transition-[width] duration-200 ease-in-out border-r border-border/50 flex flex-col",
-        isCollapsed ? "w-12" : expandedWidth,
+        "shrink-0 overflow-hidden transition-[width] duration-200 ease-in-out flex flex-col",
+        "bg-card/80 dark:bg-card/90 border-r border-border/60 shadow-sm",
+        isCollapsed ? "w-11" : expandedWidth,
         className
       )}
       aria-expanded={!isCollapsed}
@@ -75,7 +76,7 @@ export function CollapsibleSidebar({
           <button
             type="button"
             onClick={() => setIsCollapsed(false)}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
             aria-label="Mở sidebar"
             title="Mở sidebar"
           >
@@ -84,11 +85,11 @@ export function CollapsibleSidebar({
         </div>
       ) : (
         <div className="flex flex-col h-full min-w-0">
-          <div className="flex items-center justify-end shrink-0 p-2 border-b border-border/50">
+          <div className="flex items-center justify-end shrink-0 px-3 py-2 border-b border-border/40">
             <button
               type="button"
               onClick={() => setIsCollapsed(true)}
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
               aria-label="Ẩn sidebar"
               title="Ẩn sidebar"
             >

@@ -4,7 +4,7 @@ import { PageRenderer } from "@/components/kb/PageRenderer";
 import { Breadcrumbs } from "@/components/kb/Breadcrumbs";
 import { Toc } from "@/components/kb/Toc";
 import { CollapsibleSidebar } from "@/components/ui/collapsible-sidebar";
-import { SidebarSearchFilter } from "@/components/kb/SidebarSearchFilter";
+import { KbSidebarContent } from "@/components/kb/KbSidebarContent";
 import { MobileSidebar } from "@/components/kb/mobile-sidebar";
 import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
 import { CopyLinkButton } from "@/components/ui/copy-link-button";
@@ -113,37 +113,8 @@ export default async function KbPage({
     return (
       <>
         <div className="flex gap-6 py-4 md:py-8">
-        <CollapsibleSidebar storageKey="kb" expandedWidth="w-60" responsive="hidden md:flex">
-          <nav className="p-4 space-y-4">
-            {spaces.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Spaces
-                </p>
-                <div className="space-y-1">
-                  {spaces.map((space) => (
-                    <Link
-                      key={space.id}
-                      href={`/kb/${space.slug}`}
-                      className={`flex min-w-0 flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
-                        space.slug === spaceSlug ? "bg-primary/10 text-primary" : ""
-                      }`}
-                    >
-                      <span className="font-medium truncate">{space.name}</span>
-                      <span className="text-[10px] text-muted-foreground font-mono">
-                        /kb/{space.slug}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-            <SidebarSearchFilter
-              spaceSlug={spaceSlug}
-              nodes={tree}
-              showEditLink={false}
-            />
-          </nav>
+        <CollapsibleSidebar storageKey="kb" expandedWidth="w-64" responsive="hidden md:flex">
+          <KbSidebarContent spaces={spaces} spaceSlug={spaceSlug} tree={tree} />
         </CollapsibleSidebar>
         <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
           <div className="container max-w-4xl py-4 md:py-8">
@@ -200,37 +171,8 @@ export default async function KbPage({
   return (
     <>
       <div className="flex gap-6 py-4 md:py-8">
-      <CollapsibleSidebar storageKey="kb" expandedWidth="w-60" responsive="hidden md:flex">
-        <nav className="p-4 space-y-4">
-          {spaces.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Spaces
-              </p>
-              <div className="space-y-1">
-                {spaces.map((space) => (
-                  <Link
-                    key={space.id}
-                    href={`/kb/${space.slug}`}
-                    className={`flex min-w-0 flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
-                      space.slug === spaceSlug ? "bg-primary/10 text-primary" : ""
-                    }`}
-                  >
-                    <span className="font-medium truncate">{space.name}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">
-                      /kb/{space.slug}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-          <SidebarSearchFilter
-            spaceSlug={spaceSlug}
-            nodes={tree}
-            showEditLink={false}
-          />
-        </nav>
+      <CollapsibleSidebar storageKey="kb" expandedWidth="w-64" responsive="hidden md:flex">
+        <KbSidebarContent spaces={spaces} spaceSlug={spaceSlug} tree={tree} />
       </CollapsibleSidebar>
       <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
         <div className="container max-w-4xl py-4 md:py-8">

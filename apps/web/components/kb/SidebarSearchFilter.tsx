@@ -46,29 +46,32 @@ export function SidebarSearchFilter({
   const hasQuery = query.trim().length > 0;
 
   return (
-    <div className={cn("space-y-3", className)}>
-      <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
+    <div className={cn("space-y-3 flex flex-col min-h-0", className)}>
+      <div className="relative shrink-0">
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground shrink-0"
+          aria-hidden="true"
+        />
         <input
           type="search"
           placeholder="Tìm trong danh mục..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full h-9 pl-9 pr-8 rounded-lg border border-border bg-muted/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background transition-shadow"
+          className="w-full h-8 pl-8 pr-7 rounded-md bg-muted/40 text-sm placeholder:text-muted-foreground/80 border-0 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-muted/60 transition-colors"
           aria-label="Tìm kiếm trong danh mục"
         />
         {hasQuery && (
           <button
             type="button"
             onClick={() => setQuery("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
             aria-label="Xóa tìm kiếm"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-3 w-3" />
           </button>
         )}
       </div>
-      <div className="space-y-1 stagger-list">
+      <div className="flex-1 min-h-0 overflow-y-auto stagger-list -mx-1 px-1">
         <PageTree
           spaceId=""
           spaceSlug={spaceSlug}

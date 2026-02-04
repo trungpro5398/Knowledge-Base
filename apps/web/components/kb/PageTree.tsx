@@ -94,24 +94,31 @@ function TreeNodeItem({
   return (
     <li
       className={cn(
-        "border-l border-border pl-4 py-2 first:pt-0",
+        "pl-3 py-1 first:pt-0 border-l border-border/50 ml-2",
         staggerIndex !== undefined && "animate-stagger-in"
       )}
       style={staggerIndex !== undefined ? { animationDelay: `${staggerIndex * 35}ms` } : undefined}
     >
       <div
         className={cn(
-          "flex items-center gap-2 group min-w-0 rounded-md px-2 py-1 -ml-2 transition-colors duration-200 hover:bg-muted/50",
+          "flex items-center gap-2 group min-w-0 rounded-md px-2 py-1.5 -ml-px transition-all duration-150",
+          "hover:bg-muted/50",
           isActive &&
-            "relative bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:rounded-full before:bg-primary before:content-['']"
+            "bg-primary/10 text-primary font-medium"
         )}
       >
-        <FileText className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
+        <FileText
+          className={cn(
+            "h-3.5 w-3.5 shrink-0 transition-colors",
+            isActive ? "text-primary" : "text-muted-foreground"
+          )}
+          aria-hidden="true"
+        />
         <Link
           href={href}
           className={cn(
-            "text-sm font-medium transition-colors flex-1 truncate min-w-0",
-            isActive ? "text-primary font-semibold" : "hover:text-primary"
+            "text-[13px] transition-colors flex-1 truncate min-w-0",
+            isActive ? "text-primary" : "text-foreground/90 hover:text-foreground"
           )}
           aria-current={isActive ? "page" : undefined}
           prefetch={true}
@@ -141,7 +148,7 @@ function TreeNodeItem({
         )}
       </div>
       {(node.children?.length ?? 0) > 0 && (
-        <ul className="mt-2 ml-2 space-y-1">
+        <ul className="mt-0.5 ml-1 space-y-0">
           {(node.children ?? []).map((child) => (
             <TreeNodeItem
               key={child.id}
