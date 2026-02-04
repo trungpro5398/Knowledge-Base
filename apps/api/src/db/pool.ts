@@ -4,6 +4,7 @@ import { config } from "../config/env.js";
 const { Pool } = pg;
 
 let _pool: pg.Pool | null = null;
+let _closing = false;
 
 function getPool(): pg.Pool {
   if (!_pool) {
@@ -36,7 +37,8 @@ export const pool = {
     return getPool().connect();
   },
   end: (): Promise<void> => {
-    if (_pool) {
+    if (_pool && !_closing) {
+      _closing = true;
       return _pool.end();
     }
     return Promise.resolve();
@@ -44,10 +46,8 @@ export const pool = {
 };
 
 // Graceful shutdown
-process.on("SIGTERM", async () => {
+const shutdown = async () => {
   await pool.end();
-});
-
-process.on("SIGINT", async () => {
-  await pool.end();
-});
+};
+process.once("SIGTERM", shutdown);
+process.once("SIGINT", shutdown);
