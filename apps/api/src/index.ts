@@ -31,13 +31,17 @@ await fastify.register(cors, {
   credentials: true,
 });
 await fastify.register(compress);
-await fastify.register(rateLimit, {
-  max: 100,
-  timeWindow: "15 minutes",
-});
 
 await fastify.register(authPlugin);
 await fastify.register(rbacPlugin);
+await fastify.register(rateLimit, {
+  max: 1000,
+  timeWindow: "15 minutes",
+  keyGenerator: (request) => {
+    const userId = (request as any).user?.id;
+    return userId ?? request.ip;
+  },
+});
 await registerRoutes(fastify);
 
 const start = async () => {

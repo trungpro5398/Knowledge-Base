@@ -17,10 +17,14 @@ import { AppError, ValidationError } from "../utils/errors.js";
 
 export async function registerRoutes(fastify: FastifyInstance) {
   fastify.setErrorHandler((err, request, reply) => {
+    const statusCode = typeof (err as any)?.statusCode === "number" ? (err as any).statusCode : undefined;
     if (err instanceof AppError) {
       const payload: Record<string, unknown> = { status: "error", message: err.message };
       if (err instanceof ValidationError && "errors" in err) payload.errors = (err as ValidationError & { errors?: unknown[] }).errors;
       return reply.status(err.statusCode).send(payload);
+    }
+    if (statusCode && statusCode >= 400 && statusCode < 600) {
+      return reply.status(statusCode).send({ status: "error", message: err.message ?? "Request failed" });
     }
     request.log.error(err);
     return reply.status(500).send({ status: "error", message: "Internal server error" });
