@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SearchBar } from "@/components/search/SearchBar";
+import { LocaleToggle } from "@/components/locale-toggle";
 import { QueryProvider } from "@/components/query-provider";
 import {
   LayoutDashboard,
@@ -51,14 +52,17 @@ export default function AdminLayout({
             <SearchBar />
           </div>
         </nav>
-        <div className="p-3 border-t">
-          <Link
-            href="/kb/tet-prosys"
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <BookOpen className="h-4 w-4" aria-hidden="true" />
-            Xem Tài Liệu
-          </Link>
+        <div className="p-3 border-t space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <Link
+              href="/kb/tet-prosys"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <BookOpen className="h-4 w-4" aria-hidden="true" />
+              Xem Tài Liệu
+            </Link>
+            <LocaleToggle />
+          </div>
         </div>
       </aside>
       

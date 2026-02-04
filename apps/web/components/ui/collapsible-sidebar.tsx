@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { PanelLeftClose, PanelRightOpen, GripVertical } from "lucide-react";
+import { useLocale } from "@/lib/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 const STORAGE_PREFIX = "sidebar-collapsed:";
@@ -32,6 +33,7 @@ export function CollapsibleSidebar({
   className,
   responsive = "hidden md:flex",
 }: CollapsibleSidebarProps) {
+  const { t } = useLocale();
   const collapsedKey = `${STORAGE_PREFIX}${storageKey}`;
   const widthKey = `${WIDTH_PREFIX}${storageKey}`;
 
@@ -132,8 +134,8 @@ export function CollapsibleSidebar({
               type="button"
               onClick={() => setIsCollapsed(false)}
               className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
-              aria-label="Mở danh mục"
-              title="Mở danh mục (Ctrl+\\)"
+            aria-label={t("sidebar.expand")}
+            title={`${t("sidebar.expand")} (Ctrl+\\)`}
             >
               <PanelRightOpen className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -142,14 +144,14 @@ export function CollapsibleSidebar({
           <div className="flex flex-col h-full min-w-0">
             <div className="flex items-center justify-between shrink-0 px-3 py-2.5 border-b border-border/40">
               <span className="text-xs font-medium text-muted-foreground">
-                Danh mục
+                {t("sidebar.menu")}
               </span>
               <button
                 type="button"
                 onClick={() => setIsCollapsed(true)}
                 className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
-                aria-label="Thu gọn danh mục"
-                title="Thu gọn (Ctrl+\\)"
+                aria-label={t("sidebar.collapse")}
+                title={`${t("sidebar.collapse")} (Ctrl+\\)`}
               >
                 <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -189,7 +191,7 @@ export function CollapsibleSidebar({
           }}
           role="separator"
           aria-orientation="vertical"
-          aria-label="Kéo để đổi độ rộng"
+          aria-label={t("sidebar.resize")}
           tabIndex={0}
           className={cn(
             "w-1.5 shrink-0 cursor-col-resize flex items-center justify-center",

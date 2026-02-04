@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { PageTree, type TreeNode } from "./PageTree";
+import { useLocale } from "@/lib/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 interface SidebarSearchFilterProps {
@@ -40,6 +41,7 @@ export function SidebarSearchFilter({
   showEditLink = false,
   className,
 }: SidebarSearchFilterProps) {
+  const { t } = useLocale();
   const [query, setQuery] = useState("");
 
   const filteredNodes = useMemo(() => filterTree(nodes, query), [nodes, query]);
@@ -54,7 +56,7 @@ export function SidebarSearchFilter({
         />
         <input
           type="search"
-          placeholder="Tìm trang..."
+          placeholder={t("sidebar.searchPlaceholder")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="w-full h-8 pl-8 pr-7 rounded-md bg-muted/40 text-sm placeholder:text-muted-foreground/80 border-0 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-muted/60 transition-colors"
@@ -81,7 +83,7 @@ export function SidebarSearchFilter({
         />
         {hasQuery && filteredNodes.length === 0 && (
           <p className="text-sm text-muted-foreground py-4 text-center">
-            Không tìm thấy kết quả
+            {t("common.noResults")}
           </p>
         )}
       </div>

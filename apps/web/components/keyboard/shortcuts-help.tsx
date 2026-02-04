@@ -1,9 +1,11 @@
 "use client";
 
 import { X, Command } from "lucide-react";
+import { useLocale } from "@/lib/i18n/locale-provider";
 import { useShortcuts } from "./shortcuts-provider";
 
 export function ShortcutsHelp() {
+  const { t } = useLocale();
   const { shortcuts, showHelp, setShowHelp } = useShortcuts();
 
   if (!showHelp) return null;
@@ -37,13 +39,13 @@ export function ShortcutsHelp() {
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div className="flex items-center gap-2">
             <Command className="h-5 w-5 text-primary" aria-hidden="true" />
-            <h2 id="shortcuts-title" className="text-lg font-semibold">Phím tắt</h2>
+            <h2 id="shortcuts-title" className="text-lg font-semibold">{t("shortcuts.title")}</h2>
           </div>
           <button
             type="button"
             onClick={() => setShowHelp(false)}
             className="p-2 hover:bg-muted rounded-md transition-colors"
-            aria-label="Đóng"
+            aria-label={t("shortcuts.close")}
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -52,14 +54,16 @@ export function ShortcutsHelp() {
         <div className="flex-1 overflow-auto p-6">
           {Object.keys(grouped).length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
-              Nhấn ? để xem phím tắt
+              {t("shortcuts.showHelp")}
             </p>
           ) : (
             <div className="space-y-6">
               {Object.entries(grouped).map(([category, categoryShortcuts]) => (
                 <div key={category}>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                    {category}
+                    {categoryShortcuts[0]?.categoryKey
+                      ? t(categoryShortcuts[0].categoryKey as Parameters<typeof t>[0])
+                      : category}
                   </h3>
                   <div className="space-y-2">
                     {categoryShortcuts.map((shortcut, idx) => (
@@ -67,7 +71,9 @@ export function ShortcutsHelp() {
                         key={idx}
                         className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <span className="text-sm">{shortcut.description}</span>
+                        <span className="text-sm">
+                          {shortcut.descriptionKey ? t(shortcut.descriptionKey as Parameters<typeof t>[0]) : shortcut.description}
+                        </span>
                         <kbd className="px-2 py-1 text-xs font-mono bg-muted border rounded">
                           {formatKey(shortcut)}
                         </kbd>
@@ -82,8 +88,7 @@ export function ShortcutsHelp() {
 
         <div className="px-6 py-4 border-t bg-muted/30">
           <p className="text-xs text-muted-foreground text-center">
-            Nhấn <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs">?</kbd> để mở
-            • <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs">Esc</kbd> để đóng
+            {t("shortcuts.hint")}
           </p>
         </div>
       </div>

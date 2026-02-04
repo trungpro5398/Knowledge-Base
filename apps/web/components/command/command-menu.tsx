@@ -12,7 +12,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "cmdk";
-import { Search, FileText, Home, Plus, Moon, Sun, Folder } from "lucide-react";
+import { Search, FileText, Home, Plus, Moon, Sun, Folder, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { api } from "@/lib/api/client";
 import type { ApiResponse, PaginatedResponse, SearchResult, Space } from "@/lib/api/types";

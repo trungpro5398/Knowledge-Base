@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BookOpen, Search, LogIn, UserPlus, Settings, LogOut, Keyboard } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LocaleToggle } from "@/components/locale-toggle";
 import { useShortcuts } from "@/components/keyboard/shortcuts-provider";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 type SignOutAction = () => Promise<void>;
 
@@ -15,6 +17,7 @@ export function SiteHeader({
   isLoggedIn: boolean;
   signOutAction: SignOutAction;
 }) {
+  const { t } = useLocale();
   const { setShowHelp } = useShortcuts();
   const pathname = usePathname() ?? "";
   if (pathname.startsWith("/admin")) return null;
@@ -27,17 +30,17 @@ export function SiteHeader({
           className="flex items-center gap-2 font-semibold text-foreground hover:text-primary transition-colors"
         >
           <BookOpen className="h-5 w-5 text-primary" aria-hidden="true" />
-          <span className="hidden sm:inline">Kho Tài Liệu TET</span>
-          <span className="sm:hidden">Tài Liệu</span>
+          <span className="hidden sm:inline">{t("header.title")}</span>
+          <span className="sm:hidden">{t("header.titleShort")}</span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
           <Link
             href="/kb/tet-prosys"
             className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            aria-label="Xem Tài Liệu"
+            aria-label={t("header.viewDocs")}
           >
             <Search className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Xem Tài Liệu</span>
+            <span className="hidden sm:inline">{t("header.viewDocs")}</span>
           </Link>
           {isLoggedIn ? (
             <>
@@ -51,12 +54,12 @@ export function SiteHeader({
               </Link>
               <form action={signOutAction} className="inline">
                 <button
-                  type="submit"
-                  className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                  aria-label="Đăng xuất"
-                >
-                  <LogOut className="h-4 w-4" aria-hidden="true" />
-                  <span className="hidden sm:inline">Đăng xuất</span>
+                type="submit"
+                className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                aria-label={t("header.logout")}
+              >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{t("header.logout")}</span>
                 </button>
               </form>
             </>
@@ -65,19 +68,19 @@ export function SiteHeader({
               <Link
                 href="/login"
                 className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                aria-label="Đăng nhập"
+                aria-label={t("header.login")}
               >
                 <LogIn className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Đăng nhập</span>
+                <span className="hidden sm:inline">{t("header.login")}</span>
               </Link>
               <Link
                 href="/register"
                 className="flex items-center gap-1.5 rounded-md px-2 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                title="Chỉ email @tet-edu.com"
-                aria-label="Đăng ký (@tet-edu.com)"
+                title={t("header.registerTitle")}
+                aria-label={t("header.register")}
               >
                 <UserPlus className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden md:inline text-xs">Đăng ký (@tet-edu.com)</span>
+                <span className="hidden md:inline text-xs">{t("header.register")}</span>
               </Link>
             </>
           )}
@@ -85,11 +88,12 @@ export function SiteHeader({
             type="button"
             onClick={() => setShowHelp(true)}
             className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            aria-label="Phím tắt"
-            title="Phím tắt (?)"
+            aria-label={t("header.shortcuts")}
+            title={t("header.shortcutsTitle")}
           >
             <Keyboard className="h-4 w-4" aria-hidden="true" />
           </button>
+          <LocaleToggle />
           <ThemeToggle />
         </nav>
       </div>

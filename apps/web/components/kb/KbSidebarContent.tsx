@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SidebarSearchFilter } from "./SidebarSearchFilter";
 import type { TreeNode } from "./PageTree";
 import type { Space } from "@/lib/api/types";
+import { useLocale } from "@/lib/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 interface KbSidebarContentProps {
@@ -17,13 +18,14 @@ export function KbSidebarContent({
   spaceSlug,
   tree,
 }: KbSidebarContentProps) {
+  const { t } = useLocale();
   return (
     <nav className="flex flex-col h-full">
       {/* Không gian - danh sách các kho tài liệu */}
       {spaces.length > 0 && (
         <div className="px-3 pt-4 pb-2">
           <p className="text-[11px] font-medium text-muted-foreground mb-2 px-1">
-            Không gian
+            {t("sidebar.spaces")}
           </p>
           <div className="space-y-0.5">
             {spaces.map((space) => (
@@ -56,7 +58,7 @@ export function KbSidebarContent({
       {/* Tìm kiếm + Cây trang */}
       <div className="flex-1 min-h-0 pt-3 pb-4 px-3">
         <p className="text-[11px] font-medium text-muted-foreground mb-2 px-1">
-          Trang trong kho
+          {t("sidebar.pagesInSpace")}
         </p>
         <SidebarSearchFilter
           spaceSlug={spaceSlug}

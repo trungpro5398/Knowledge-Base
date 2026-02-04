@@ -8,8 +8,11 @@ export interface Shortcut {
   meta?: boolean;
   shift?: boolean;
   description: string;
+  /** Translation key - used by ShortcutsHelp when locale changes */
+  descriptionKey?: string;
   action?: () => void;
   category: string;
+  categoryKey?: string;
 }
 
 interface ShortcutsContextType {
@@ -31,9 +34,9 @@ export function useShortcuts() {
 }
 
 const DEFAULT_SHORTCUTS: Shortcut[] = [
-  { key: "k", meta: true, description: "Mở command palette", category: "Chung" },
-  { key: "\\", meta: true, description: "Thu gọn / mở sidebar", category: "Chung" },
-  { key: "?", description: "Xem danh sách phím tắt", category: "Chung" },
+  { key: "k", meta: true, description: "Mở command palette", descriptionKey: "shortcuts.commandPalette", category: "Chung", categoryKey: "shortcuts.category.general" },
+  { key: "\\", meta: true, description: "Thu gọn / mở sidebar", descriptionKey: "shortcuts.toggleSidebar", category: "Chung", categoryKey: "shortcuts.category.general" },
+  { key: "?", description: "Xem danh sách phím tắt", descriptionKey: "shortcuts.showHelp", category: "Chung", categoryKey: "shortcuts.category.general" },
 ];
 
 interface ShortcutsProviderProps {

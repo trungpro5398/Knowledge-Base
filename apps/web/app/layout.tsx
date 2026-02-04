@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/toaster";
 import { CommandProvider } from "@/components/command/command-provider";
+import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import { ShortcutsProvider } from "@/components/keyboard/shortcuts-provider";
 import { ShortcutsHelp } from "@/components/keyboard/shortcuts-help";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -37,6 +38,7 @@ export default async function RootLayout({
       <body className={`${jakarta.variable} font-sans antialiased`}>
         <ErrorBoundary>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <LocaleProvider>
             <CommandProvider>
               <ShortcutsProvider>
               <a
@@ -51,6 +53,7 @@ export default async function RootLayout({
               <ShortcutsHelp />
               </ShortcutsProvider>
             </CommandProvider>
+            </LocaleProvider>
           </ThemeProvider>
         </ErrorBoundary>
       </body>
