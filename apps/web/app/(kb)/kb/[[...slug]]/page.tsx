@@ -110,7 +110,14 @@ export default async function KbPage({
     ]);
     const startLinks = getStartLinks(tree);
     return (
-      <div className="flex gap-6 py-4 md:py-8">
+      <>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:top-4 focus:left-4 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:shadow-md"
+        >
+          Skip to content
+        </a>
+        <div className="flex gap-6 py-4 md:py-8">
         <aside className="hidden md:block w-60 shrink-0">
           <nav className="sticky top-8 space-y-4">
             {spaces.length > 0 && (
@@ -123,7 +130,7 @@ export default async function KbPage({
                     <Link
                       key={space.id}
                       href={`/kb/${space.slug}`}
-                      className={`flex flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
+                      className={`flex min-w-0 flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
                         space.slug === spaceSlug ? "bg-primary/10 text-primary" : ""
                       }`}
                     >
@@ -179,7 +186,8 @@ export default async function KbPage({
           showEditLink={false}
           spaces={spaces}
         />
-      </div>
+        </div>
+      </>
     );
   }
 
@@ -196,7 +204,14 @@ export default async function KbPage({
   const { page, version, breadcrumb } = data;
   const useRenderedHtml = !!version.rendered_html;
   return (
-    <div className="flex gap-6 py-4 md:py-8">
+    <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:top-4 focus:left-4 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:shadow-md"
+      >
+        Skip to content
+      </a>
+      <div className="flex gap-6 py-4 md:py-8">
       <aside className="hidden md:block w-60 shrink-0">
         <nav className="sticky top-8 space-y-4">
           {spaces.length > 0 && (
@@ -209,7 +224,7 @@ export default async function KbPage({
                   <Link
                     key={space.id}
                     href={`/kb/${space.slug}`}
-                    className={`flex flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
+                    className={`flex min-w-0 flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
                       space.slug === spaceSlug ? "bg-primary/10 text-primary" : ""
                     }`}
                   >
@@ -275,6 +290,7 @@ export default async function KbPage({
         showEditLink={false}
         spaces={spaces}
       />
-    </div>
+      </div>
+    </>
   );
 }

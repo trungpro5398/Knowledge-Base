@@ -86,7 +86,7 @@ function TreeNodeItem({
     <li className="border-l border-border pl-4 py-2 first:pt-0">
       <div
         className={cn(
-          "flex items-center gap-2 group",
+          "flex items-center gap-2 group min-w-0",
           isActive && "bg-primary/10 rounded-md px-2 py-1 -ml-2"
         )}
       >
@@ -94,7 +94,7 @@ function TreeNodeItem({
         <Link
           href={href}
           className={cn(
-            "text-sm font-medium transition-colors flex-1 truncate",
+            "text-sm font-medium transition-colors flex-1 truncate min-w-0",
             isActive ? "text-primary font-semibold" : "hover:text-primary"
           )}
           aria-current={isActive ? "page" : undefined}
@@ -363,7 +363,7 @@ function SortableTreeItem({
     <li ref={setNodeRef} style={style} className={cn(isDragging && "opacity-60")}>
       <div
         className={cn(
-          "flex items-center gap-2 rounded-md px-2 py-1.5 group",
+          "flex items-center gap-2 rounded-md px-2 py-1.5 group min-w-0",
           isActive && "bg-primary/10 text-primary"
         )}
       >
@@ -381,7 +381,7 @@ function SortableTreeItem({
         <Link
           href={`/admin/spaces/${spaceId}/${item.id}`}
           className={cn(
-            "text-sm font-medium transition-colors flex-1 truncate",
+            "text-sm font-medium transition-colors flex-1 truncate min-w-0",
             isActive ? "text-primary font-semibold" : "hover:text-primary"
           )}
           aria-current={isActive ? "page" : undefined}

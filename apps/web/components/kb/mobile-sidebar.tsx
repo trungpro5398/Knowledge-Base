@@ -73,7 +73,7 @@ export function MobileSidebar({
                       <Link
                         key={space.id}
                         href={`/kb/${space.slug}`}
-                        className={`flex flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
+                        className={`flex min-w-0 flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
                           space.slug === spaceSlug ? "bg-primary/10 text-primary" : ""
                         }`}
                       >

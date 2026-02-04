@@ -12,10 +12,19 @@ interface OptimizedImageProps {
 
 export function OptimizedImage({ src, alt, width, height }: OptimizedImageProps) {
   const [error, setError] = useState(false);
+  const fallbackWidth = width ?? 800;
+  const fallbackHeight = height ?? 600;
 
   if (error || !src) {
     return (
-      <img src={src} alt={alt} className="rounded-lg border" loading="lazy" />
+      <img
+        src={src}
+        alt={alt}
+        width={fallbackWidth}
+        height={fallbackHeight}
+        className="rounded-lg border"
+        loading="lazy"
+      />
     );
   }
 
@@ -24,15 +33,24 @@ export function OptimizedImage({ src, alt, width, height }: OptimizedImageProps)
   
   if (!isExternal) {
     // Local image, use regular img tag
-    return <img src={src} alt={alt} className="rounded-lg border" loading="lazy" />;
+    return (
+      <img
+        src={src}
+        alt={alt}
+        width={fallbackWidth}
+        height={fallbackHeight}
+        className="rounded-lg border"
+        loading="lazy"
+      />
+    );
   }
 
   return (
     <Image
       src={src}
       alt={alt}
-      width={width || 800}
-      height={height || 600}
+      width={fallbackWidth}
+      height={fallbackHeight}
       className="rounded-lg border"
       loading="lazy"
       onError={() => setError(true)}
