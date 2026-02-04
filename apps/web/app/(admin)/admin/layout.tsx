@@ -21,7 +21,7 @@ export default function AdminLayout({
   return (
     <QueryProvider>
     <ShortcutsProvider>
-    <div className="min-h-screen flex flex-col md:flex-row bg-background">
+    <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background">
       <aside className="hidden md:flex md:w-64 border-r border-border flex-col bg-card/60">
         <div className="p-5 border-b border-border bg-gradient-to-b from-primary/5 to-transparent">
           <div className="flex items-center justify-between gap-2 mb-2">

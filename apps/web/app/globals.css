@@ -53,6 +53,12 @@
     @apply border-border;
   }
 
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
   body {
     @apply bg-background text-foreground overflow-x-hidden;
     -webkit-tap-highlight-color: transparent;

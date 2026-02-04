@@ -63,7 +63,7 @@ export default async function TrashPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground md:mr-2">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground tabular-nums md:mr-2">
                 <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                 {new Date(item.deleted_at).toLocaleDateString("vi-VN")}
               </div>

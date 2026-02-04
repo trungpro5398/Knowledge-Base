@@ -13,7 +13,7 @@ export function PageMetadata({ author, updatedAt, views }: PageMetadataProps) {
     const timeAgo = formatDistanceToNow(updatedAt);
 
     return (
-        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground tabular-nums">
             {author && (
                 <div className="flex items-center gap-1.5">
                     <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-medium">

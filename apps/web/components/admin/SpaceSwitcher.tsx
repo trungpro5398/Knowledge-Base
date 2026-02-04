@@ -119,13 +119,14 @@ export function SpaceSwitcher({
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                                 <input
-                                    type="text"
+                                    type="search"
                                     placeholder="Search spaces…"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full pl-9 pr-3 py-2 text-sm rounded-md border bg-background"
                                     aria-label="Search spaces"
                                     autoComplete="off"
+                                    inputMode="search"
                                     spellCheck={false}
                                 />
                             </div>

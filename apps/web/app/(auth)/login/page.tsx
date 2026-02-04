@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BookOpen, LogIn } from "lucide-react";
@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const passwordRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/admin";
 
@@ -32,6 +33,7 @@ export default function LoginPage() {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setError((data.error as string) ?? "Đăng nhập thất bại");
+      passwordRef.current?.focus();
     }
     setLoading(false);
   };
@@ -57,11 +59,6 @@ export default function LoginPage() {
             </div>
           </div>
           <form onSubmit={handleLogin} className="space-y-5">
-            {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm" role="status" aria-live="polite">
-                {error}
-              </div>
-            )}
             <div>
               <label htmlFor="login-email" className="block text-sm font-medium mb-2">
                 Email
@@ -88,14 +85,22 @@ export default function LoginPage() {
               <input
                 id="login-password"
                 name="password"
+                ref={passwordRef}
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
                 autoCapitalize="none"
+                aria-invalid={!!error}
+                aria-describedby={error ? "login-error" : undefined}
                 className="w-full"
               />
+              {error && (
+                <p id="login-error" className="mt-2 text-xs text-destructive" role="status" aria-live="polite">
+                  {error}
+                </p>
+              )}
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
               {loading ? "Đang đăng nhập…" : "Đăng nhập"}
