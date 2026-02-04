@@ -75,6 +75,15 @@ export function SiteHeader({
               </Link>
             </>
           )}
+          <button
+            type="button"
+            onClick={() => setShowHelp(true)}
+            className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            aria-label="Phím tắt"
+            title="Phím tắt (?)"
+          >
+            <Keyboard className="h-4 w-4" aria-hidden="true" />
+          </button>
           <ThemeToggle />
         </nav>
       </div>

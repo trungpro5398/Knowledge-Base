@@ -3,7 +3,8 @@ import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
 import { CreateSpaceForm } from "@/components/spaces/CreateSpaceForm";
 import { DeleteSpaceButton } from "@/components/spaces/DeleteSpaceButton";
-import { FolderOpen, FileText, ExternalLink, Edit, Building2 } from "lucide-react";
+import { FolderOpen, FileText, ExternalLink, Edit, Building2, Settings } from "lucide-react";
+import Link from "next/link";
 import type { ApiResponse, Space } from "@/lib/api/types";
 
 // Disable caching for this page so spaces update immediately
@@ -185,9 +186,18 @@ export default async function AdminDashboard() {
                     )}
                   </div>
                 </div>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {orgSpaces.length} space{orgSpaces.length !== 1 ? "s" : ""}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/admin/organizations/${org.id}/settings`}
+                    className="h-9 px-3 text-sm border rounded-lg hover:bg-muted transition-colors flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Cài đặt
+                  </Link>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {orgSpaces.length} space{orgSpaces.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
               </div>
 
               {/* Spaces in this org */}
