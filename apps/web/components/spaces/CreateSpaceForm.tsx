@@ -6,8 +6,14 @@ import { apiClient } from "@/lib/api/client";
 import { Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { generateSlug } from "@/lib/utils";
 import { toast } from "sonner";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
-export function CreateSpaceForm() {
+interface CreateSpaceFormProps {
+  organizationId?: string;
+}
+
+export function CreateSpaceForm({ organizationId }: CreateSpaceFormProps) {
+  const { t } = useLocale();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [manualSlug, setManualSlug] = useState(false);
@@ -28,18 +34,22 @@ export function CreateSpaceForm() {
       const finalSlug = slug || generateSlug(name) || "new-space";
       await apiClient("/api/spaces", {
         method: "POST",
-        body: { name: finalName, slug: finalSlug },
+        body: {
+          name: finalName,
+          slug: finalSlug,
+          ...(organizationId && { organization_id: organizationId }),
+        },
       });
-      toast.success("Đã tạo space", { description: finalName });
+      toast.success(t("space.createdSuccess"), { description: finalName });
       router.refresh();
       setName("");
       setSlug("");
       setManualSlug(false);
       setShowAdvanced(false);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Tạo thất bại. Vui lòng thử lại.";
+      const message = err instanceof Error ? err.message : t("space.createErrorDefault");
       setError(message);
-      toast.error("Tạo space thất bại", { description: message });
+      toast.error(t("space.createFailed"), { description: message });
       nameRef.current?.focus();
     } finally {
       setLoading(false);
@@ -52,10 +62,10 @@ export function CreateSpaceForm() {
         <div className="space-y-1">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Tạo space
+            {t("space.createTitle")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Mỗi space là một khu vực tài liệu riêng. Tạo nhanh và chỉnh slug nếu cần.
+            {t("space.createDesc")}
           </p>
         </div>
       </div>
@@ -66,7 +76,7 @@ export function CreateSpaceForm() {
       )}
       <div className="mt-4 space-y-4">
         <div className="space-y-2">
-          <label htmlFor="space-name" className="block text-sm font-medium">Tên space</label>
+          <label htmlFor="space-name" className="block text-sm font-medium">{t("space.nameLabel")}</label>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               id="space-name"
@@ -82,18 +92,18 @@ export function CreateSpaceForm() {
                 setSlug(nextSlug);
               }
             }}
-              placeholder="Ví dụ: TET ProSys – Operation Manual…"
+              placeholder={t("space.namePlaceholder")}
               className="flex-1"
               autoComplete="off"
               aria-invalid={!!error}
               aria-describedby={error ? "create-space-error" : undefined}
             />
             <button type="submit" disabled={loading} className="btn-primary shrink-0">
-              {loading ? "Đang tạo…" : "Tạo space"}
+              {loading ? t("space.creating") : t("space.createButton")}
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Đường dẫn public:{" "}
+            {t("common.publicUrl")}:{" "}
             <code className="bg-muted px-1.5 py-0.5 rounded">/kb/{slugPreview}</code>
           </p>
         </div>
@@ -110,12 +120,12 @@ export function CreateSpaceForm() {
             ) : (
               <ChevronDown className="h-4 w-4" aria-hidden="true" />
             )}
-            Tùy chọn nâng cao
+            {t("common.advancedOptions")}
           </button>
 
           {showAdvanced && (
             <div className="mt-3 space-y-2 text-sm">
-              <label htmlFor="space-slug" className="block font-medium">Đường dẫn URL (slug)</label>
+              <label htmlFor="space-slug" className="block font-medium">{t("common.urlSlug")}</label>
               <input
                 id="space-slug"
                 name="slug"
@@ -124,13 +134,13 @@ export function CreateSpaceForm() {
                   setSlug(e.target.value);
                   setManualSlug(true);
                 }}
-                placeholder="tu-dong-tao-tu-ten-space…"
+                placeholder={t("space.slugPlaceholder")}
                 className="w-full font-mono text-xs sm:text-sm"
                 autoComplete="off"
                 spellCheck={false}
               />
               <p className="text-xs text-muted-foreground">
-                <span className="font-medium">URL hiện tại:</span>{" "}
+                <span className="font-medium">{t("common.currentUrl")}:</span>{" "}
                 <code className="bg-muted px-1.5 py-0.5 rounded">
                   /kb/{slugPreview}
                 </code>

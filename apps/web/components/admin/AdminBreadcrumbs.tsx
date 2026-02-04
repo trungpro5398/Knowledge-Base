@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ChevronRight, Home, FolderOpen, FileText, Settings, Users } from "lucide-react";
 import { Fragment } from "react";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 // Map of icon names to components - allows serializable string props from server components
 const iconMap = {
@@ -26,6 +27,7 @@ interface AdminBreadcrumbsProps {
 }
 
 export function AdminBreadcrumbs({ items }: AdminBreadcrumbsProps) {
+  const { t } = useLocale();
   return (
     <nav
       aria-label="Breadcrumb"
@@ -37,7 +39,7 @@ export function AdminBreadcrumbs({ items }: AdminBreadcrumbsProps) {
         className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted hover:text-foreground transition-colors"
       >
         <Home className="h-4 w-4" aria-hidden="true" />
-        <span className="sr-only sm:not-sr-only">Dashboard</span>
+        <span className="sr-only sm:not-sr-only">{t("common.dashboard")}</span>
       </Link>
 
       {items.map((item, index) => {

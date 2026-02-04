@@ -7,14 +7,19 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { translations, type Locale, type TranslationKey } from "./translations";
+import {
+  translations,
+  type Locale,
+  type TranslationKey,
+  type TranslationParams,
+} from "./translations";
 
 const STORAGE_KEY = "kb-locale";
 
 interface LocaleContextType {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: TranslationParams) => string;
 }
 
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
@@ -46,7 +51,15 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   }, [mounted, locale]);
 
   const setLocale = (l: Locale) => setLocaleState(l);
-  const t = (key: TranslationKey) => translations[locale][key] ?? key;
+  const t = (key: TranslationKey, params?: TranslationParams) => {
+    let str = (translations[locale][key] as string) ?? key;
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        str = str.replace(new RegExp(`{{${k}}}`, "g"), String(v));
+      });
+    }
+    return str;
+  };
 
   return (
     <LocaleContext.Provider value={{ locale, setLocale, t }}>

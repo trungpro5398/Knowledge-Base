@@ -6,6 +6,7 @@ export interface SpaceRow {
   slug: string;
   icon: string | null;
   description: string | null;
+  organization_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -100,14 +101,15 @@ export async function createSpace(data: {
   slug: string;
   icon?: string | null;
   description?: string | null;
+  organization_id?: string | null;
   createdBy: string;
 }): Promise<SpaceRow> {
   if (!pool) throw new Error("Database not configured");
   const { rows } = await pool.query<SpaceRow>(
-    `INSERT INTO spaces (name, slug, icon, description)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO spaces (name, slug, icon, description, organization_id)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [data.name, data.slug, data.icon ?? null, data.description ?? null]
+    [data.name, data.slug, data.icon ?? null, data.description ?? null, data.organization_id ?? null]
   );
   return rows[0]!;
 }

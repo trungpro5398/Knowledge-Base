@@ -17,6 +17,7 @@ import { useTheme } from "next-themes";
 import { api } from "@/lib/api/client";
 import type { ApiResponse, PaginatedResponse, SearchResult, Space } from "@/lib/api/types";
 import { getRecentPages, addRecentPage } from "@/lib/recent-pages";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 interface CommandMenuProps {
   open: boolean;
@@ -24,6 +25,7 @@ interface CommandMenuProps {
 }
 
 export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
+  const { t } = useLocale();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,24 +84,24 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <Command className="rounded-lg border shadow-md">
         <CommandInput
-          placeholder="Tìm kiếm trang, actions…"
+          placeholder={t("command.placeholder")}
           value={searchQuery}
           onValueChange={setSearchQuery}
-          aria-label="Tìm kiếm nhanh"
+          aria-label={t("command.searchAria")}
         />
         <CommandList>
           {isSearching && searchQuery.trim().length > 1 ? (
             <div className="py-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Đang tìm…
+              {t("command.searching")}
             </div>
           ) : (
-            <CommandEmpty>Không tìm thấy kết quả.</CommandEmpty>
+            <CommandEmpty>{t("command.empty")}</CommandEmpty>
           )}
 
           {searchResults.length > 0 && !isSearching && (
             <>
-              <CommandGroup heading="Kết quả tìm kiếm">
+              <CommandGroup heading={t("command.searchResults")}>
                 {searchResults.map((result) => (
                   <CommandItem
                     key={result.id}
@@ -121,7 +123,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
           {recentPages.length > 0 && searchQuery.trim() === "" && (
             <>
-              <CommandGroup heading="Gần đây">
+              <CommandGroup heading={t("command.recent")}>
                 {recentPages.map((page) => (
                   <CommandItem
                     key={page.id}
@@ -136,10 +138,10 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             </>
           )}
 
-          <CommandGroup heading="Actions">
+          <CommandGroup heading={t("command.actions")}>
             <CommandItem onSelect={() => handleSelect(() => router.push("/admin"))}>
               <Home className="mr-2 h-4 w-4" aria-hidden="true" />
-              <span>Dashboard</span>
+              <span>{t("common.dashboard")}</span>
             </CommandItem>
             {spaces.length > 0 && (
               <CommandItem
@@ -148,19 +150,19 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                 }
               >
                 <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-                <span>Trang mới</span>
+                <span>{t("command.newPage")}</span>
               </CommandItem>
             )}
             <CommandItem onSelect={() => handleSelect(() => router.push("/kb"))}>
               <Search className="mr-2 h-4 w-4" aria-hidden="true" />
-              <span>Xem KB</span>
+              <span>{t("command.viewKb")}</span>
             </CommandItem>
           </CommandGroup>
 
           {spaces.length > 0 && searchQuery.trim() === "" && (
             <>
               <CommandSeparator />
-              <CommandGroup heading="Spaces">
+              <CommandGroup heading={t("sidebar.spaces")}>
                 {spaces.map((space) => (
                   <CommandItem
                     key={space.id}
@@ -177,14 +179,14 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
           )}
 
           <CommandSeparator />
-          <CommandGroup heading="Theme">
+          <CommandGroup heading={t("command.theme")}>
             <CommandItem onSelect={() => handleSelect(() => setTheme("light"))}>
               <Sun className="mr-2 h-4 w-4" aria-hidden="true" />
-              <span>Light</span>
+              <span>{t("command.light")}</span>
             </CommandItem>
             <CommandItem onSelect={() => handleSelect(() => setTheme("dark"))}>
               <Moon className="mr-2 h-4 w-4" aria-hidden="true" />
-              <span>Dark</span>
+              <span>{t("command.dark")}</span>
             </CommandItem>
           </CommandGroup>
         </CommandList>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 interface CopyLinkButtonProps {
   url?: string;
@@ -10,6 +11,7 @@ interface CopyLinkButtonProps {
 }
 
 export function CopyLinkButton({ url, className = "" }: CopyLinkButtonProps) {
+  const { t } = useLocale();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -17,10 +19,10 @@ export function CopyLinkButton({ url, className = "" }: CopyLinkButtonProps) {
     try {
       await navigator.clipboard.writeText(linkToCopy);
       setCopied(true);
-      toast.success("Link copied!");
+      toast.success(t("copy.success"));
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast.error("Failed to copy link");
+      toast.error(t("copy.failed"));
     }
   };
 
@@ -29,17 +31,17 @@ export function CopyLinkButton({ url, className = "" }: CopyLinkButtonProps) {
       type="button"
       onClick={handleCopy}
       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium border hover:bg-muted transition-colors ${className}`}
-      title="Copy link to clipboard"
+      title={t("copy.title")}
     >
       {copied ? (
         <>
           <Check className="h-3.5 w-3.5 text-green-600" aria-hidden="true" />
-          Copied!
+          {t("copy.copied")}
         </>
       ) : (
         <>
           <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-          Copy Link
+          {t("copy.button")}
         </>
       )}
     </button>

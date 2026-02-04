@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { PAGE_TEMPLATES, type PageTemplate } from "@/lib/kb/templates";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 interface CreatePageModalProps {
     isOpen: boolean;
@@ -21,6 +22,7 @@ export function CreatePageModal({
     spaceId,
     parentId,
 }: CreatePageModalProps) {
+    const { t } = useLocale();
     const router = useRouter();
     const [title, setTitle] = useState("");
     const [selectedTemplate, setSelectedTemplate] = useState<string>("blank");
@@ -32,7 +34,7 @@ export function CreatePageModal({
 
     const handleCreate = async () => {
         if (!title.trim()) {
-            setError("Please enter a page title to continue.");
+            setError(t("createPage.errorRequired"));
             titleRef.current?.focus();
             return;
         }
@@ -60,14 +62,14 @@ export function CreatePageModal({
                 });
             }
 
-            toast.success("Đã tạo trang", { description: title.trim() });
+            toast.success(t("page.createdSuccess"), { description: title.trim() });
             router.refresh();
             router.push(`/admin/spaces/${spaceId}/pages/${pageId}/edit`);
             onClose();
         } catch (err: any) {
-            const message = err?.message || "Failed to create page. Try again.";
+            const message = err?.message || t("createPage.errorDefault");
             setError(message);
-            toast.error("Tạo trang thất bại", { description: message });
+            toast.error(t("page.createFailed"), { description: message });
             titleRef.current?.focus();
         } finally {
             setIsCreating(false);
@@ -92,7 +94,7 @@ export function CreatePageModal({
                 type="button"
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
                 onClick={onClose}
-                aria-label="Close dialog"
+                aria-label={t("common.close")}
             />
 
             {/* Modal */}
@@ -104,12 +106,12 @@ export function CreatePageModal({
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b">
-                    <h2 id="create-page-title" className="text-lg font-semibold">Create New Page</h2>
+                    <h2 id="create-page-title" className="text-lg font-semibold">{t("createPage.title")}</h2>
                     <button
                         type="button"
                         onClick={onClose}
                         className="p-2 rounded-lg hover:bg-muted transition-colors"
-                        aria-label="Close dialog"
+                        aria-label={t("common.close")}
                     >
                         <X className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -120,7 +122,7 @@ export function CreatePageModal({
                     {/* Title Input */}
                     <div className="space-y-2">
                         <label htmlFor="create-page-title-input" className="text-sm font-medium">
-                            Page Title
+                            {t("createPage.titleLabel")}
                         </label>
                         <input
                             id="create-page-title-input"
@@ -129,7 +131,7 @@ export function CreatePageModal({
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Enter page title…"
+                            placeholder={t("createPage.titlePlaceholder")}
                             className="w-full"
                             autoComplete="off"
                             aria-invalid={!!error}
@@ -145,7 +147,7 @@ export function CreatePageModal({
                     {/* Template Selection */}
                     <div className="space-y-3">
                         <label className="text-sm font-medium">
-                            Choose a Template
+                            {t("createPage.chooseTemplate")}
                         </label>
                         <div className="grid grid-cols-2 gap-3">
                             {PAGE_TEMPLATES.map((template) => (
@@ -169,7 +171,7 @@ export function CreatePageModal({
                         className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-muted transition-colors"
                         disabled={isCreating}
                     >
-                        Cancel
+                        {t("common.cancel")}
                     </button>
                     <button
                         type="button"
@@ -180,12 +182,12 @@ export function CreatePageModal({
                         {isCreating ? (
                             <>
                                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                                Creating…
+                                {t("page.creating")}
                             </>
                         ) : (
                             <>
                                 <FileText className="h-4 w-4" aria-hidden="true" />
-                                Create Page
+                                {t("page.createButton")}
                             </>
                         )}
                     </button>

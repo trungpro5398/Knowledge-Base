@@ -5,6 +5,7 @@ export const createSpaceSchema = z.object({
   slug: z.string().min(1).max(50).regex(/^[a-z0-9-]+$/),
   icon: z.string().max(50).optional().nullable(),
   description: z.string().max(500).optional().nullable(),
+  organization_id: z.string().uuid().optional().nullable(),
 });
 
 export const createPageSchema = z.object({

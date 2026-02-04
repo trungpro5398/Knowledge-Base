@@ -8,6 +8,7 @@ import { generateSlug } from "@/lib/utils";
 import { getTemplates, type PageTemplate } from "@/lib/api/pages";
 import type { ApiResponse, Page } from "@/lib/api/types";
 import { toast } from "sonner";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 interface NewPageFormProps {
   spaceId: string;
@@ -15,6 +16,7 @@ interface NewPageFormProps {
 }
 
 export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
+  const { t } = useLocale();
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [templateId, setTemplateId] = useState<string>("");
@@ -65,13 +67,13 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
       if (parentId) body.parent_id = parentId;
       if (templateId) body.template_id = templateId;
       const res = await api.post<ApiResponse<Page>>("/api/pages", body);
-      toast.success("Đã tạo trang", { description: body.title });
+      toast.success(t("page.createdSuccess"), { description: body.title });
       router.refresh();
       router.push(`/admin/spaces/${spaceId}/${res.data.id}`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Tạo thất bại. Vui lòng thử lại.";
+      const message = err instanceof Error ? err.message : t("page.createErrorDefault");
       setError(message);
-      toast.error("Tạo trang thất bại", { description: message });
+      toast.error(t("page.createFailed"), { description: message });
       titleRef.current?.focus();
     } finally {
       setLoading(false);
@@ -81,9 +83,9 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
   return (
     <form onSubmit={handleSubmit} className="rounded-2xl border bg-card/70 p-6 max-w-2xl space-y-6">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold">Tạo trang</h1>
+        <h1 className="text-xl font-semibold">{t("page.createTitle")}</h1>
         <p className="text-sm text-muted-foreground">
-          Đặt tiêu đề rõ ràng. Bạn có thể chọn template hoặc chỉnh slug ở phần nâng cao.
+          {t("page.createDesc")}
         </p>
       </div>
       {error && (
@@ -93,7 +95,7 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
       )}
       {templates.length > 0 && (
         <div>
-        <label htmlFor="page-template" className="block text-sm font-medium mb-2">Từ template (tùy chọn)</label>
+        <label htmlFor="page-template" className="block text-sm font-medium mb-2">{t("page.fromTemplate")}</label>
         <select
           id="page-template"
           name="template"
@@ -108,7 +110,7 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
             }}
             className="w-full"
           >
-            <option value="">— Không dùng —</option>
+            <option value="">{t("page.noTemplate")}</option>
             {templates.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -118,21 +120,21 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
         </div>
       )}
       <div>
-        <label htmlFor="page-title" className="block text-sm font-medium mb-2">Tiêu đề</label>
+        <label htmlFor="page-title" className="block text-sm font-medium mb-2">{t("page.titleLabel")}</label>
         <input
           id="page-title"
           name="title"
           ref={titleRef}
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
-          placeholder="Ví dụ: Quy trình duyệt hóa đơn…"
+          placeholder={t("page.titlePlaceholder")}
           className="w-full"
           autoComplete="off"
           aria-invalid={!!error}
           aria-describedby={error ? "new-page-error" : undefined}
         />
         <p className="text-xs text-muted-foreground mt-2">
-          Slug tự tạo:{" "}
+          {t("page.slugAuto")}:{" "}
           <code className="bg-muted px-1.5 py-0.5 rounded">{slugPreview}</code>
         </p>
       </div>
@@ -149,14 +151,14 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
           ) : (
             <ChevronDown className="h-4 w-4" aria-hidden="true" />
           )}
-          Tùy chọn nâng cao
+          {t("common.advancedOptions")}
         </button>
 
         {showAdvanced && (
           <div className="mt-4 space-y-3">
             <div>
               <label htmlFor="page-slug" className="block text-sm font-medium mb-2">
-                Đường dẫn URL (slug)
+                {t("common.urlSlug")}
               </label>
               <div className="space-y-2">
                 <input
@@ -165,19 +167,19 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
                   value={slug}
                   onChange={(e) => handleSlugChange(e.target.value)}
                   className="w-full font-mono text-sm"
-                  placeholder="tu-dong-tao-tu-tieu-de…"
+                  placeholder={t("page.slugPlaceholder")}
                   autoComplete="off"
                   spellCheck={false}
                 />
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>
-                    <span className="font-medium">Ví dụ URL:</span>{" "}
+                    <span className="font-medium">{t("page.urlExample")}:</span>{" "}
                     <code className="bg-muted px-1.5 py-0.5 rounded">
                       /kb/&lt;space&gt;/{slugPreview}
                     </code>
                   </p>
                   <p className="text-amber-600 dark:text-amber-500">
-                    ⚠️ Thay đổi slug có thể làm hỏng link cũ
+                    ⚠️ {t("page.slugWarning")}
                   </p>
                 </div>
               </div>
@@ -188,7 +190,7 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
 
       <div className="flex items-center justify-end">
         <button type="submit" disabled={loading} className="btn-primary w-full sm:w-auto">
-          {loading ? "Đang tạo…" : "Tạo trang"}
+          {loading ? t("page.creating") : t("page.createButton")}
         </button>
       </div>
     </form>

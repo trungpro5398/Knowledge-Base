@@ -6,6 +6,7 @@ import { Trash2, Loader2 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 interface DeleteSpaceButtonProps {
   spaceId: string;
@@ -20,6 +21,7 @@ export function DeleteSpaceButton({
   pageCount = 0,
   className,
 }: DeleteSpaceButtonProps) {
+  const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname() ?? "";
   const [isDeleting, setIsDeleting] = useState(false);
@@ -31,15 +33,15 @@ export function DeleteSpaceButton({
     setIsDeleting(true);
     try {
       await api.delete(`/api/spaces/${spaceId}`);
-      toast.success("Đã xóa space", { description: spaceName });
+      toast.success(t("deleteSpace.success"), { description: spaceName });
       setShowConfirm(false);
       router.refresh();
       if (isInsideSpace) {
         router.push("/admin");
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Xóa thất bại. Thử lại.";
-      toast.error("Xóa space thất bại", { description: msg });
+      const msg = err instanceof Error ? err.message : t("deleteSpace.errorDefault");
+      toast.error(t("deleteSpace.failed"), { description: msg });
     } finally {
       setIsDeleting(false);
     }
@@ -54,7 +56,7 @@ export function DeleteSpaceButton({
           "inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors rounded-lg",
           className
         )}
-        aria-label={`Xóa space ${spaceName}`}
+        aria-label={t("deleteSpace.ariaLabel", { name: spaceName })}
         disabled={isDeleting}
       >
         {isDeleting ? (
@@ -62,7 +64,7 @@ export function DeleteSpaceButton({
         ) : (
           <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
         )}
-        <span className="hidden sm:inline">Xóa</span>
+        <span className="hidden sm:inline">{t("deleteSpace.button")}</span>
       </button>
 
       {showConfirm && (
@@ -79,11 +81,10 @@ export function DeleteSpaceButton({
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4 p-6 bg-card rounded-xl shadow-xl border border-border"
           >
             <h2 id="delete-space-title" className="text-lg font-semibold text-destructive">
-              Xóa space vĩnh viễn?
+              {t("deleteSpace.confirmTitle")}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Space <strong>{spaceName}</strong> và tất cả {pageCount} trang sẽ bị xóa vĩnh viễn.
-              Không thể khôi phục.
+              {t("deleteSpace.confirmMessage", { name: spaceName, count: pageCount })}
             </p>
             <div className="mt-6 flex gap-3 justify-end">
               <button
@@ -92,7 +93,7 @@ export function DeleteSpaceButton({
                 disabled={isDeleting}
                 className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-muted transition-colors"
               >
-                Hủy
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -103,10 +104,10 @@ export function DeleteSpaceButton({
                 {isDeleting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Đang xóa…
+                    {t("deleteSpace.deleting")}
                   </>
                 ) : (
-                  "Xóa vĩnh viễn"
+                  t("deleteSpace.confirmButton")
                 )}
               </button>
             </div>

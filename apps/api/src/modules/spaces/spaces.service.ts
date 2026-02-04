@@ -1,6 +1,7 @@
 import * as spacesRepo from "./spaces.repo.js";
+import * as organizationsRepo from "../organizations/organizations.repo.js";
 import { invalidatePublishedSpace } from "../public/public-cache.js";
-import { NotFoundError, ValidationError } from "../../utils/errors.js";
+import { NotFoundError, ValidationError, ForbiddenError } from "../../utils/errors.js";
 import { pool } from "../../db/pool.js";
 import { getSpaceBySlugCached, invalidateSpaceCache } from "./spaces-cache.js";
 import { getSpacesForUserCached, getSpacesStatsCached, invalidateSpacesForUser } from "./spaces-user-cache.js";
@@ -43,9 +44,16 @@ export async function deleteSpace(spaceId: string, userId: string) {
 }
 
 export async function createSpace(
-  data: { name: string; slug: string; icon?: string | null; description?: string | null },
+  data: { name: string; slug: string; icon?: string | null; description?: string | null; organization_id?: string | null },
   userId: string
 ) {
+  if (data.organization_id) {
+    const role = await organizationsRepo.getUserRoleInOrganization(userId, data.organization_id);
+    if (role !== "admin" && role !== "owner") {
+      throw new ForbiddenError("Chỉ admin/owner của organization mới được tạo space");
+    }
+  }
+
   const existing = await spacesRepo.getSpaceBySlug(data.slug);
   if (existing) throw new ValidationError("Space slug already exists");
 

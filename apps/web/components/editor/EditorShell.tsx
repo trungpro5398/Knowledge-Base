@@ -8,6 +8,7 @@ import { PageActionsToolbar } from "@/components/admin/PageActionsToolbar";
 import { api } from "@/lib/api/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useShortcuts } from "@/components/keyboard/shortcuts-provider";
+import { useLocale } from "@/lib/i18n/locale-provider";
 import type { ApiResponse, PageVersion } from "@/lib/api/types";
 import { toast } from "sonner";
 
@@ -43,6 +44,7 @@ export function EditorShell({
   const [status, setStatus] = useState(initialStatus);
   const lastSavedContentHash = useRef(contentHash(initialContent));
   const lastSavedTitleRef = useRef(initialTitle);
+  const { t } = useLocale();
   const { registerShortcut, unregisterShortcut } = useShortcuts();
   const isDirty =
     contentHash(content) !== lastSavedContentHash.current || title !== lastSavedTitleRef.current;
@@ -57,12 +59,12 @@ export function EditorShell({
           await api.patch(`/api/pages/${pageId}`, { title });
           setSavedAt(new Date());
           if (mode === "manual") {
-            toast.success("Đã lưu tiêu đề");
+            toast.success(t("page.saveTitleSuccess"));
           }
         } catch (e) {
           console.error(e);
           if (mode === "manual") {
-            toast.error("Lưu thất bại");
+            toast.error(t("page.saveFailed"));
           }
         } finally {
           setSaving(false);
@@ -82,12 +84,12 @@ export function EditorShell({
       lastSavedTitleRef.current = title;
       setSavedAt(new Date());
       if (mode === "manual") {
-        toast.success("Đã lưu bản nháp");
+        toast.success(t("page.saveDraftSuccess"));
       }
     } catch (e) {
       console.error(e);
       if (mode === "manual") {
-        toast.error("Lưu thất bại");
+        toast.error(t("page.saveFailed"));
       }
     } finally {
       setSaving(false);
@@ -107,10 +109,10 @@ export function EditorShell({
       lastSavedContentHash.current = contentHash(content);
       lastSavedTitleRef.current = title;
       setSavedAt(new Date());
-      toast.success("Đã xuất bản trang");
+      toast.success(t("page.publishSuccess"));
     } catch (e) {
       console.error(e);
-      toast.error("Xuất bản thất bại");
+      toast.error(t("page.publishFailed"));
     } finally {
       setPublishing(false);
     }
@@ -122,18 +124,22 @@ export function EditorShell({
       key: "s",
       meta: true,
       description: "Save draft",
+      descriptionKey: "shortcuts.saveDraft",
       action: () => saveDraft("manual"),
       category: "Editor",
+      categoryKey: "shortcuts.category.editor",
     });
 
     registerShortcut({
       key: "Enter",
       meta: true,
       description: "Publish page",
+      descriptionKey: "shortcuts.publishPage",
       action: () => {
         if (status !== "published") publish();
       },
       category: "Editor",
+      categoryKey: "shortcuts.category.editor",
     });
 
     return () => {
@@ -171,7 +177,7 @@ export function EditorShell({
       {/* Title Input */}
       <div className="space-y-2">
         <label htmlFor="page-title-input" className="sr-only">
-          Tiêu đề trang
+          {t("common.pageTitle")}
         </label>
         <input
           id="page-title-input"
@@ -179,7 +185,7 @@ export function EditorShell({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="text-2xl font-bold w-full bg-transparent border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background placeholder:text-muted-foreground/50 rounded-md px-1 -mx-1"
-          placeholder="Page title…"
+          placeholder={t("common.pageTitlePlaceholder")}
           autoComplete="off"
         />
       </div>

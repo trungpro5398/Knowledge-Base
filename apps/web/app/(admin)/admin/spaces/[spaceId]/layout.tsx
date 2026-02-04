@@ -1,12 +1,11 @@
 import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
 import { apiClient } from "@/lib/api/client";
 import { CollapsibleSidebar } from "@/components/ui/collapsible-sidebar";
-import { PageTree, type TreeNode } from "@/components/kb/PageTree";
-import { Plus, Settings } from "lucide-react";
-import Link from "next/link";
+import { SpaceLayoutHeader } from "@/components/admin/SpaceLayoutHeader";
+import { SpaceSidebarContent } from "@/components/admin/SpaceSidebarContent";
+import { SpaceNotFound } from "@/components/admin/SpaceNotFound";
+import type { TreeNode } from "@/components/kb/PageTree";
 import type { ApiResponse, Space, PageNode } from "@/lib/api/types";
-import { TET_PROSYS_GROUPS } from "@/lib/kb/sidebar-groups";
-import { cn } from "@/lib/utils";
 
 async function getSpace(spaceId: string, token: string): Promise<Space | null> {
   try {
@@ -56,11 +55,7 @@ export default async function SpaceLayout({
   ]);
 
   if (!space) {
-    return (
-      <div className="p-8">
-        <p>Space không tồn tại</p>
-      </div>
-    );
+    return <SpaceNotFound />;
   }
 
   const useGroupedSidebar = space.slug === "tet-prosys";
@@ -68,90 +63,29 @@ export default async function SpaceLayout({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-      {/* Header */}
-      <header className="shrink-0 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="flex items-center justify-between px-6 py-3">
-          <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground">Space</span>
-            <h1 className="text-lg font-semibold">{space.name}</h1>
-            <span className="text-xs text-muted-foreground font-mono">
-              /kb/{space.slug}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/admin/spaces/${spaceId}/settings`}
-              className="h-9 px-3 text-sm border rounded-lg hover:bg-muted transition-colors flex items-center gap-2"
-            >
-              <Settings className="h-4 w-4" />
-              Cài đặt
-            </Link>
-            <Link
-              href={`/admin/spaces/${spaceId}/pages/new`}
-              className="btn-primary h-9 px-3 text-sm gap-2"
-            >
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Tạo trang
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SpaceLayoutHeader
+        spaceId={spaceId}
+        spaceName={space.name}
+        spaceSlug={space.slug}
+      />
 
-      {/* Main content: sidebar + editor */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Sidebar: Page Tree */}
         <CollapsibleSidebar
           storageKey="admin-space-sidebar"
           resizable
           responsive="hidden lg:flex"
           className="bg-card/95 dark:bg-card/95"
         >
-          <div className="p-4 border-b border-border/70">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Spaces
-              </span>
-              <Link
-                href="/admin"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                + Tạo
-              </Link>
-            </div>
-            <div className="mt-3 space-y-1">
-              {spaces.map((item) => (
-                <Link
-                  key={item.id}
-                  href={`/admin/spaces/${item.id}`}
-                  className={cn(
-                    "flex flex-col gap-0.5 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-muted/60",
-                    item.id === space.id && "bg-primary/10 text-primary"
-                  )}
-                >
-                  <span className="font-medium truncate">{item.name}</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    /kb/{item.slug}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-          <div className="p-4">
-            <PageTree
-              spaceId={spaceId}
-              spaceSlug={space.slug}
-              nodes={tree}
-              linkMode="admin"
-              showEditLink={false}
-              showCreateLink
-              showCreateChild
-              enableDragAndDrop={enableDragAndDrop}
-              groupConfig={!enableDragAndDrop && useGroupedSidebar ? TET_PROSYS_GROUPS : undefined}
-            />
-          </div>
+          <SpaceSidebarContent
+            spaceId={spaceId}
+            space={space}
+            tree={tree}
+            spaces={spaces}
+            useGroupedSidebar={useGroupedSidebar}
+            enableDragAndDrop={enableDragAndDrop}
+          />
         </CollapsibleSidebar>
 
-        {/* Main content area */}
         <section className="flex-1 overflow-y-auto min-w-0" aria-label="Editor content">
           {children}
         </section>

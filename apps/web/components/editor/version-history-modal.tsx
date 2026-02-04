@@ -6,6 +6,7 @@ import { useVersionHistory } from "@/lib/api/hooks";
 import { DiffViewer } from "./diff-viewer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { useLocale } from "@/lib/i18n/locale-provider";
 import type { PageVersion } from "@/lib/api/types";
 
 interface VersionHistoryModalProps {
@@ -21,14 +22,16 @@ export function VersionHistoryModal({
   onRestore,
   onClose,
 }: VersionHistoryModalProps) {
+  const { t } = useLocale();
   const { data: versions, isLoading } = useVersionHistory(pageId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [compareWithCurrent, setCompareWithCurrent] = useState(true);
 
   const handleRestore = (version: PageVersion) => {
-    if (confirm(`Restore to version from ${new Date(version.created_at).toLocaleString()}?`)) {
+    const dateStr = new Date(version.created_at).toLocaleString();
+    if (confirm(t("version.restoreConfirm", { date: dateStr }))) {
       onRestore(version.content_md || "");
-      toast.success("Version restored", { description: "Don’t forget to save!" });
+      toast.success(t("version.restoredSuccess"), { description: t("version.restoredHint") });
     }
   };
 
@@ -40,10 +43,10 @@ export function VersionHistoryModal({
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) return t("version.justNow");
+    if (diffMins < 60) return t("version.minutesAgo", { m: diffMins });
+    if (diffHours < 24) return t("version.hoursAgo", { h: diffHours });
+    if (diffDays < 7) return t("version.daysAgo", { d: diffDays });
     return d.toLocaleDateString();
   };
 
@@ -56,8 +59,8 @@ export function VersionHistoryModal({
         aria-labelledby="version-history-title"
       >
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 id="version-history-title" className="text-lg font-semibold">Version History</h2>
-          <button type="button" onClick={onClose} className="p-2 hover:bg-muted rounded-md" aria-label="Close version history">
+          <h2 id="version-history-title" className="text-lg font-semibold">{t("version.title")}</h2>
+          <button type="button" onClick={onClose} className="p-2 hover:bg-muted rounded-md" aria-label={t("version.close")}>
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -70,7 +73,7 @@ export function VersionHistoryModal({
               <Skeleton className="h-20 w-full" />
             </div>
           ) : !versions || versions.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No version history available</p>
+            <p className="text-center text-muted-foreground py-8">{t("version.empty")}</p>
           ) : (
             <div className="space-y-3">
               {versions.map((version, idx) => {
@@ -94,7 +97,7 @@ export function VersionHistoryModal({
                             {formatDate(version.created_at)}
                             {isLatest && (
                               <span className="ml-2 text-xs bg-primary/15 text-primary px-2 py-0.5 rounded">
-                                Current
+                                {t("version.current")}
                               </span>
                             )}
                           </p>
@@ -109,17 +112,17 @@ export function VersionHistoryModal({
                             type="button"
                             onClick={() => handleRestore(version)}
                             className="p-1.5 hover:bg-muted rounded text-xs flex items-center gap-1"
-                            title="Restore this version"
+                            title={t("version.restoreTitle")}
                           >
                             <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                            Restore
+                            {t("version.restore")}
                           </button>
                         )}
                         <button
                           type="button"
                           onClick={() => setExpandedId(isExpanded ? null : version.id)}
                           className="p-1.5 hover:bg-muted rounded"
-                          aria-label={isExpanded ? "Collapse version details" : "Expand version details"}
+                          aria-label={isExpanded ? t("version.collapseDetails") : t("version.expandDetails")}
                           aria-expanded={isExpanded}
                           aria-controls={`version-panel-${version.id}`}
                         >
@@ -137,7 +140,7 @@ export function VersionHistoryModal({
                         <DiffViewer
                           oldText={compareWithCurrent ? currentContent : (prevVersion?.content_md || "")}
                           newText={version.content_md || ""}
-                          title={compareWithCurrent ? "vs Current" : "vs Previous"}
+                          title={compareWithCurrent ? t("version.vsCurrent") : t("version.vsPrevious")}
                         />
                         <div className="mt-2 flex items-center gap-2">
                           <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
@@ -147,7 +150,7 @@ export function VersionHistoryModal({
                               onChange={(e) => setCompareWithCurrent(e.target.checked)}
                               className="rounded"
                             />
-                            Compare with current version
+                            {t("version.compareWithCurrent")}
                           </label>
                         </div>
                       </div>

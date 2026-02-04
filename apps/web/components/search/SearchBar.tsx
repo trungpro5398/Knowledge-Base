@@ -5,8 +5,10 @@ import Link from "next/link";
 import { api } from "@/lib/api/client";
 import { Search, Loader2 } from "lucide-react";
 import type { PaginatedResponse, SearchResult } from "@/lib/api/types";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 export function SearchBar() {
+  const { t } = useLocale();
   const [q, setQ] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
@@ -42,8 +44,8 @@ export function SearchBar() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), search())}
-          placeholder="Tìm trang… (Enter)"
-          aria-label="Tìm trang"
+          placeholder={t("search.placeholder")}
+          aria-label={t("search.ariaLabel")}
           inputMode="search"
           autoComplete="off"
           spellCheck={false}
@@ -55,7 +57,7 @@ export function SearchBar() {
           {searching ? (
             <div className="px-3 py-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Đang tìm…
+              {t("search.searching")}
             </div>
           ) : results.length > 0 ? (
             results.map((r) => (
@@ -70,7 +72,7 @@ export function SearchBar() {
           ))
           ) : q.trim() ? (
             <div className="px-3 py-4 text-sm text-muted-foreground text-center">
-              Không tìm thấy kết quả
+              {t("common.noResults")}
             </div>
           ) : null}
         </div>
