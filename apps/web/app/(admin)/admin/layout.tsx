@@ -1,13 +1,9 @@
 import Link from "next/link";
 import { SearchBar } from "@/components/search/SearchBar";
 import { LocaleToggle } from "@/components/locale-toggle";
+import { AdminLogoutButton } from "@/components/admin/AdminLogoutButton";
 import { QueryProvider } from "@/components/query-provider";
-import {
-  LayoutDashboard,
-  Trash2,
-  BookOpen,
-  FileText,
-} from "lucide-react";
+import { LayoutDashboard, Trash2, BookOpen, FileText } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -63,6 +59,7 @@ export default function AdminLayout({
             </Link>
             <LocaleToggle />
           </div>
+          <AdminLogoutButton variant="sidebar" />
         </div>
       </aside>
       
@@ -92,6 +89,7 @@ export default function AdminLayout({
           <Trash2 className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
           <span className="text-xs">Trash</span>
         </Link>
+        <AdminLogoutButton variant="mobile" />
       </nav>
       
       <main
