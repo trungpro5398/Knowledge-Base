@@ -38,7 +38,7 @@ export default function AdminLayout({
           </div>
           <p className="text-xs text-muted-foreground">Chỉnh sửa nội dung, quản lý trang</p>
         </div>
-        <nav className="p-3 flex-1 space-y-1">
+        <nav className="p-3 flex-1 space-y-1" aria-label="Admin navigation">
           <Link
             href="/admin"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors"
@@ -81,7 +81,10 @@ export default function AdminLayout({
       </aside>
       
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t flex items-center justify-around px-2 py-2">
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t flex items-center justify-around px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
+        aria-label="Admin mobile navigation"
+      >
         <Link
           href="/admin"
           className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
@@ -105,7 +108,12 @@ export default function AdminLayout({
         </Link>
       </nav>
       
-      <main className="flex-1 overflow-auto pb-20 md:pb-0">{children}</main>
+      <main
+        id="main-content"
+        className="flex-1 overflow-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0 min-w-0"
+      >
+        {children}
+      </main>
       <ShortcutsHelp />
     </div>
     </ShortcutsProvider>

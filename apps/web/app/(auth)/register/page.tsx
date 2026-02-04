@@ -72,7 +72,7 @@ export default function RegisterPage() {
   // }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
+    <main id="main-content" className="min-h-[100dvh] flex items-center justify-center p-4 bg-muted/30">
       <div className="w-full max-w-md">
         <Link
           href="/"
@@ -95,58 +95,66 @@ export default function RegisterPage() {
           </div>
           <form onSubmit={handleRegister} className="space-y-5">
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm" role="status" aria-live="polite">
                 {error}
               </div>
             )}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
+              <label htmlFor="register-email" className="block text-sm font-medium mb-2">
                 Email
               </label>
               <input
-                id="email"
+                id="register-email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={`user${ALLOWED_DOMAIN}`}
+                placeholder={`user${ALLOWED_DOMAIN}…`}
                 required
                 autoComplete="email"
+                autoCapitalize="none"
+                inputMode="email"
+                spellCheck={false}
                 className="w-full"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
+              <label htmlFor="register-password" className="block text-sm font-medium mb-2">
                 Mật khẩu
               </label>
               <input
-                id="password"
+                id="register-password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
                 autoComplete="new-password"
+                autoCapitalize="none"
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground mt-1.5">Tối thiểu 6 ký tự</p>
             </div>
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
+              <label htmlFor="register-confirm-password" className="block text-sm font-medium mb-2">
                 Xác nhận mật khẩu
               </label>
               <input
-                id="confirmPassword"
+                id="register-confirm-password"
+                name="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
                 autoComplete="new-password"
+                autoCapitalize="none"
                 className="w-full"
               />
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-              {loading ? "Đang đăng ký..." : "Đăng ký"}
+              {loading ? "Đang đăng ký…" : "Đăng ký"}
             </button>
           </form>
           <p className="text-sm text-center text-muted-foreground mt-6 pt-6 border-t">
@@ -157,6 +165,6 @@ export default function RegisterPage() {
           </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

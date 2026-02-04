@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --background: 210 20% 98%;
     --foreground: 222 47% 11%;
     --primary: 160 84% 39%;
@@ -26,6 +27,7 @@
   }
 
   .dark {
+    color-scheme: dark;
     --background: 222 47% 7%;
     --foreground: 210 40% 98%;
     --primary: 160 70% 45%;
@@ -52,13 +54,20 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-x-hidden;
+    -webkit-tap-highlight-color: transparent;
   }
 
   input,
   textarea,
   select {
     @apply rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  button,
+  [role="button"],
+  a {
+    touch-action: manipulation;
   }
 
   button:not([type="submit"]):not(.btn-primary) {
@@ -68,7 +77,7 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .card {
@@ -81,14 +90,18 @@
 
   .prose-kb h1 {
     @apply text-2xl font-bold mt-8 mb-4 first:mt-0;
+    text-wrap: balance;
   }
 
   .prose-kb h2 {
     @apply text-xl font-semibold mt-6 mb-3;
+    text-wrap: balance;
+    scroll-margin-top: 6rem;
   }
 
   .prose-kb h3 {
     @apply text-lg font-medium mt-4 mb-2;
+    scroll-margin-top: 6rem;
   }
 
   .prose-kb p {
@@ -196,7 +209,7 @@
 
 /* Sidebar active states */
 .sidebar-item {
-  @apply flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all;
+  @apply flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors;
 }
 
 .sidebar-item-active {
@@ -217,4 +230,15 @@
 /* Tree node active */
 .tree-node-active>.tree-node-content {
   @apply bg-[hsl(var(--sidebar-active-bg))] text-primary font-medium rounded-md;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

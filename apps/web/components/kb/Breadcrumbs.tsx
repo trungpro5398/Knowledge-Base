@@ -45,7 +45,7 @@ export function Breadcrumbs({ spaceSlug, path, title, items: apiItems }: Breadcr
       })();
 
   return (
-    <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+    <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
       {crumbs.map((c, i) => (
         <span key={i} className="flex items-center gap-2">
           {i > 0 && <span>/</span>}

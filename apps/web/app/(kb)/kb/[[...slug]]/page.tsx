@@ -110,7 +110,7 @@ export default async function KbPage({
             />
           </nav>
         </aside>
-        <main className="min-w-0 flex-1 px-4 md:px-0">
+        <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0">
           <div className="container max-w-4xl py-4 md:py-8">
             {spaceSlug === "tet-prosys" && startLinks.length > 0 && (
               <ReadThisFirst spaceSlug={spaceSlug} items={startLinks} />
@@ -131,7 +131,8 @@ export default async function KbPage({
                 </p>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted rounded-lg text-sm text-muted-foreground">
                   <span>💡</span>
-                  <span>Sử dụng menu bên trái để điều hướng</span>
+                  <span className="hidden sm:inline">Sử dụng menu bên trái để điều hướng</span>
+                  <span className="sm:hidden">Mở menu ở góc dưới để điều hướng</span>
                 </div>
               </div>
             )}
@@ -162,7 +163,7 @@ export default async function KbPage({
           />
         </nav>
       </aside>
-      <main className="min-w-0 flex-1 px-4 md:px-0">
+      <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0">
         <div className="container max-w-4xl py-4 md:py-8">
           {spaceSlug === "tet-prosys" && (
             <p className="text-sm text-muted-foreground mb-3">

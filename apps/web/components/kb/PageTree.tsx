@@ -90,7 +90,7 @@ function TreeNodeItem({
           isActive && "bg-primary/10 rounded-md px-2 py-1 -ml-2"
         )}
       >
-        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+        <FileText className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
         <Link
           href={href}
           className={cn(
@@ -106,6 +106,7 @@ function TreeNodeItem({
             href={`/admin/spaces/${spaceId}/pages/new?parentId=${node.id}`}
             className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
             title="Tạo trang con"
+            aria-label="Tạo trang con"
           >
             <Plus className="h-3.5 w-3.5" />
           </Link>
@@ -116,6 +117,7 @@ function TreeNodeItem({
             href={editHref}
             className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
             title="Chỉnh sửa"
+            aria-label="Chỉnh sửa"
           >
             <Pencil className="h-3.5 w-3.5" />
           </Link>
@@ -370,10 +372,11 @@ function SortableTreeItem({
           {...attributes}
           {...listeners}
           title="Kéo để sắp xếp"
+          aria-label="Kéo để sắp xếp"
         >
           <GripVertical className="h-4 w-4" />
         </button>
-        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+        <FileText className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
         <Link
           href={`/admin/spaces/${spaceId}/${item.id}`}
           className={cn(
@@ -389,6 +392,7 @@ function SortableTreeItem({
             href={`/admin/spaces/${spaceId}/pages/new?parentId=${item.id}`}
             className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
             title="Tạo trang con"
+            aria-label="Tạo trang con"
           >
             <Plus className="h-3.5 w-3.5" />
           </Link>

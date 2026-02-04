@@ -42,7 +42,7 @@ export function Toc({ headings, items: tocItems }: TocProps) {
   }).filter(Boolean) as TocItem[];
 
   return (
-    <nav className="border-l pl-4">
+    <nav className="border-l pl-4" aria-label="On this page">
       <h3 className="font-semibold mb-2">On this page</h3>
       <ul className="space-y-1 text-sm">
         {items.map((item) => (

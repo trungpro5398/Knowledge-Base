@@ -24,9 +24,9 @@ export default async function TrashPage() {
   const items = await getTrash(token);
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-6 sm:p-8 max-w-4xl w-full mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold">Thùng rác</h1>
+        <h1 className="text-2xl font-bold text-balance">Thùng rác</h1>
         <p className="text-muted-foreground mt-1">Các trang đã xóa, có thể khôi phục</p>
       </div>
       {items.length === 0 ? (

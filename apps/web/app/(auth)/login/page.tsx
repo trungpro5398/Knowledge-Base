@@ -37,7 +37,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
+    <main id="main-content" className="min-h-[100dvh] flex items-center justify-center p-4 bg-muted/30">
       <div className="w-full max-w-md">
         <Link
           href="/"
@@ -58,41 +58,47 @@ export default function LoginPage() {
           </div>
           <form onSubmit={handleLogin} className="space-y-5">
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm" role="status" aria-live="polite">
                 {error}
               </div>
             )}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
+              <label htmlFor="login-email" className="block text-sm font-medium mb-2">
                 Email
               </label>
               <input
-                id="email"
+                id="login-email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@tet-edu.com"
+                placeholder="you@tet-edu.com…"
                 required
                 autoComplete="email"
+                autoCapitalize="none"
+                inputMode="email"
+                spellCheck={false}
                 className="w-full"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
+              <label htmlFor="login-password" className="block text-sm font-medium mb-2">
                 Mật khẩu
               </label>
               <input
-                id="password"
+                id="login-password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
+                autoCapitalize="none"
                 className="w-full"
               />
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+              {loading ? "Đang đăng nhập…" : "Đăng nhập"}
             </button>
           </form>
           <p className="text-sm text-center text-muted-foreground mt-6 pt-6 border-t">
@@ -103,6 +109,6 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

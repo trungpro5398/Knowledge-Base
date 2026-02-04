@@ -135,14 +135,16 @@ export default async function AdminDashboard() {
   };
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-6 sm:p-8 max-w-5xl w-full mx-auto">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Spaces</h1>
+          <h1 className="text-2xl font-bold text-balance">Spaces</h1>
           <p className="text-muted-foreground mt-1">Quản lý spaces và trang KB</p>
         </div>
         <div className="text-xs text-muted-foreground">
-          {spaces.length} space{spaces.length !== 1 ? "s" : ""}
+          <span className="tabular-nums">
+            {spaces.length} space{spaces.length !== 1 ? "s" : ""}
+          </span>
         </div>
       </div>
       <div className="mt-6">
@@ -168,7 +170,7 @@ export default async function AdminDashboard() {
                     )}
                   </div>
                 </div>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground tabular-nums">
                   {orgSpaces.length} space{orgSpaces.length !== 1 ? "s" : ""}
                 </span>
               </div>
