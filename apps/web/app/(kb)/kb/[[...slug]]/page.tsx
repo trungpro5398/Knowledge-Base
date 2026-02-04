@@ -111,12 +111,6 @@ export default async function KbPage({
     const startLinks = getStartLinks(tree);
     return (
       <>
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:top-4 focus:left-4 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:shadow-md"
-        >
-          Skip to content
-        </a>
         <div className="flex gap-6 py-4 md:py-8">
         <aside className="hidden md:block w-60 shrink-0">
           <nav className="sticky top-8 space-y-4">
@@ -205,12 +199,6 @@ export default async function KbPage({
   const useRenderedHtml = !!version.rendered_html;
   return (
     <>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:top-4 focus:left-4 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:shadow-md"
-      >
-        Skip to content
-      </a>
       <div className="flex gap-6 py-4 md:py-8">
       <aside className="hidden md:block w-60 shrink-0">
         <nav className="sticky top-8 space-y-4">
