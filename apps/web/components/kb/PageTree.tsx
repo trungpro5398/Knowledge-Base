@@ -264,7 +264,8 @@ function getProjectedMove(
   activeId: string,
   overId: string,
   offsetLeft: number,
-  indentationWidth: number
+  indentationWidth: number,
+  overPosition: "above" | "center" | "below"
 ) {
   const base = getProjection(items, activeId, overId, offsetLeft, indentationWidth);
   if (!base) return null;
@@ -276,7 +277,8 @@ function getProjectedMove(
   const dragDepth = Math.round(offsetLeft / indentationWidth);
   const desiredDepth = activeItem.depth + dragDepth;
 
-  if (desiredDepth > overItem.depth) {
+  const childIntent = offsetLeft >= indentationWidth * 0.8 && overPosition === "center";
+  if (childIntent && desiredDepth > overItem.depth) {
     return { depth: overItem.depth + 1, parentId: overItem.id, insertAfterId: overItem.id };
   }
 
@@ -414,6 +416,7 @@ function DraggablePageTree({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [offsetLeft, setOffsetLeft] = useState(0);
+  const [overPosition, setOverPosition] = useState<"above" | "center" | "below">("center");
 
   useEffect(() => {
     setTreeNodes(nodes);
@@ -426,7 +429,7 @@ function DraggablePageTree({
   );
   const projected =
     activeId && overId
-      ? getProjectedMove(visibleItems, activeId, overId, offsetLeft, INDENTATION_WIDTH)
+      ? getProjectedMove(visibleItems, activeId, overId, offsetLeft, INDENTATION_WIDTH, overPosition)
       : null;
   const itemsToRender = useMemo(
     () =>
@@ -449,6 +452,23 @@ function DraggablePageTree({
 
   const handleDragMove = (event: DragMoveEvent) => {
     setOffsetLeft(event.delta.x);
+    const activeRect = event.active.rect.current.translated ?? event.active.rect.current.initial;
+    const overRect = event.over?.rect;
+    if (activeRect && overRect) {
+      const activeCenterY = activeRect.top + activeRect.height / 2;
+      const overTop = overRect.top;
+      const overBottom = overRect.top + overRect.height;
+      const overHeight = overRect.height || 1;
+      const topZone = overTop + overHeight * 0.35;
+      const bottomZone = overBottom - overHeight * 0.35;
+      if (activeCenterY < topZone) {
+        setOverPosition("above");
+      } else if (activeCenterY > bottomZone) {
+        setOverPosition("below");
+      } else {
+        setOverPosition("center");
+      }
+    }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -479,7 +499,8 @@ function DraggablePageTree({
       activeKey,
       overKey,
       offsetLeft,
-      INDENTATION_WIDTH
+      INDENTATION_WIDTH,
+      overPosition
     );
 
     if (!projectedMove) {
