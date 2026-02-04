@@ -6,6 +6,10 @@ import { DeleteSpaceButton } from "@/components/spaces/DeleteSpaceButton";
 import { FolderOpen, FileText, ExternalLink, Edit, Building2 } from "lucide-react";
 import type { ApiResponse, Space } from "@/lib/api/types";
 
+// Disable caching for this page so spaces update immediately
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface SpaceStats {
   space_id: string;
   total_pages: number;
@@ -36,7 +40,10 @@ async function getOrganizations(token: string): Promise<Organization[]> {
 
 async function getSpaces(token: string): Promise<SpaceWithOrg[]> {
   try {
-    const res = await apiClient<ApiResponse<SpaceWithOrg[]>>("/api/spaces", { token });
+    const res = await apiClient<ApiResponse<SpaceWithOrg[]>>("/api/spaces", { 
+      token,
+      cache: 'no-store', // Disable Next.js fetch cache
+    });
     return res.data;
   } catch {
     return [];

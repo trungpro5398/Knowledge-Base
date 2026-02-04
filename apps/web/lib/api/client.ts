@@ -39,11 +39,22 @@ export async function apiClient<T = unknown>(
     headers.set("Content-Type", "application/json");
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
+  // Handle cache option
+  const fetchOptions: RequestInit = {
     ...init,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  };
+
+  // If cache option is provided, use it; otherwise default to no-store for server-side
+  if ('cache' in init) {
+    fetchOptions.cache = init.cache;
+  } else if (typeof window === 'undefined') {
+    // Server-side: disable cache by default
+    fetchOptions.cache = 'no-store';
+  }
+
+  const res = await fetch(`${API_URL}${path}`, fetchOptions);
 
   // Handle empty responses (204 No Content)
   if (res.status === 204) {

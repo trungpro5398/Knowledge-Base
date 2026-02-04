@@ -36,6 +36,8 @@ export async function addMember(
   const membership = await membershipsRepo.addMembership(spaceId, targetUserId, role);
   // Invalidate cache for the new member so they see the space immediately
   invalidateSpacesForUser(targetUserId);
+  // Also invalidate cache for admin user in case they're viewing the list
+  invalidateSpacesForUser(adminUserId);
   return membership;
 }
 

@@ -54,7 +54,7 @@ export function SidebarSearchFilter({
         />
         <input
           type="search"
-          placeholder="Tìm trong danh mục..."
+          placeholder="Tìm trang..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="w-full h-8 pl-8 pr-7 rounded-md bg-muted/40 text-sm placeholder:text-muted-foreground/80 border-0 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-muted/60 transition-colors"

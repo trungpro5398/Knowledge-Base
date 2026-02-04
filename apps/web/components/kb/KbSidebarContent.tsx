@@ -62,7 +62,7 @@ export function KbSidebarContent({
           spaceSlug={spaceSlug}
           nodes={tree}
           showEditLink={false}
-          className="h-[calc(100%-1.5rem)] flex flex-col"
+          className="flex-1 min-h-0 flex flex-col"
         />
       </div>
     </nav>
