@@ -7,6 +7,7 @@ import { api } from "@/lib/api/client";
 import { generateSlug } from "@/lib/utils";
 import { getTemplates, type PageTemplate } from "@/lib/api/pages";
 import type { ApiResponse, Page } from "@/lib/api/types";
+import { toast } from "sonner";
 
 interface NewPageFormProps {
   spaceId: string;
@@ -63,9 +64,12 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
       if (parentId) body.parent_id = parentId;
       if (templateId) body.template_id = templateId;
       const res = await api.post<ApiResponse<Page>>("/api/pages", body);
+      toast.success("Đã tạo trang", { description: body.title });
       router.push(`/admin/spaces/${spaceId}/${res.data.id}`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Tạo thất bại");
+      const message = err instanceof Error ? err.message : "Tạo thất bại";
+      setError(message);
+      toast.error("Tạo trang thất bại", { description: message });
     } finally {
       setLoading(false);
     }
@@ -135,9 +139,9 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           {showAdvanced ? (
-            <ChevronUp className="h-4 w-4" />
+            <ChevronUp className="h-4 w-4" aria-hidden="true" />
           ) : (
-            <ChevronDown className="h-4 w-4" />
+            <ChevronDown className="h-4 w-4" aria-hidden="true" />
           )}
           Tùy chọn nâng cao
         </button>

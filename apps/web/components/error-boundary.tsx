@@ -28,11 +28,11 @@ export class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="min-h-[100dvh] flex items-center justify-center bg-background p-4">
           <div className="max-w-md w-full card text-center space-y-4">
             <div className="flex justify-center">
               <div className="p-3 rounded-full bg-destructive/10">
-                <AlertTriangle className="h-8 w-8 text-destructive" />
+                <AlertTriangle className="h-8 w-8 text-destructive" aria-hidden="true" />
               </div>
             </div>
             <h1 className="text-xl font-bold">Something went wrong</h1>
@@ -40,6 +40,7 @@ export class ErrorBoundary extends React.Component<
               {this.state.error?.message || "An unexpected error occurred"}
             </p>
             <button
+              type="button"
               onClick={() => window.location.reload()}
               className="btn-primary"
             >

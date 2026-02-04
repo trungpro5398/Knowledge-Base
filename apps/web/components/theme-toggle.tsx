@@ -12,9 +12,9 @@ export function ThemeToggle() {
       aria-label="Chuyển theme"
     >
       {theme === "dark" ? (
-        <Sun className="h-4 w-4 text-muted-foreground" />
+        <Sun className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
       ) : (
-        <Moon className="h-4 w-4 text-muted-foreground" />
+        <Moon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
       )}
     </button>
   );

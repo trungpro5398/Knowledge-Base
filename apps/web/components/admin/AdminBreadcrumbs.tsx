@@ -36,7 +36,7 @@ export function AdminBreadcrumbs({ items }: AdminBreadcrumbsProps) {
         href="/admin"
         className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted hover:text-foreground transition-colors"
       >
-        <Home className="h-4 w-4" />
+        <Home className="h-4 w-4" aria-hidden="true" />
         <span className="sr-only sm:not-sr-only">Dashboard</span>
       </Link>
 
@@ -46,11 +46,11 @@ export function AdminBreadcrumbs({ items }: AdminBreadcrumbsProps) {
 
         return (
           <Fragment key={index}>
-            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" aria-hidden="true" />
 
             {isLast ? (
               <span className="flex items-center gap-1.5 px-2 py-1 font-medium text-foreground truncate max-w-[200px]">
-                {IconComponent && <IconComponent className="h-4 w-4" />}
+                {IconComponent && <IconComponent className="h-4 w-4" aria-hidden="true" />}
                 {item.label}
               </span>
             ) : (
@@ -58,7 +58,7 @@ export function AdminBreadcrumbs({ items }: AdminBreadcrumbsProps) {
                 href={item.href || "#"}
                 className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted hover:text-foreground transition-colors truncate max-w-[200px]"
               >
-                {IconComponent && <IconComponent className="h-4 w-4" />}
+                {IconComponent && <IconComponent className="h-4 w-4" aria-hidden="true" />}
                 {item.label}
               </Link>
             )}

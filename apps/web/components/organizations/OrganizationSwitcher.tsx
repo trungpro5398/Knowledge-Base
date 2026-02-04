@@ -51,7 +51,7 @@ export function OrganizationSwitcher({ currentOrgId }: OrganizationSwitcherProps
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30">
         <div className="flex items-center justify-center w-5 h-5 rounded bg-primary/10 text-primary text-xs">
-          {org.icon || <Building2 className="h-3 w-3" />}
+          {org.icon || <Building2 className="h-3 w-3" aria-hidden="true" />}
         </div>
         <span className="text-sm font-medium truncate">{org.name}</span>
       </div>
@@ -63,23 +63,31 @@ export function OrganizationSwitcher({ currentOrgId }: OrganizationSwitcherProps
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors"
+        aria-expanded={isOpen}
+        aria-controls="org-switcher-panel"
+        aria-haspopup="listbox"
       >
         <div className="flex items-center justify-center w-5 h-5 rounded bg-primary/10 text-primary text-xs">
-          {currentOrg?.icon || <Building2 className="h-3 w-3" />}
+          {currentOrg?.icon || <Building2 className="h-3 w-3" aria-hidden="true" />}
         </div>
         <span className="text-sm font-medium truncate flex-1 text-left">
           {currentOrg?.name || "Select Organization"}
         </span>
-        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden="true" />
       </button>
 
       {isOpen && (
         <>
-          <div
+          <button
+            type="button"
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
+            aria-label="Close organization switcher"
           />
-          <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-card border rounded-lg shadow-lg overflow-hidden">
+          <div
+            id="org-switcher-panel"
+            className="absolute top-full left-0 right-0 mt-1 z-50 bg-card border rounded-lg shadow-lg overflow-hidden"
+          >
             {organizations.map((org) => (
               <Link
                 key={org.id}
@@ -88,11 +96,11 @@ export function OrganizationSwitcher({ currentOrgId }: OrganizationSwitcherProps
                 className="flex items-center gap-2 px-3 py-2 hover:bg-muted transition-colors"
               >
                 <div className="flex items-center justify-center w-5 h-5 rounded bg-primary/10 text-primary text-xs">
-                  {org.icon || <Building2 className="h-3 w-3" />}
+                  {org.icon || <Building2 className="h-3 w-3" aria-hidden="true" />}
                 </div>
                 <span className="text-sm flex-1 truncate">{org.name}</span>
                 {org.id === currentOrgId && (
-                  <Check className="h-4 w-4 text-primary" />
+                  <Check className="h-4 w-4 text-primary" aria-hidden="true" />
                 )}
               </Link>
             ))}

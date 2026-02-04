@@ -85,7 +85,7 @@ export function SpaceSwitcher({
                 aria-haspopup="listbox"
             >
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary shrink-0">
-                    <FolderOpen className="h-4 w-4" />
+                    <FolderOpen className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
@@ -98,7 +98,7 @@ export function SpaceSwitcher({
                 <ChevronDown className={cn(
                     "h-4 w-4 text-muted-foreground transition-transform shrink-0",
                     isOpen && "rotate-180"
-                )} />
+                )} aria-hidden="true" />
             </button>
 
             {/* Dropdown */}
@@ -117,7 +117,7 @@ export function SpaceSwitcher({
                         {/* Search */}
                         <div className="p-2 border-b">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                                 <input
                                     type="text"
                                     placeholder="Search spaces…"
@@ -161,7 +161,7 @@ export function SpaceSwitcher({
                                         return (
                                             <div key={org.id}>
                                                 <div className="flex items-center gap-2 px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                                    {org.icon || <Building2 className="h-3 w-3" />}
+                                                    {org.icon || <Building2 className="h-3 w-3" aria-hidden="true" />}
                                                     <span>{org.name}</span>
                                                 </div>
                                                 <div className="space-y-0.5 mt-1">
@@ -207,9 +207,9 @@ export function SpaceSwitcher({
                                 onClick={() => setIsOpen(false)}
                                 className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors"
                             >
-                                <Plus className="h-4 w-4" />
-                                Create new space
-                            </Link>
+                            <Plus className="h-4 w-4" aria-hidden="true" />
+                            Create New Space
+                        </Link>
                         </div>
                     </div>
                 </>
@@ -238,9 +238,9 @@ function SpaceItem({
                     : "hover:bg-muted"
             )}
         >
-            <FolderOpen className="h-4 w-4 shrink-0" />
+            <FolderOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="flex-1 truncate">{space.name}</span>
-            {isActive && <Check className="h-4 w-4 shrink-0" />}
+            {isActive && <Check className="h-4 w-4 shrink-0" aria-hidden="true" />}
         </Link>
     );
 }

@@ -29,7 +29,7 @@ export default function AdminLayout({
               href="/admin"
               className="flex items-center gap-2 font-bold text-lg hover:text-primary transition-colors"
             >
-              <FileText className="h-6 w-6 text-primary" />
+              <FileText className="h-6 w-6 text-primary" aria-hidden="true" />
               Quản Trị Tài Liệu
             </Link>
             <span className="rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
@@ -43,14 +43,14 @@ export default function AdminLayout({
             href="/admin"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors"
           >
-            <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+            <LayoutDashboard className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             Dashboard
           </Link>
           <Link
             href="/admin/trash"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors"
           >
-            <Trash2 className="h-4 w-4 text-muted-foreground" />
+            <Trash2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             Thùng rác
           </Link>
           <div className="px-3 py-2.5">
@@ -61,11 +61,11 @@ export default function AdminLayout({
           <div className="flex justify-between items-center gap-2">
             <Link
               href="/kb/tet-prosys"
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <BookOpen className="h-4 w-4" />
-              Xem Tài Liệu
-            </Link>
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <BookOpen className="h-4 w-4" aria-hidden="true" />
+            Xem Tài Liệu
+          </Link>
             <ThemeToggle />
           </div>
           <form action={signOut} className="block">
@@ -73,7 +73,7 @@ export default function AdminLayout({
               type="submit"
               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4 w-4" aria-hidden="true" />
               Đăng xuất
             </button>
           </form>
@@ -89,21 +89,21 @@ export default function AdminLayout({
           href="/admin"
           className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
         >
-          <LayoutDashboard className="h-5 w-5 text-muted-foreground" />
+          <LayoutDashboard className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
           <span className="text-xs">Dashboard</span>
         </Link>
         <Link
           href="/kb/tet-prosys"
           className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
         >
-          <BookOpen className="h-5 w-5 text-muted-foreground" />
+          <BookOpen className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
           <span className="text-xs">Tài Liệu</span>
         </Link>
         <Link
           href="/admin/trash"
           className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
         >
-          <Trash2 className="h-5 w-5 text-muted-foreground" />
+          <Trash2 className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
           <span className="text-xs">Trash</span>
         </Link>
       </nav>

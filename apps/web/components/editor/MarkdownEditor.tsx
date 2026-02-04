@@ -173,7 +173,6 @@ export function MarkdownEditor({
 
     for (const item of Array.from(items)) {
       if (item.type.startsWith("image/")) {
-        e.preventDefault();
         const file = item.getAsFile();
         if (file) {
           uploadFile(file);

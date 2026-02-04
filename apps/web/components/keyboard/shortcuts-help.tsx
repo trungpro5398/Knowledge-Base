@@ -28,17 +28,24 @@ export function ShortcutsHelp() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
-      <div className="bg-card border rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <div
+        className="bg-card border rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col overscroll-contain"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shortcuts-title"
+      >
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div className="flex items-center gap-2">
-            <Command className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Keyboard Shortcuts</h2>
+            <Command className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h2 id="shortcuts-title" className="text-lg font-semibold">Keyboard Shortcuts</h2>
           </div>
           <button
+            type="button"
             onClick={() => setShowHelp(false)}
             className="p-2 hover:bg-muted rounded-md transition-colors"
+            aria-label="Close shortcuts help"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 

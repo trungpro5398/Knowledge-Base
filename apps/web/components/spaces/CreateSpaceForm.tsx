@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
 import { Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { generateSlug } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function CreateSpaceForm() {
   const [name, setName] = useState("");
@@ -28,13 +29,16 @@ export function CreateSpaceForm() {
         method: "POST",
         body: { name: finalName, slug: finalSlug },
       });
+      toast.success("Đã tạo space", { description: finalName });
       router.refresh();
       setName("");
       setSlug("");
       setManualSlug(false);
       setShowAdvanced(false);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Tạo thất bại");
+      const message = err instanceof Error ? err.message : "Tạo thất bại";
+      setError(message);
+      toast.error("Tạo space thất bại", { description: message });
     } finally {
       setLoading(false);
     }
@@ -45,7 +49,7 @@ export function CreateSpaceForm() {
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" aria-hidden="true" />
             Tạo space
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -97,9 +101,9 @@ export function CreateSpaceForm() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             {showAdvanced ? (
-              <ChevronUp className="h-4 w-4" />
+              <ChevronUp className="h-4 w-4" aria-hidden="true" />
             ) : (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
             )}
             Tùy chọn nâng cao
           </button>

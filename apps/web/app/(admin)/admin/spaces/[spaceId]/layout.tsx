@@ -81,7 +81,7 @@ export default async function SpaceLayout({
             href={`/admin/spaces/${spaceId}/pages/new`}
             className="btn-primary h-9 px-3 text-sm gap-2"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" aria-hidden="true" />
             Tạo trang
           </Link>
         </div>

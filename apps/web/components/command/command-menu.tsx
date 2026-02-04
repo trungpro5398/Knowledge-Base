@@ -91,7 +91,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                       })
                     }
                   >
-                    <FileText className="mr-2 h-4 w-4" />
+                    <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
                     <span>{result.title}</span>
                   </CommandItem>
                 ))}
@@ -108,7 +108,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     key={page.id}
                     onSelect={() => handleSelect(() => router.push(page.path))}
                   >
-                    <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <FileText className="mr-2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     <span>{page.title}</span>
                   </CommandItem>
                 ))}
@@ -119,7 +119,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
           <CommandGroup heading="Actions">
             <CommandItem onSelect={() => handleSelect(() => router.push("/admin"))}>
-              <Home className="mr-2 h-4 w-4" />
+              <Home className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>Dashboard</span>
             </CommandItem>
             {spaces.length > 0 && (
@@ -128,12 +128,12 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                   handleSelect(() => router.push(`/admin/spaces/${spaces[0]!.id}/pages/new`))
                 }
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                 <span>Trang mới</span>
               </CommandItem>
             )}
             <CommandItem onSelect={() => handleSelect(() => router.push("/kb"))}>
-              <Search className="mr-2 h-4 w-4" />
+              <Search className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>Xem KB</span>
             </CommandItem>
           </CommandGroup>
@@ -149,7 +149,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                       handleSelect(() => router.push(`/admin/spaces/${space.id}/tree`))
                     }
                   >
-                    <Folder className="mr-2 h-4 w-4 text-primary" />
+                    <Folder className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
                     <span>{space.name}</span>
                   </CommandItem>
                 ))}
@@ -160,11 +160,11 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
           <CommandSeparator />
           <CommandGroup heading="Theme">
             <CommandItem onSelect={() => handleSelect(() => setTheme("light"))}>
-              <Sun className="mr-2 h-4 w-4" />
+              <Sun className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>Light</span>
             </CommandItem>
             <CommandItem onSelect={() => handleSelect(() => setTheme("dark"))}>
-              <Moon className="mr-2 h-4 w-4" />
+              <Moon className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>Dark</span>
             </CommandItem>
           </CommandGroup>

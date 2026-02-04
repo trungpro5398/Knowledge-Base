@@ -9,6 +9,7 @@ import { api } from "@/lib/api/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useShortcuts } from "@/components/keyboard/shortcuts-provider";
 import type { ApiResponse, PageVersion } from "@/lib/api/types";
+import { toast } from "sonner";
 
 function contentHash(s: string): string {
   return `${s.length}:${s.slice(0, 100)}:${s.slice(-100)}`;
@@ -46,7 +47,7 @@ export function EditorShell({
   const isDirty =
     contentHash(content) !== lastSavedContentHash.current || title !== lastSavedTitleRef.current;
 
-  const saveDraft = async () => {
+  const saveDraft = async (mode: "manual" | "auto" = "auto") => {
     const hash = contentHash(content);
     if (hash === lastSavedContentHash.current) {
       const titleChanged = title !== initialTitle;
@@ -55,8 +56,14 @@ export function EditorShell({
         try {
           await api.patch(`/api/pages/${pageId}`, { title });
           setSavedAt(new Date());
+          if (mode === "manual") {
+            toast.success("Đã lưu tiêu đề");
+          }
         } catch (e) {
           console.error(e);
+          if (mode === "manual") {
+            toast.error("Lưu thất bại");
+          }
         } finally {
           setSaving(false);
         }
@@ -74,8 +81,14 @@ export function EditorShell({
       lastSavedContentHash.current = hash;
       lastSavedTitleRef.current = title;
       setSavedAt(new Date());
+      if (mode === "manual") {
+        toast.success("Đã lưu bản nháp");
+      }
     } catch (e) {
       console.error(e);
+      if (mode === "manual") {
+        toast.error("Lưu thất bại");
+      }
     } finally {
       setSaving(false);
     }
@@ -94,8 +107,10 @@ export function EditorShell({
       lastSavedContentHash.current = contentHash(content);
       lastSavedTitleRef.current = title;
       setSavedAt(new Date());
+      toast.success("Đã xuất bản trang");
     } catch (e) {
       console.error(e);
+      toast.error("Xuất bản thất bại");
     } finally {
       setPublishing(false);
     }
@@ -107,7 +122,7 @@ export function EditorShell({
       key: "s",
       meta: true,
       description: "Save draft",
-      action: () => saveDraft(),
+      action: () => saveDraft("manual"),
       category: "Editor",
     });
 
@@ -147,7 +162,7 @@ export function EditorShell({
         status={status as "draft" | "published" | "archived"}
         saving={saving}
         savedAt={savedAt}
-        onSave={saveDraft}
+        onSave={() => saveDraft("manual")}
         onPublish={publish}
         onShowHistory={() => setShowHistory(true)}
         publishing={publishing}
@@ -178,7 +193,7 @@ export function EditorShell({
       <MarkdownEditor
         value={content}
         onChange={setContent}
-        onDebouncedSave={saveDraft}
+        onDebouncedSave={() => saveDraft("auto")}
         debounceMs={1200}
         pageId={pageId}
       />

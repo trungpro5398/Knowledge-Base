@@ -33,12 +33,12 @@ export function CopyLinkButton({ url, className = "" }: CopyLinkButtonProps) {
     >
       {copied ? (
         <>
-          <Check className="h-3.5 w-3.5 text-green-600" />
+          <Check className="h-3.5 w-3.5 text-green-600" aria-hidden="true" />
           Copied!
         </>
       ) : (
         <>
-          <Copy className="h-3.5 w-3.5" />
+          <Copy className="h-3.5 w-3.5" aria-hidden="true" />
           Copy Link
         </>
       )}

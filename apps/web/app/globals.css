@@ -140,7 +140,7 @@
 }
 
 [cmdk-input] {
-  @apply flex h-11 w-full rounded-md bg-transparent px-3 py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50;
+  @apply flex h-11 w-full rounded-md bg-transparent px-3 py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
 }
 
 [cmdk-list] {
@@ -148,7 +148,7 @@
 }
 
 [cmdk-item] {
-  @apply relative flex cursor-pointer select-none items-center rounded-md px-2 py-2 text-sm outline-none hover:bg-muted data-[selected=true]:bg-muted transition-colors;
+  @apply relative flex cursor-pointer select-none items-center rounded-md px-2 py-2 text-sm outline-none hover:bg-muted data-[selected=true]:bg-muted focus-visible:bg-muted transition-colors;
 }
 
 [cmdk-group-heading] {

@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDistanceToNow } from "@/lib/utils";
-import { User, Calendar, Eye } from "lucide-react";
+import { Calendar, Eye } from "lucide-react";
 
 interface PageMetadataProps {
     author?: string;
@@ -24,13 +24,13 @@ export function PageMetadata({ author, updatedAt, views }: PageMetadataProps) {
             )}
 
             <div className="flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5" />
+                <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Updated {timeAgo}</span>
             </div>
 
             {views !== undefined && (
                 <div className="flex items-center gap-1.5">
-                    <Eye className="h-3.5 w-3.5" />
+                    <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>{views} views</span>
                 </div>
             )}

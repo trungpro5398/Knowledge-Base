@@ -44,7 +44,7 @@ export function MarkdownToolbar({ onInsert }: MarkdownToolbarProps) {
           title={btn.label}
           aria-label={btn.label}
         >
-          <btn.icon className="h-4 w-4" />
+          <btn.icon className="h-4 w-4" aria-hidden="true" />
         </button>
       ))}
     </div>

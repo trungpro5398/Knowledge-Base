@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { CopyLinkButton } from "@/components/ui/copy-link-button";
 import { api } from "@/lib/api/client";
+import { toast } from "sonner";
 
 type PageStatus = "draft" | "published" | "archived";
 
@@ -169,11 +170,12 @@ export function PageActionsToolbar({
                                     <Link
                                         href={pageUrl}
                                         target="_blank"
+                                        rel="noopener noreferrer"
                                         className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
                                         onClick={() => setShowDropdown(false)}
                                     >
                                         <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                                        View published
+                                        View Published
                                     </Link>
 
                                     <div className="border-t border-border my-1" />
@@ -192,16 +194,18 @@ export function PageActionsToolbar({
                                             setIsDeleting(true);
                                             try {
                                                 await api.delete(`/api/pages/${pageId}`);
+                                                toast.success("Đã chuyển vào thùng rác");
                                                 router.push(`/admin/spaces/${spaceId}`);
                                                 router.refresh();
                                             } catch (err) {
                                                 console.error(err);
+                                                toast.error("Không thể chuyển vào thùng rác");
                                                 setIsDeleting(false);
                                             }
                                         }}
                                     >
                                         <Trash2 className="h-4 w-4" aria-hidden="true" />
-                                        {isDeleting ? "Moving…" : "Move to trash"}
+                                        {isDeleting ? "Moving…" : "Move to Trash"}
                                     </button>
                                 </div>
                             </>

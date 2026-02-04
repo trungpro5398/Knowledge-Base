@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { api } from "@/lib/api/client";
 import { Search } from "lucide-react";
 import type { PaginatedResponse, SearchResult } from "@/lib/api/types";
@@ -10,7 +10,6 @@ export function SearchBar() {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
-  const router = useRouter();
 
   const search = async () => {
     if (!q.trim()) return;
@@ -46,17 +45,14 @@ export function SearchBar() {
       {open && results.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-20 overflow-hidden">
           {results.map((r) => (
-            <button
+            <Link
               key={r.id}
-              type="button"
-              onClick={() => {
-                router.push(`/admin/spaces/${r.space_id}/pages/${r.id}/edit`);
-                setOpen(false);
-              }}
+              href={`/admin/spaces/${r.space_id}/pages/${r.id}/edit`}
+              onClick={() => setOpen(false)}
               className="block w-full text-left px-3 py-2.5 text-sm hover:bg-muted transition-colors border-b last:border-0"
             >
               {r.title}
-            </button>
+            </Link>
           ))}
         </div>
       )}

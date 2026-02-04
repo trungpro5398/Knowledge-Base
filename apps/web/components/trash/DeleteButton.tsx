@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export function DeleteButton({ pageId }: { pageId: string }) {
   const [loading, setLoading] = useState(false);
@@ -16,8 +17,10 @@ export function DeleteButton({ pageId }: { pageId: string }) {
     setLoading(true);
     try {
       await apiClient(`/api/trash/${pageId}`, { method: "DELETE" });
+      toast.success("Đã xóa vĩnh viễn");
       router.refresh();
     } catch {
+      toast.error("Xóa vĩnh viễn thất bại");
       setLoading(false);
     }
   };

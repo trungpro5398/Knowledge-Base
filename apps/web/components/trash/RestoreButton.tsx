@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
 import { RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 
 export function RestoreButton({ pageId }: { pageId: string }) {
   const [loading, setLoading] = useState(false);
@@ -13,8 +14,10 @@ export function RestoreButton({ pageId }: { pageId: string }) {
     setLoading(true);
     try {
       await apiClient(`/api/trash/${pageId}/restore`, { method: "POST" });
+      toast.success("Đã khôi phục trang");
       router.refresh();
     } catch {
+      toast.error("Khôi phục thất bại");
       setLoading(false);
     }
   };
