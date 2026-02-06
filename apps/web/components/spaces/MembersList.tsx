@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { api, apiClient } from "@/lib/api/client";
-import { Users, UserPlus, Shield, Edit2, Eye, FileEdit, Trash2 } from "lucide-react";
+import { Users, UserPlus, Shield, Eye, FileEdit, Trash2, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { ApiResponse } from "@/lib/api/types";
 
@@ -17,6 +17,12 @@ interface Member {
 
 interface MembersListProps {
   spaceId: string;
+}
+
+interface UserSearchResult {
+  id: string;
+  email: string;
+  name?: string;
 }
 
 const roleLabels = {
@@ -163,29 +169,87 @@ export function MembersList({ spaceId }: MembersListProps) {
 }
 
 function AddMemberForm({ spaceId, onSuccess }: { spaceId: string; onSuccess: () => void }) {
-  const [email, setEmail] = useState("");
+  const [query, setQuery] = useState("");
   const [role, setRole] = useState<"viewer" | "editor" | "admin">("viewer");
   const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [suggestions, setSuggestions] = useState<UserSearchResult[]>([]);
+  const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let isCancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        setSearching(true);
+        const params = new URLSearchParams({
+          limit: "50",
+          spaceId,
+        });
+        if (query.trim()) {
+          params.set("q", query.trim());
+        }
+        const res = await api.get<ApiResponse<UserSearchResult[]>>(
+          `/api/users/search?${params.toString()}`
+        );
+        if (!isCancelled) {
+          setSuggestions(res.data ?? []);
+        }
+      } catch (searchError) {
+        if (!isCancelled) {
+          setSuggestions([]);
+          console.error(searchError);
+        }
+      } finally {
+        if (!isCancelled) {
+          setSearching(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query, spaceId]);
+
+  const resolveTargetUser = (): UserSearchResult | null => {
+    if (selectedUser) return selectedUser;
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return null;
+    return suggestions.find((user) => user.email.toLowerCase() === normalized) ?? null;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) {
-      setError("Vui lòng nhập email");
+    const pickedUser = resolveTargetUser();
+    if (!pickedUser && !query.trim()) {
+      setError("Vui lòng chọn user");
       return;
     }
     setLoading(true);
     setError("");
     try {
-      await apiClient(`/api/spaces/${spaceId}/members/by-email`, {
+      const targetPath = pickedUser
+        ? `/api/spaces/${spaceId}/members`
+        : `/api/spaces/${spaceId}/members/by-email`;
+      const payload = pickedUser
+        ? { userId: pickedUser.id, role }
+        : { email: query.trim(), role };
+
+      await apiClient(targetPath, {
         method: "POST",
-        body: { email: email.trim(), role },
+        body: payload,
       });
       toast.success("Đã thêm member", {
         description: "User cần refresh trang để thấy space mới",
         duration: 5000,
       });
-      setEmail("");
+      setQuery("");
+      setSelectedUser(null);
+      setSuggestions([]);
+      setShowSuggestions(false);
       setRole("viewer");
       onSuccess();
     } catch (error: unknown) {
@@ -199,35 +263,83 @@ function AddMemberForm({ spaceId, onSuccess }: { spaceId: string; onSuccess: () 
 
   return (
     <form onSubmit={handleSubmit} className="border rounded-lg p-4 space-y-3 bg-card">
-      <div className="flex gap-2">
-        <input
-          type="email"
-          name="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="email@example.com"
-          className="flex-1"
-          disabled={loading}
-          autoComplete="email"
-          autoCapitalize="none"
-          inputMode="email"
-          spellCheck={false}
-          aria-label="Email thành viên"
-        />
+      <div className="flex flex-col md:flex-row gap-2">
+        <div className="flex-1 relative">
+          <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            name="member-search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSelectedUser(null);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => {
+              setTimeout(() => setShowSuggestions(false), 120);
+            }}
+            placeholder="Tìm theo tên hoặc email..."
+            className="w-full pl-9"
+            disabled={loading}
+            autoComplete="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            aria-label="Tìm user để thêm"
+          />
+
+          {showSuggestions && (
+            <div className="absolute z-20 mt-1 w-full rounded-lg border bg-popover shadow-lg max-h-72 overflow-auto">
+              {searching ? (
+                <div className="px-3 py-2 text-sm text-muted-foreground flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang tải users...
+                </div>
+              ) : suggestions.length === 0 ? (
+                <div className="px-3 py-2 text-sm text-muted-foreground">
+                  Không còn user nào phù hợp để thêm
+                </div>
+              ) : (
+                suggestions.map((user) => (
+                  <button
+                    key={user.id}
+                    type="button"
+                    className="w-full text-left px-3 py-2 hover:bg-muted transition-colors"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setQuery(user.email);
+                      setShowSuggestions(false);
+                      setError("");
+                    }}
+                  >
+                    <div className="font-medium truncate">{user.name || user.email}</div>
+                    <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
         <select
           value={role}
           onChange={(e) => setRole(e.target.value as "viewer" | "editor" | "admin")}
-          className="border rounded px-3"
+          className="border rounded px-3 h-10"
           disabled={loading}
         >
           <option value="viewer">Viewer</option>
           <option value="editor">Editor</option>
           <option value="admin">Admin</option>
         </select>
-        <button type="submit" disabled={loading} className="btn-primary px-4">
+        <button type="submit" disabled={loading} className="btn-primary px-4 h-10">
           {loading ? "Đang thêm..." : "Thêm"}
         </button>
       </div>
+      {selectedUser && (
+        <div className="text-xs text-emerald-600 dark:text-emerald-400">
+          Đã chọn: {selectedUser.name || selectedUser.email} ({selectedUser.email})
+        </div>
+      )}
       {error && <div className="text-sm text-destructive">{error}</div>}
     </form>
   );

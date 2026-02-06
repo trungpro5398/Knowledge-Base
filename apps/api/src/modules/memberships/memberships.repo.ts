@@ -12,6 +12,14 @@ export interface MembershipWithUser extends MembershipRow {
   user_name?: string;
 }
 
+export interface SearchUsersOptions {
+  query?: string;
+  limit?: number;
+  organizationId?: string;
+  spaceId?: string;
+  pageId?: string;
+}
+
 export async function getMembershipsBySpace(spaceId: string): Promise<MembershipWithUser[]> {
   if (!pool) return [];
   const { rows } = await pool.query<MembershipWithUser>(
@@ -88,16 +96,82 @@ export async function getUserByEmail(email: string): Promise<{ id: string; email
   return rows[0] ?? null;
 }
 
-export async function searchUsers(query: string, limit = 10): Promise<Array<{ id: string; email: string; name?: string }>> {
+export async function searchUsers({
+  query = "",
+  limit = 20,
+  organizationId,
+  spaceId,
+  pageId,
+}: SearchUsersOptions): Promise<Array<{ id: string; email: string; name?: string }>> {
   if (!pool) return [];
-  const searchTerm = `%${query.toLowerCase().trim()}%`;
+  const normalizedQuery = query.trim();
+  const searchTerm = `%${normalizedQuery}%`;
+
   const { rows } = await pool.query<{ id: string; email: string; name?: string }>(
-    `SELECT id, email, raw_user_meta_data->>'name' as name
-     FROM auth.users
-     WHERE email ILIKE $1 OR raw_user_meta_data->>'name' ILIKE $1
-     ORDER BY email ASC
-     LIMIT $2`,
-    [searchTerm, limit]
+    `SELECT
+       u.id,
+       u.email,
+       u.raw_user_meta_data->>'name' as name
+     FROM auth.users u
+     WHERE
+       ($1::text = '' OR u.email ILIKE $2 OR COALESCE(u.raw_user_meta_data->>'name', '') ILIKE $2)
+       AND (
+         $3::uuid IS NULL OR NOT EXISTS (
+           SELECT 1
+           FROM organization_memberships om
+           WHERE om.organization_id = $3 AND om.user_id = u.id
+         )
+       )
+       AND (
+         $3::uuid IS NULL OR NOT EXISTS (
+           SELECT 1
+           FROM memberships m
+           JOIN spaces s ON s.id = m.space_id
+           WHERE s.organization_id = $3 AND m.user_id = u.id
+         )
+       )
+       AND (
+         $3::uuid IS NULL OR NOT EXISTS (
+           SELECT 1
+           FROM watchers w
+           JOIN pages p ON p.id = w.page_id
+           JOIN spaces s ON s.id = p.space_id
+           WHERE s.organization_id = $3 AND w.user_id = u.id
+         )
+       )
+       AND (
+         $4::uuid IS NULL OR NOT EXISTS (
+           SELECT 1
+           FROM memberships m
+           WHERE m.space_id = $4 AND m.user_id = u.id
+         )
+       )
+       AND (
+         $4::uuid IS NULL OR NOT EXISTS (
+           SELECT 1
+           FROM watchers w
+           JOIN pages p ON p.id = w.page_id
+           WHERE p.space_id = $4 AND w.user_id = u.id
+         )
+       )
+       AND (
+         $5::uuid IS NULL OR NOT EXISTS (
+           SELECT 1
+           FROM watchers w
+           WHERE w.page_id = $5 AND w.user_id = u.id
+         )
+       )
+       AND (
+         $5::uuid IS NULL OR NOT EXISTS (
+           SELECT 1
+           FROM pages p
+           JOIN memberships m ON m.space_id = p.space_id
+           WHERE p.id = $5 AND m.user_id = u.id
+         )
+       )
+     ORDER BY lower(u.email) ASC
+     LIMIT $6`,
+    [normalizedQuery, searchTerm, organizationId ?? null, spaceId ?? null, pageId ?? null, limit]
   );
   return rows;
 }

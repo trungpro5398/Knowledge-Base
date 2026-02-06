@@ -7,9 +7,13 @@ import { SpaceNotFound } from "@/components/admin/SpaceNotFound";
 import type { TreeNode } from "@/components/kb/PageTree";
 import type { ApiResponse, Space, PageNode } from "@/lib/api/types";
 
-async function getSpace(spaceId: string, token: string): Promise<Space | null> {
+interface SpaceWithOrg extends Space {
+  organization_id?: string | null;
+}
+
+async function getSpace(spaceId: string, token: string): Promise<SpaceWithOrg | null> {
   try {
-    const res = await serverApiGet<ApiResponse<Space>>(`/api/spaces/${spaceId}`, token);
+    const res = await serverApiGet<ApiResponse<SpaceWithOrg>>(`/api/spaces/${spaceId}`, token);
     return res.data;
   } catch {
     return null;
@@ -28,9 +32,9 @@ async function getTree(spaceId: string, token: string): Promise<TreeNode[]> {
   }
 }
 
-async function getSpaces(token: string): Promise<Space[]> {
+async function getSpaces(token: string): Promise<SpaceWithOrg[]> {
   try {
-    const res = await serverApiGet<ApiResponse<Space[]>>("/api/spaces", token);
+    const res = await serverApiGet<ApiResponse<SpaceWithOrg[]>>("/api/spaces", token);
     return res.data;
   } catch {
     return [];

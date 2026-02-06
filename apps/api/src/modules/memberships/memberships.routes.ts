@@ -17,6 +17,14 @@ const updateRoleSchema = z.object({
   role: z.enum(["viewer", "editor", "admin"]),
 });
 
+const searchUsersQuerySchema = z.object({
+  q: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  organizationId: z.string().uuid().optional(),
+  spaceId: z.string().uuid().optional(),
+  pageId: z.string().uuid().optional(),
+});
+
 export async function membershipsRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   const { authenticate, requireSpaceRole } = auth;
 
@@ -124,9 +132,17 @@ export async function membershipsRoutes(fastify: FastifyInstance, auth: AuthHand
   fastify.get(
     "/users/search",
     { preHandler: [authenticate] },
-    async (request) => {
-      const query = (request.query as { q?: string }).q ?? "";
-      const users = await membershipsService.searchUsers(query, 10);
+    async (request, reply) => {
+      const parsed = searchUsersQuerySchema.safeParse(request.query);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          status: "error",
+          message: "Validation failed",
+          errors: parsed.error.errors,
+        });
+      }
+
+      const users = await membershipsService.searchUsers(parsed.data, request.user!.id);
       return { data: users };
     }
   );

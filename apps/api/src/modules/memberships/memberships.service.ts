@@ -1,5 +1,6 @@
 import * as membershipsRepo from "./memberships.repo.js";
 import * as spacesRepo from "../spaces/spaces.repo.js";
+import * as organizationsRepo from "../organizations/organizations.repo.js";
 import { invalidateSpacesForUser } from "../spaces/spaces-user-cache.js";
 import { NotFoundError, ValidationError, ForbiddenError } from "../../utils/errors.js";
 
@@ -88,11 +89,45 @@ export async function removeMember(spaceId: string, targetUserId: string, adminU
   invalidateSpacesForUser(targetUserId);
 }
 
-export async function searchUsers(query: string, limit = 10) {
-  if (!query || query.trim().length < 2) {
+interface SearchUsersInput {
+  q?: string;
+  limit?: number;
+  organizationId?: string;
+  spaceId?: string;
+  pageId?: string;
+}
+
+export async function searchUsers(input: SearchUsersInput, requesterUserId: string) {
+  const query = (input.q ?? "").trim();
+  const limit = input.limit ?? 20;
+  const hasContext = Boolean(input.organizationId || input.spaceId || input.pageId);
+
+  // Keep old anti-enumeration behavior when caller has no specific context.
+  if (!hasContext && query.length < 2) {
     return [];
   }
-  return membershipsRepo.searchUsers(query, limit);
+
+  if (input.organizationId) {
+    const role = await organizationsRepo.getUserRoleInOrganization(requesterUserId, input.organizationId);
+    if (role !== "admin" && role !== "owner") {
+      throw new ForbiddenError("Chỉ admin/owner mới được tìm user để thêm vào organization");
+    }
+  }
+
+  if (input.spaceId) {
+    const role = await spacesRepo.getMemberRole(input.spaceId, requesterUserId);
+    if (role !== "admin") {
+      throw new ForbiddenError("Chỉ admin mới được tìm user để thêm vào space");
+    }
+  }
+
+  return membershipsRepo.searchUsers({
+    query,
+    limit,
+    organizationId: input.organizationId,
+    spaceId: input.spaceId,
+    pageId: input.pageId,
+  });
 }
 
 export async function getUserByEmail(email: string) {
