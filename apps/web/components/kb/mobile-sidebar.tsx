@@ -41,6 +41,7 @@ export function MobileSidebar({
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
         className="md:hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-40 inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-primary-foreground shadow-lg hover:opacity-90 transition-opacity"
         aria-label="Mở danh mục"
@@ -69,6 +70,7 @@ export function MobileSidebar({
             <div className="sticky top-0 bg-card border-b px-4 py-3 flex items-center justify-between">
               <h2 className="font-semibold">Danh mục</h2>
               <button
+                type="button"
                 onClick={() => setOpen(false)}
                 className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
                 aria-label="Đóng danh mục"

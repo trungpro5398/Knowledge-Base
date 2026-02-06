@@ -99,12 +99,12 @@ function TreeNodeItem({
       )}
       style={staggerIndex !== undefined ? { animationDelay: `${staggerIndex * 35}ms` } : undefined}
     >
-      <div
-        className={cn(
-          "flex items-center gap-2 group min-w-0 rounded-md px-2 py-1.5 -ml-px transition-all duration-150",
-          "hover:bg-muted/50",
-          isActive &&
-            "bg-primary/10 text-primary font-medium"
+        <div
+          className={cn(
+            "flex items-center gap-2 group min-w-0 rounded-md px-2 py-1.5 -ml-px transition-colors duration-150",
+            "hover:bg-muted/50",
+            isActive &&
+              "bg-primary/10 text-primary font-medium"
         )}
       >
         <FileText

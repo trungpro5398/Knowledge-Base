@@ -46,14 +46,23 @@ export function SearchBar() {
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), search())}
           placeholder={t("search.placeholder")}
           aria-label={t("search.ariaLabel")}
+          aria-expanded={open}
+          aria-controls="admin-search-results"
           inputMode="search"
+          enterKeyHint="search"
+          autoCapitalize="none"
           autoComplete="off"
           spellCheck={false}
           className="w-full pl-9 pr-3 py-2 text-sm"
         />
       </div>
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-20 overflow-hidden">
+        <div
+          id="admin-search-results"
+          role="region"
+          aria-label={t("search.ariaLabel")}
+          className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-20 overflow-hidden"
+        >
           {searching ? (
             <div className="px-3 py-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />

@@ -6,13 +6,6 @@ import type { ApiResponse, Space } from "@/lib/api/types";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-interface SpaceStats {
-  space_id: string;
-  total_pages: number;
-  published_pages: number;
-  draft_pages: number;
-}
-
 interface Organization {
   id: string;
   name: string;
@@ -45,22 +38,12 @@ async function getSpaces(token: string): Promise<SpaceWithOrg[]> {
   }
 }
 
-async function getSpacesStats(token: string): Promise<SpaceStats[]> {
-  try {
-    const res = await serverApiGet<ApiResponse<SpaceStats[]>>("/api/spaces/stats", token);
-    return res.data;
-  } catch {
-    return [];
-  }
-}
-
 export default async function AdminDashboard() {
   const token = await getServerAccessToken();
 
-  const [organizations, spaces, stats] = await Promise.all([
+  const [organizations, spaces] = await Promise.all([
     getOrganizations(token),
     getSpaces(token),
-    getSpacesStats(token),
   ]);
 
   const spacesByOrg = spaces.reduce((acc, space) => {
@@ -73,8 +56,6 @@ export default async function AdminDashboard() {
   return (
     <AdminDashboardContent
       organizations={organizations}
-      spaces={spaces}
-      stats={stats}
       spacesByOrg={spacesByOrg}
     />
   );

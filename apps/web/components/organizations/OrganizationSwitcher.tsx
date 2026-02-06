@@ -61,6 +61,7 @@ export function OrganizationSwitcher({ currentOrgId }: OrganizationSwitcherProps
   return (
     <div className="relative">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors"
         aria-expanded={isOpen}

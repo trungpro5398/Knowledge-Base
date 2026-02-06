@@ -142,6 +142,7 @@ function TreeNodeItem({
                     )}
                     {onCreatePage && (
                         <button
+                            type="button"
                             onClick={() => onCreatePage(node.id)}
                             className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                             title="Add child page"

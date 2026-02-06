@@ -97,14 +97,15 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-muted-foreground" />
+          <Users className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
           <h2 className="text-lg font-semibold">Members ({members.length})</h2>
         </div>
         <button
+          type="button"
           onClick={() => setShowAddForm(!showAddForm)}
           className="btn-primary h-9 px-3 text-sm gap-2"
         >
-          <UserPlus className="h-4 w-4" />
+          <UserPlus className="h-4 w-4" aria-hidden="true" />
           Thêm member
         </button>
       </div>
@@ -121,7 +122,7 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
 
       {members.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <Users className="h-12 w-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
           <p>Chưa có members nào</p>
         </div>
       ) : (
@@ -148,7 +149,7 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
                     <div className="text-sm text-muted-foreground truncate">{member.user_email}</div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <RoleIcon className="h-4 w-4 text-muted-foreground" />
+                    <RoleIcon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                     <select
                       value={member.role}
                       onChange={(e) =>
@@ -166,11 +167,13 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleRemoveMember(member.user_id, member.user_email)}
                   className="ml-4 p-2 text-destructive hover:bg-destructive/10 rounded transition-colors"
                   title="Xóa member"
+                  aria-label={`Xóa member ${member.user_email}`}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             );
@@ -227,11 +230,17 @@ function AddMemberForm({
       <div className="flex gap-2">
         <input
           type="email"
+          name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="email@example.com"
           className="flex-1"
           disabled={loading}
+          autoComplete="email"
+          autoCapitalize="none"
+          inputMode="email"
+          spellCheck={false}
+          aria-label="Email thành viên"
         />
         <select
           value={role}

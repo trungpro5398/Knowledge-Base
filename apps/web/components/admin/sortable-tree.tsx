@@ -60,12 +60,13 @@ function SortableItem({ node, spaceId, spaceSlug, path }: SortableItemProps) {
     <li ref={setNodeRef} style={style} className="border-l border-border pl-4 py-2 first:pt-0">
       <div className="flex items-center gap-2 group">
         <button
+          type="button"
           {...attributes}
           {...listeners}
           className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
           aria-label="Drag to reorder"
         >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
+          <GripVertical className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
         </button>
         <FileText className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
         <Link

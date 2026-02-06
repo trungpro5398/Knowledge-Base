@@ -169,6 +169,20 @@
   @apply py-6 text-center text-sm text-muted-foreground;
 }
 
+/* Hide browser native clear button when using custom clear icon */
+.search-input-no-native-clear::-webkit-search-cancel-button,
+.search-input-no-native-clear::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+.search-input-no-native-clear::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 /* Animations */
 @keyframes fade-in {
   from {

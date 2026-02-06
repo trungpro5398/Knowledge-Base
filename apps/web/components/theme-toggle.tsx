@@ -7,6 +7,7 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   return (
     <button
+      type="button"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className="p-2 rounded-lg hover:bg-muted transition-colors"
       aria-label="Chuyển theme"

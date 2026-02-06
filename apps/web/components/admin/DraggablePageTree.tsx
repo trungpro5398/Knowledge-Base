@@ -76,6 +76,7 @@ function SortableItem({ node, depth }: SortableItemProps) {
             >
                 {/* Drag Handle */}
                 <button
+                    type="button"
                     {...attributes}
                     {...listeners}
                     className="p-1 rounded hover:bg-muted cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"

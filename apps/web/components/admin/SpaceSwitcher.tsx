@@ -74,6 +74,7 @@ export function SpaceSwitcher({
         <div className="relative">
             {/* Trigger Button */}
             <button
+                type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors",
@@ -120,12 +121,14 @@ export function SpaceSwitcher({
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                                 <input
                                     type="search"
+                                    name="space-search"
                                     placeholder="Search spaces…"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full pl-9 pr-3 py-2 text-sm rounded-md border bg-background"
                                     aria-label="Search spaces"
                                     autoComplete="off"
+                                    autoCapitalize="none"
                                     inputMode="search"
                                     spellCheck={false}
                                 />

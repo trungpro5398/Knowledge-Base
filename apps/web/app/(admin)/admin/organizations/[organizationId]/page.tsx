@@ -82,7 +82,7 @@ export default async function OrganizationPage({
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Quay lại Spaces
+        Quay lại Tổ chức
       </Link>
       {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
