@@ -1,5 +1,5 @@
-import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
-import { apiClient } from "@/lib/api/client";
+import { getServerAccessToken } from "@/lib/auth/supabase-server";
+import { serverApiGet } from "@/lib/api/server";
 import { OrganizationMembersList } from "@/components/organizations/OrganizationMembersList";
 import { Settings } from "lucide-react";
 import type { ApiResponse } from "@/lib/api/types";
@@ -15,9 +15,10 @@ interface Organization {
 
 async function getOrganization(organizationId: string, token: string): Promise<Organization | null> {
   try {
-    const res = await apiClient<ApiResponse<Organization>>(`/api/organizations/${organizationId}`, {
-      token,
-    });
+    const res = await serverApiGet<ApiResponse<Organization>>(
+      `/api/organizations/${organizationId}`,
+      token
+    );
     return res.data;
   } catch {
     return null;
@@ -30,11 +31,7 @@ export default async function OrganizationSettingsPage({
   params: Promise<{ organizationId: string }>;
 }) {
   const { organizationId } = await params;
-  const supabase = await createServerSupabaseClient();
-  const { data: { session } } = supabase
-    ? await supabase.auth.getSession()
-    : { data: { session: null } };
-  const token = session?.access_token ?? "";
+  const token = await getServerAccessToken();
 
   const organization = await getOrganization(organizationId, token);
   if (!organization) {

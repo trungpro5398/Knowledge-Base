@@ -1,11 +1,11 @@
 import { EditorShell } from "@/components/editor/EditorShell";
-import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
-import { apiClient } from "@/lib/api/client";
+import { getServerAccessToken } from "@/lib/auth/supabase-server";
+import { serverApiGet } from "@/lib/api/server";
 import type { ApiResponse, Page } from "@/lib/api/types";
 
 async function getPage(pageId: string, token: string): Promise<Page | null> {
   try {
-    const res = await apiClient<ApiResponse<Page>>(`/api/pages/${pageId}`, { token });
+    const res = await serverApiGet<ApiResponse<Page>>(`/api/pages/${pageId}`, token);
     return res.data;
   } catch {
     return null;
@@ -18,11 +18,7 @@ export default async function PageEditor({
   params: Promise<{ spaceId: string; pageId: string }>;
 }) {
   const { spaceId, pageId } = await params;
-  const supabase = await createServerSupabaseClient();
-  const { data: { session } } = supabase
-    ? await supabase.auth.getSession()
-    : { data: { session: null } };
-  const token = session?.access_token ?? "";
+  const token = await getServerAccessToken();
 
   const page = await getPage(pageId, token);
 

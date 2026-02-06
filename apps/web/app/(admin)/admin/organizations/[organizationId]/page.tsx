@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
-import { apiClient } from "@/lib/api/client";
+import { getServerAccessToken } from "@/lib/auth/supabase-server";
+import { serverApiGet } from "@/lib/api/server";
 import { CreateSpaceForm } from "@/components/spaces/CreateSpaceForm";
 import { DeleteSpaceButton } from "@/components/spaces/DeleteSpaceButton";
 import { FolderOpen, FileText, ExternalLink, Edit, Building2, Settings, ArrowLeft } from "lucide-react";
@@ -24,9 +24,10 @@ interface SpaceStats {
 
 async function getOrganization(organizationId: string, token: string): Promise<Organization | null> {
   try {
-    const res = await apiClient<ApiResponse<Organization>>(`/api/organizations/${organizationId}`, {
-      token,
-    });
+    const res = await serverApiGet<ApiResponse<Organization>>(
+      `/api/organizations/${organizationId}`,
+      token
+    );
     return res.data;
   } catch {
     return null;
@@ -35,9 +36,10 @@ async function getOrganization(organizationId: string, token: string): Promise<O
 
 async function getOrgSpaces(organizationId: string, token: string): Promise<Space[]> {
   try {
-    const res = await apiClient<ApiResponse<Space[]>>(`/api/organizations/${organizationId}/spaces`, {
-      token,
-    });
+    const res = await serverApiGet<ApiResponse<Space[]>>(
+      `/api/organizations/${organizationId}/spaces`,
+      token
+    );
     return res.data ?? [];
   } catch {
     return [];
@@ -46,7 +48,7 @@ async function getOrgSpaces(organizationId: string, token: string): Promise<Spac
 
 async function getSpacesStats(token: string): Promise<SpaceStats[]> {
   try {
-    const res = await apiClient<ApiResponse<SpaceStats[]>>("/api/spaces/stats", { token });
+    const res = await serverApiGet<ApiResponse<SpaceStats[]>>("/api/spaces/stats", token);
     return res.data ?? [];
   } catch {
     return [];
@@ -59,11 +61,7 @@ export default async function OrganizationPage({
   params: Promise<{ organizationId: string }>;
 }) {
   const { organizationId } = await params;
-  const supabase = await createServerSupabaseClient();
-  const { data: { session } } = supabase
-    ? await supabase.auth.getSession()
-    : { data: { session: null } };
-  const token = session?.access_token ?? "";
+  const token = await getServerAccessToken();
 
   const [organization, spaces, stats] = await Promise.all([
     getOrganization(organizationId, token),

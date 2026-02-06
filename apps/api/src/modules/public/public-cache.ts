@@ -49,10 +49,19 @@ export async function getPublishedTreeCached(
   spaceId: string,
   ttlMs = DEFAULT_TTL_MS
 ) {
-  const currentEtag = await pagesRepo.getPublishedTreeEtag(spaceId);
+  if (ttlMs <= 0) {
+    const pages = await pagesRepo.getPagesTree(spaceId, { publishedOnly: true });
+    const tree = buildPagesTree(pages);
+    return {
+      tree,
+      pageTitleByPath: buildTitleMap(tree),
+      etag: computeTreeEtagFromPages(pages),
+    };
+  }
+
   const key = `tree:${spaceId}`;
   const cached = treeCache.get(key);
-  if (cached && cached.etag === currentEtag) return cached;
+  if (cached) return cached;
   const inflight = inflightTree.get(key);
   if (inflight) return inflight;
 

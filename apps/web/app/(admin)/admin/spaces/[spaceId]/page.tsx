@@ -1,12 +1,15 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
-import { apiClient } from "@/lib/api/client";
+import { getServerAccessToken } from "@/lib/auth/supabase-server";
+import { serverApiGet } from "@/lib/api/server";
 import type { ApiResponse, PageNode } from "@/lib/api/types";
 
 async function getFirstPageId(spaceId: string, token: string): Promise<string | null> {
   try {
-    const res = await apiClient<ApiResponse<PageNode[]>>(`/api/spaces/${spaceId}/pages/tree`, { token });
+    const res = await serverApiGet<ApiResponse<PageNode[]>>(
+      `/api/spaces/${spaceId}/pages/tree`,
+      token
+    );
     const tree = res.data;
     if (tree.length === 0) return null;
     // Get first page (depth-first)
@@ -27,11 +30,7 @@ export default async function SpacePage({
   params: Promise<{ spaceId: string }>;
 }) {
   const { spaceId } = await params;
-  const supabase = await createServerSupabaseClient();
-  const { data: { session } } = supabase
-    ? await supabase.auth.getSession()
-    : { data: { session: null } };
-  const token = session?.access_token ?? "";
+  const token = await getServerAccessToken();
 
   const firstPageId = await getFirstPageId(spaceId, token);
 

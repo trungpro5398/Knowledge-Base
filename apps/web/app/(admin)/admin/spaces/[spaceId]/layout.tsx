@@ -1,5 +1,5 @@
-import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
-import { apiClient } from "@/lib/api/client";
+import { getServerAccessToken } from "@/lib/auth/supabase-server";
+import { serverApiGet } from "@/lib/api/server";
 import { CollapsibleSidebar } from "@/components/ui/collapsible-sidebar";
 import { SpaceLayoutHeader } from "@/components/admin/SpaceLayoutHeader";
 import { SpaceSidebarContent } from "@/components/admin/SpaceSidebarContent";
@@ -9,7 +9,7 @@ import type { ApiResponse, Space, PageNode } from "@/lib/api/types";
 
 async function getSpace(spaceId: string, token: string): Promise<Space | null> {
   try {
-    const res = await apiClient<ApiResponse<Space>>(`/api/spaces/${spaceId}`, { token });
+    const res = await serverApiGet<ApiResponse<Space>>(`/api/spaces/${spaceId}`, token);
     return res.data;
   } catch {
     return null;
@@ -18,7 +18,10 @@ async function getSpace(spaceId: string, token: string): Promise<Space | null> {
 
 async function getTree(spaceId: string, token: string): Promise<TreeNode[]> {
   try {
-    const res = await apiClient<ApiResponse<PageNode[]>>(`/api/spaces/${spaceId}/pages/tree`, { token });
+    const res = await serverApiGet<ApiResponse<PageNode[]>>(
+      `/api/spaces/${spaceId}/pages/tree`,
+      token
+    );
     return res.data as TreeNode[];
   } catch {
     return [];
@@ -27,7 +30,7 @@ async function getTree(spaceId: string, token: string): Promise<TreeNode[]> {
 
 async function getSpaces(token: string): Promise<Space[]> {
   try {
-    const res = await apiClient<ApiResponse<Space[]>>("/api/spaces", { token });
+    const res = await serverApiGet<ApiResponse<Space[]>>("/api/spaces", token);
     return res.data;
   } catch {
     return [];
@@ -42,11 +45,7 @@ export default async function SpaceLayout({
   params: Promise<{ spaceId: string }>;
 }) {
   const { spaceId } = await params;
-  const supabase = await createServerSupabaseClient();
-  const { data: { session } } = supabase
-    ? await supabase.auth.getSession()
-    : { data: { session: null } };
-  const token = session?.access_token ?? "";
+  const token = await getServerAccessToken();
 
   const [space, tree, spaces] = await Promise.all([
     getSpace(spaceId, token),

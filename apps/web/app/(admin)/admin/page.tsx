@@ -1,5 +1,5 @@
-import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
-import { apiClient } from "@/lib/api/client";
+import { getServerAccessToken } from "@/lib/auth/supabase-server";
+import { serverApiGet } from "@/lib/api/server";
 import { AdminDashboardContent } from "@/components/admin/AdminDashboardContent";
 import type { ApiResponse, Space } from "@/lib/api/types";
 
@@ -27,7 +27,7 @@ interface SpaceWithOrg extends Space {
 
 async function getOrganizations(token: string): Promise<Organization[]> {
   try {
-    const res = await apiClient<ApiResponse<Organization[]>>("/api/organizations", { token });
+    const res = await serverApiGet<ApiResponse<Organization[]>>("/api/organizations", token);
     return res.data;
   } catch {
     return [];
@@ -36,8 +36,7 @@ async function getOrganizations(token: string): Promise<Organization[]> {
 
 async function getSpaces(token: string): Promise<SpaceWithOrg[]> {
   try {
-    const res = await apiClient<ApiResponse<SpaceWithOrg[]>>("/api/spaces", {
-      token,
+    const res = await serverApiGet<ApiResponse<SpaceWithOrg[]>>("/api/spaces", token, {
       cache: "no-store",
     });
     return res.data;
@@ -48,7 +47,7 @@ async function getSpaces(token: string): Promise<SpaceWithOrg[]> {
 
 async function getSpacesStats(token: string): Promise<SpaceStats[]> {
   try {
-    const res = await apiClient<ApiResponse<SpaceStats[]>>("/api/spaces/stats", { token });
+    const res = await serverApiGet<ApiResponse<SpaceStats[]>>("/api/spaces/stats", token);
     return res.data;
   } catch {
     return [];
@@ -56,11 +55,7 @@ async function getSpacesStats(token: string): Promise<SpaceStats[]> {
 }
 
 export default async function AdminDashboard() {
-  const supabase = await createServerSupabaseClient();
-  const { data: { session } } = supabase
-    ? await supabase.auth.getSession()
-    : { data: { session: null } };
-  const token = session?.access_token ?? "";
+  const token = await getServerAccessToken();
 
   const [organizations, spaces, stats] = await Promise.all([
     getOrganizations(token),

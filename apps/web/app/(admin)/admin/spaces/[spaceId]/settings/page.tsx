@@ -1,5 +1,5 @@
-import { createServerSupabaseClient } from "@/lib/auth/supabase-server";
-import { apiClient } from "@/lib/api/client";
+import { getServerAccessToken } from "@/lib/auth/supabase-server";
+import { serverApiGet } from "@/lib/api/server";
 import { MembersList } from "@/components/spaces/MembersList";
 import { Settings, Users } from "lucide-react";
 import type { ApiResponse, Space } from "@/lib/api/types";
@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 
 async function getSpace(spaceId: string, token: string): Promise<Space | null> {
   try {
-    const res = await apiClient<ApiResponse<Space>>(`/api/spaces/${spaceId}`, { token });
+    const res = await serverApiGet<ApiResponse<Space>>(`/api/spaces/${spaceId}`, token);
     return res.data;
   } catch {
     return null;
@@ -20,11 +20,7 @@ export default async function SpaceSettingsPage({
   params: Promise<{ spaceId: string }>;
 }) {
   const { spaceId } = await params;
-  const supabase = await createServerSupabaseClient();
-  const { data: { session } } = supabase
-    ? await supabase.auth.getSession()
-    : { data: { session: null } };
-  const token = session?.access_token ?? "";
+  const token = await getServerAccessToken();
 
   const space = await getSpace(spaceId, token);
   if (!space) {

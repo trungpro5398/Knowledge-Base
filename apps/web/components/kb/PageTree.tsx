@@ -121,7 +121,7 @@ function TreeNodeItem({
             isActive ? "text-primary" : "text-foreground/90 hover:text-foreground"
           )}
           aria-current={isActive ? "page" : undefined}
-          prefetch={true}
+          prefetch={false}
         >
           {node.title}
         </Link>
@@ -410,7 +410,7 @@ function SortableTreeItem({
             isActive ? "text-primary font-semibold" : "hover:text-primary"
           )}
           aria-current={isActive ? "page" : undefined}
-          prefetch={true}
+          prefetch={false}
         >
           {item.title}
         </Link>
