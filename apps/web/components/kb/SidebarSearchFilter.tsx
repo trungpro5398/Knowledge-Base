@@ -73,13 +73,12 @@ export function SidebarSearchFilter({
           </button>
         )}
       </div>
-      <div className="flex-1 min-h-0 overflow-y-auto stagger-list -mx-1 px-1">
+      <div className="flex-1 min-h-0 overflow-y-auto -mx-1 px-1">
         <PageTree
           spaceId=""
           spaceSlug={spaceSlug}
           nodes={filteredNodes}
           showEditLink={showEditLink}
-          staggerAnimation
         />
         {hasQuery && filteredNodes.length === 0 && (
           <p className="text-sm text-muted-foreground py-4 text-center">

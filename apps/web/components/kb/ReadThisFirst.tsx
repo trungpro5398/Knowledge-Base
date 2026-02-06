@@ -11,7 +11,7 @@ export function ReadThisFirst({
   items: Array<{ label: string; path: string }>;
 }) {
   return (
-    <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-5 mb-8 animate-fade-in">
+    <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-5 mb-8">
       <div className="flex items-start gap-3">
         <div className="p-2 rounded-lg bg-primary/15 text-primary shrink-0">
           <AlertCircle className="h-5 w-5" aria-hidden="true" />

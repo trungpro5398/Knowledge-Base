@@ -11,10 +11,10 @@ interface PageRendererProps {
 
 export function PageRenderer({ content, html }: PageRendererProps) {
   if (html) {
-    return <div className="prose-kb animate-fade-in" dangerouslySetInnerHTML={{ __html: html }} />;
+    return <div className="prose-kb" dangerouslySetInnerHTML={{ __html: html }} />;
   }
   return (
-    <div className="prose-kb animate-fade-in">
+    <div className="prose-kb">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}

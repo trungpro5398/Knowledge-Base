@@ -10,7 +10,7 @@ interface KbNewToProSysLinkProps {
 export function KbNewToProSysLink({ spaceSlug }: KbNewToProSysLinkProps) {
   const { t } = useLocale();
   return (
-    <p className="text-sm text-muted-foreground mb-3 animate-fade-in">
+    <p className="text-sm text-muted-foreground mb-3">
       <Link href={`/kb/${spaceSlug}`} className="hover:text-foreground underline">
         {t("welcome.newToProSys")}
       </Link>

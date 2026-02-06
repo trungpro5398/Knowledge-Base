@@ -173,7 +173,7 @@
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px);
   }
 
   to {
@@ -184,40 +184,44 @@
 
 @keyframes slide-in-right {
   from {
-    transform: translateX(100%);
+    opacity: 0;
+    transform: translateX(18px);
   }
 
   to {
+    opacity: 1;
     transform: translateX(0);
   }
 }
 
 @keyframes slide-in-left {
   from {
-    transform: translateX(-100%);
+    opacity: 0;
+    transform: translateX(-18px);
   }
 
   to {
+    opacity: 1;
     transform: translateX(0);
   }
 }
 
 .animate-fade-in {
-  animation: fade-in 0.3s ease-out;
+  animation: fade-in 0.18s ease-out;
 }
 
 .animate-slide-in-right {
-  animation: slide-in-right 0.3s ease-out;
+  animation: slide-in-right 0.18s ease-out;
 }
 
 .animate-slide-in-left {
-  animation: slide-in-left 0.3s ease-out;
+  animation: slide-in-left 0.18s ease-out;
 }
 
 @keyframes stagger-in {
   from {
     opacity: 0;
-    transform: translateX(-8px);
+    transform: translateX(-4px);
   }
   to {
     opacity: 1;
@@ -226,7 +230,7 @@
 }
 
 .animate-stagger-in {
-  animation: stagger-in 0.25s ease-out both;
+  animation: stagger-in 0.14s ease-out both;
 }
 
 /* Sidebar active states */
@@ -255,6 +259,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-slide-in-right,
+  .animate-slide-in-left,
+  .animate-stagger-in {
+    animation: none !important;
+  }
+
   *,
   *::before,
   *::after {

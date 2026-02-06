@@ -172,9 +172,8 @@ export default async function KbPage({
             title={page.title}
             items={breadcrumb}
             sticky
-            className="animate-fade-in"
           />
-          <article className="prose-kb max-w-none animate-fade-in">
+          <article className="prose-kb max-w-none">
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <h1 className="text-2xl md:text-3xl font-bold text-balance">{page.title}</h1>
               <span
@@ -196,7 +195,7 @@ export default async function KbPage({
             </div>
           </article>
           {version.toc.length > 1 && (
-            <aside className="mt-12 animate-slide-in-right">
+            <aside className="mt-12">
               <Toc items={version.toc} />
             </aside>
           )}
