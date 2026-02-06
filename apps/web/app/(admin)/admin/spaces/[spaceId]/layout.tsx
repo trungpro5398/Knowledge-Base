@@ -11,6 +11,12 @@ interface SpaceWithOrg extends Space {
   organization_id?: string | null;
 }
 
+interface Organization {
+  id: string;
+  name: string;
+  icon: string | null;
+}
+
 async function getSpace(spaceId: string, token: string): Promise<SpaceWithOrg | null> {
   try {
     const res = await serverApiGet<ApiResponse<SpaceWithOrg>>(`/api/spaces/${spaceId}`, token);
@@ -41,6 +47,15 @@ async function getSpaces(token: string): Promise<SpaceWithOrg[]> {
   }
 }
 
+async function getOrganizations(token: string): Promise<Organization[]> {
+  try {
+    const res = await serverApiGet<ApiResponse<Organization[]>>("/api/organizations", token);
+    return res.data;
+  } catch {
+    return [];
+  }
+}
+
 export default async function SpaceLayout({
   children,
   params,
@@ -51,10 +66,11 @@ export default async function SpaceLayout({
   const { spaceId } = await params;
   const token = await getServerAccessToken();
 
-  const [space, tree, spaces] = await Promise.all([
+  const [space, tree, spaces, organizations] = await Promise.all([
     getSpace(spaceId, token),
     getTree(spaceId, token),
     getSpaces(token),
+    getOrganizations(token),
   ]);
 
   if (!space) {
@@ -70,6 +86,8 @@ export default async function SpaceLayout({
         spaceId={spaceId}
         spaceName={space.name}
         spaceSlug={space.slug}
+        spaces={spaces}
+        organizations={organizations}
       />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">

@@ -88,7 +88,17 @@ export const translations = {
     "space.createdSuccess": "Đã tạo space",
     "space.createFailed": "Tạo space thất bại",
     "space.createErrorDefault": "Tạo thất bại. Vui lòng thử lại.",
+    "space.createNameRequired": "Vui lòng nhập tên space",
     "space.slugPlaceholder": "tu-dong-tao-tu-ten-space…",
+
+    // Space Switcher
+    "spaceSwitcher.selectSpace": "Chọn không gian",
+    "spaceSwitcher.noSpaceSelected": "Chưa chọn không gian",
+    "spaceSwitcher.searchPlaceholder": "Tìm không gian...",
+    "spaceSwitcher.searchAria": "Tìm không gian",
+    "spaceSwitcher.noResults": "Không tìm thấy không gian nào",
+    "spaceSwitcher.standalone": "Không gian độc lập",
+    "spaceSwitcher.createButton": "Tạo space nhanh",
 
     // Create Organization Form
     "organization.createTitle": "Tạo tổ chức",
@@ -362,7 +372,17 @@ export const translations = {
     "space.createdSuccess": "Space created",
     "space.createFailed": "Failed to create space",
     "space.createErrorDefault": "Creation failed. Please try again.",
+    "space.createNameRequired": "Please enter a space name",
     "space.slugPlaceholder": "auto-generated-from-name…",
+
+    // Space Switcher
+    "spaceSwitcher.selectSpace": "Select space",
+    "spaceSwitcher.noSpaceSelected": "No space selected",
+    "spaceSwitcher.searchPlaceholder": "Search spaces...",
+    "spaceSwitcher.searchAria": "Search spaces",
+    "spaceSwitcher.noResults": "No spaces found",
+    "spaceSwitcher.standalone": "Standalone spaces",
+    "spaceSwitcher.createButton": "Create space quickly",
 
     // Create Organization Form
     "organization.createTitle": "Create organization",
