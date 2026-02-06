@@ -243,7 +243,7 @@ function AddMemberForm({ spaceId, onSuccess }: { spaceId: string; onSuccess: () 
         body: payload,
       });
       toast.success("Đã thêm member", {
-        description: "User cần refresh trang để thấy space mới",
+        description: "User cần refresh trang để thấy không gian mới",
         duration: 5000,
       });
       setQuery("");

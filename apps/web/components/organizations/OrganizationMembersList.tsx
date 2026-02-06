@@ -269,7 +269,7 @@ function AddMemberForm({
         body: payload,
       });
       toast.success("Đã thêm member", {
-        description: "User sẽ tự động thấy tất cả spaces của organization",
+        description: "User sẽ tự động thấy tất cả không gian của tổ chức",
         duration: 5000,
       });
       setQuery("");

@@ -23,15 +23,15 @@ export function CreateSpaceForm({ organizationId }: CreateSpaceFormProps) {
   const nameRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const derivedSlug = name.trim() ? generateSlug(name) : "";
-  const slugPreview = slug || derivedSlug || "ten-space";
+  const slugPreview = slug || derivedSlug || t("space.defaultSlug");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const finalName = name || "New Space";
-      const finalSlug = slug || generateSlug(name) || "new-space";
+      const finalName = name || t("space.defaultName");
+      const finalSlug = slug || generateSlug(finalName) || t("space.defaultSlug");
       await apiClient("/api/spaces", {
         method: "POST",
         body: {

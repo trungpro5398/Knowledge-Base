@@ -44,7 +44,7 @@ export default async function SpacePage({
       <div className="text-center max-w-md">
         <h2 className="text-xl font-semibold mb-2">Chưa có trang nào</h2>
         <p className="text-muted-foreground mb-4">
-          Tạo trang đầu tiên để bắt đầu xây nội dung cho space này.
+          Tạo trang đầu tiên để bắt đầu xây nội dung cho không gian này.
         </p>
         <Link href={`/admin/spaces/${spaceId}/pages/new`} className="btn-primary">
           Tạo trang đầu tiên

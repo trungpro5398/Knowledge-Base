@@ -58,7 +58,7 @@ export function SpaceSwitcher({
 
   const currentSpace = spaces.find((space) => space.id === currentSpaceId);
   const derivedSlug = newSpaceName.trim() ? generateSlug(newSpaceName) : "";
-  const finalSlug = newSpaceSlug.trim() || derivedSlug || "new-space";
+  const finalSlug = newSpaceSlug.trim() || derivedSlug || t("space.defaultSlug");
 
   const spacesByOrg = spaces.reduce((acc, space) => {
     const orgId = space.organization_id || "standalone";

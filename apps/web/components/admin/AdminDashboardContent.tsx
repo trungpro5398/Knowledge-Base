@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { CreateOrganizationForm } from "@/components/organizations/CreateOrganizationForm";
-import { Building2, FolderOpen, Settings } from "lucide-react";
+import { ManageSpacesButton } from "@/components/admin/ManageSpacesButton";
+import { Building2, Settings } from "lucide-react";
 import type { Space } from "@/lib/api/types";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
@@ -78,13 +79,11 @@ export function AdminDashboardContent({
                   </div>
 
                   <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <Link
-                      href={`/admin/organizations/${org.id}`}
-                      className="btn-primary h-9 px-3 text-sm gap-2"
-                    >
-                      <FolderOpen className="h-3.5 w-3.5" aria-hidden="true" />
-                      {t("admin.manageSpaces")}
-                    </Link>
+                    <ManageSpacesButton
+                      organizationId={org.id}
+                      organizationName={org.name}
+                      firstSpaceId={orgSpaces[0]?.id}
+                    />
                     <Link
                       href={`/admin/organizations/${org.id}/settings`}
                       className="h-9 px-3 text-sm border rounded-lg hover:bg-muted transition-colors flex items-center justify-center gap-2"

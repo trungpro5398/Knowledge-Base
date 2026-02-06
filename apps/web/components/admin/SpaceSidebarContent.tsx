@@ -41,7 +41,7 @@ export function SpaceSidebarContent({
   const [createError, setCreateError] = useState("");
 
   const derivedSlug = newSpaceName.trim() ? generateSlug(newSpaceName) : "";
-  const finalSlug = customSlug.trim() || derivedSlug || "new-space";
+  const finalSlug = customSlug.trim() || derivedSlug || t("space.defaultSlug");
 
   const handleCreateSpace = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -49,12 +49,13 @@ export function SpaceSidebarContent({
     setIsCreating(true);
 
     try {
+      const name = newSpaceName.trim() || t("space.defaultName");
       const payload: {
         name: string;
         slug: string;
         organization_id?: string;
       } = {
-        name: newSpaceName.trim() || "New Space",
+        name,
         slug: finalSlug,
       };
 
