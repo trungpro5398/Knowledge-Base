@@ -1,9 +1,16 @@
 import { getServerAccessToken } from "@/lib/auth/supabase-server";
 import { serverApiGet } from "@/lib/api/server";
 import { MembersList } from "@/components/spaces/MembersList";
-import { Settings, Users } from "lucide-react";
-import type { ApiResponse, Space } from "@/lib/api/types";
+import { DeleteSpaceSection } from "@/components/spaces/DeleteSpaceSection";
+import { Settings } from "lucide-react";
+import type { ApiResponse, Space, PageNode } from "@/lib/api/types";
 import { redirect } from "next/navigation";
+
+function countPagesInTree(nodes: PageNode[]): number {
+  return nodes.reduce((acc, node) => {
+    return acc + 1 + (node.children ? countPagesInTree(node.children) : 0);
+  }, 0);
+}
 
 async function getSpace(spaceId: string, token: string): Promise<Space | null> {
   try {
@@ -11,6 +18,18 @@ async function getSpace(spaceId: string, token: string): Promise<Space | null> {
     return res.data;
   } catch {
     return null;
+  }
+}
+
+async function getPageCount(spaceId: string, token: string): Promise<number> {
+  try {
+    const res = await serverApiGet<ApiResponse<PageNode[]>>(
+      `/api/spaces/${spaceId}/pages/tree`,
+      token
+    );
+    return countPagesInTree(res.data);
+  } catch {
+    return 0;
   }
 }
 
@@ -22,7 +41,11 @@ export default async function SpaceSettingsPage({
   const { spaceId } = await params;
   const token = await getServerAccessToken();
 
-  const space = await getSpace(spaceId, token);
+  const [space, pageCount] = await Promise.all([
+    getSpace(spaceId, token),
+    getPageCount(spaceId, token),
+  ]);
+
   if (!space) {
     redirect("/admin");
   }
@@ -41,6 +64,11 @@ export default async function SpaceSettingsPage({
         <section>
           <MembersList spaceId={spaceId} />
         </section>
+        <DeleteSpaceSection
+          spaceId={spaceId}
+          spaceName={space.name}
+          pageCount={pageCount}
+        />
       </div>
     </div>
   );

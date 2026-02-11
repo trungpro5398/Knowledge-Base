@@ -128,6 +128,20 @@ export const translations = {
     "deleteSpace.success": "Đã xóa không gian",
     "deleteSpace.failed": "Xóa không gian thất bại",
     "deleteSpace.errorDefault": "Xóa thất bại. Thử lại.",
+    "settings.dangerZone": "Vùng nguy hiểm",
+    "settings.deleteSpaceDescription": "Xóa không gian này sẽ xóa vĩnh viễn tất cả trang. Hành động không thể hoàn tác.",
+    "settings.deleteOrgDescription": "Xóa tổ chức này sẽ gỡ tất cả không gian (spaces) thành độc lập, xóa thành viên. Hành động không thể hoàn tác.",
+
+    // Delete Organization
+    "deleteOrganization.button": "Xóa",
+    "deleteOrganization.ariaLabel": "Xóa tổ chức {{name}}",
+    "deleteOrganization.confirmTitle": "Xóa tổ chức vĩnh viễn?",
+    "deleteOrganization.confirmMessage": "Tổ chức {{name}} và {{count}} không gian sẽ bị ảnh hưởng. Các không gian sẽ trở thành độc lập, tất cả thành viên sẽ bị xóa. Không thể khôi phục.",
+    "deleteOrganization.deleting": "Đang xóa…",
+    "deleteOrganization.confirmButton": "Xóa vĩnh viễn",
+    "deleteOrganization.success": "Đã xóa tổ chức",
+    "deleteOrganization.failed": "Xóa tổ chức thất bại",
+    "deleteOrganization.errorDefault": "Xóa thất bại. Thử lại.",
 
     // Trash
     "trash.restore": "Khôi phục",
@@ -414,6 +428,20 @@ export const translations = {
     "deleteSpace.success": "Space deleted",
     "deleteSpace.failed": "Failed to delete space",
     "deleteSpace.errorDefault": "Delete failed. Try again.",
+    "settings.dangerZone": "Danger zone",
+    "settings.deleteSpaceDescription": "Deleting this space will permanently remove all pages. This action cannot be undone.",
+    "settings.deleteOrgDescription": "Deleting this organization will detach all spaces (they become standalone) and remove all members. This action cannot be undone.",
+
+    // Delete Organization
+    "deleteOrganization.button": "Delete",
+    "deleteOrganization.ariaLabel": "Delete organization {{name}}",
+    "deleteOrganization.confirmTitle": "Delete organization permanently?",
+    "deleteOrganization.confirmMessage": "Organization {{name}} and {{count}} spaces will be affected. Spaces will become standalone, all members will be removed. Cannot be restored.",
+    "deleteOrganization.deleting": "Deleting…",
+    "deleteOrganization.confirmButton": "Delete permanently",
+    "deleteOrganization.success": "Organization deleted",
+    "deleteOrganization.failed": "Failed to delete organization",
+    "deleteOrganization.errorDefault": "Delete failed. Try again.",
 
     // Trash
     "trash.restore": "Restore",

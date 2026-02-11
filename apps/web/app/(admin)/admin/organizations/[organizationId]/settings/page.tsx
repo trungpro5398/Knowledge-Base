@@ -1,6 +1,7 @@
 import { getServerAccessToken } from "@/lib/auth/supabase-server";
 import { serverApiGet } from "@/lib/api/server";
 import { OrganizationMembersList } from "@/components/organizations/OrganizationMembersList";
+import { DeleteOrganizationSection } from "@/components/organizations/DeleteOrganizationSection";
 import { Settings } from "lucide-react";
 import type { ApiResponse } from "@/lib/api/types";
 import { redirect } from "next/navigation";
@@ -13,7 +14,10 @@ interface Organization {
   description: string | null;
 }
 
-async function getOrganization(organizationId: string, token: string): Promise<Organization | null> {
+async function getOrganization(
+  organizationId: string,
+  token: string
+): Promise<Organization | null> {
   try {
     const res = await serverApiGet<ApiResponse<Organization>>(
       `/api/organizations/${organizationId}`,
@@ -25,6 +29,18 @@ async function getOrganization(organizationId: string, token: string): Promise<O
   }
 }
 
+async function getSpaceCount(organizationId: string, token: string): Promise<number> {
+  try {
+    const res = await serverApiGet<{ data: unknown[] }>(
+      `/api/organizations/${organizationId}/spaces`,
+      token
+    );
+    return res.data?.length ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 export default async function OrganizationSettingsPage({
   params,
 }: {
@@ -33,7 +49,11 @@ export default async function OrganizationSettingsPage({
   const { organizationId } = await params;
   const token = await getServerAccessToken();
 
-  const organization = await getOrganization(organizationId, token);
+  const [organization, spaceCount] = await Promise.all([
+    getOrganization(organizationId, token),
+    getSpaceCount(organizationId, token),
+  ]);
+
   if (!organization) {
     redirect("/admin");
   }
@@ -52,6 +72,11 @@ export default async function OrganizationSettingsPage({
         <section>
           <OrganizationMembersList organizationId={organizationId} />
         </section>
+        <DeleteOrganizationSection
+          organizationId={organizationId}
+          organizationName={organization.name}
+          spaceCount={spaceCount}
+        />
       </div>
     </div>
   );

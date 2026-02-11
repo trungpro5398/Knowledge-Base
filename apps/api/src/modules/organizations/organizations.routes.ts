@@ -42,6 +42,14 @@ export async function organizationsRoutes(fastify: FastifyInstance, auth: AuthHa
     return reply.status(201).send({ data: organization });
   });
 
+  // Delete organization
+  fastify.delete("/organizations/:id", { preHandler: [authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const userId = request.user!.id;
+    await organizationsService.deleteOrganization(id, userId);
+    return reply.status(204).send();
+  });
+
   // Organization memberships routes
   const addOrgMemberSchema = z.object({
     userId: z.string().uuid().optional(),

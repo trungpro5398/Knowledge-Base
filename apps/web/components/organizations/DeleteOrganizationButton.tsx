@@ -1,0 +1,126 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { Trash2, Loader2 } from "lucide-react";
+import { api } from "@/lib/api/client";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { useLocale } from "@/lib/i18n/locale-provider";
+
+interface DeleteOrganizationButtonProps {
+  organizationId: string;
+  organizationName: string;
+  spaceCount?: number;
+  className?: string;
+}
+
+export function DeleteOrganizationButton({
+  organizationId,
+  organizationName,
+  spaceCount = 0,
+  className,
+}: DeleteOrganizationButtonProps) {
+  const { t } = useLocale();
+  const router = useRouter();
+  const pathname = usePathname() ?? "";
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const isInsideOrg = pathname.includes(`/admin/organizations/${organizationId}`);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await api.delete(`/api/organizations/${organizationId}`);
+      toast.success(t("deleteOrganization.success"), { description: organizationName });
+      setShowConfirm(false);
+      router.refresh();
+      if (isInsideOrg) {
+        router.push("/admin");
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : t("deleteOrganization.errorDefault");
+      toast.error(t("deleteOrganization.failed"), { description: msg });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setShowConfirm(true)}
+        className={cn(
+          "inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors rounded-lg",
+          className
+        )}
+        aria-label={t("deleteOrganization.ariaLabel", { name: organizationName })}
+        disabled={isDeleting}
+      >
+        {isDeleting ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+        ) : (
+          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+        )}
+        <span className="hidden sm:inline">{t("deleteOrganization.button")}</span>
+      </button>
+
+      {showConfirm && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-50"
+            onClick={() => !isDeleting && setShowConfirm(false)}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-organization-title"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4 p-6 bg-card rounded-xl shadow-xl border border-border"
+          >
+            <h2
+              id="delete-organization-title"
+              className="text-lg font-semibold text-destructive"
+            >
+              {t("deleteOrganization.confirmTitle")}
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t("deleteOrganization.confirmMessage", {
+                name: organizationName,
+                count: spaceCount,
+              })}
+            </p>
+            <div className="mt-6 flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => !isDeleting && setShowConfirm(false)}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-muted transition-colors"
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-destructive text-destructive-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {t("deleteOrganization.deleting")}
+                  </>
+                ) : (
+                  t("deleteOrganization.confirmButton")
+                )}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
