@@ -31,7 +31,7 @@ trong schema `tet_kb`, không dùng chung các bảng nghiệp vụ đang có tr
 
 Sau khi chạy migrations, cần bật hook trong Supabase Dashboard:
 
-1. Vào **Authentication → Hooks** trong đúng project Supabase của Knowledge Base.
+1. Vào **Authentication → Hooks** trong đúng project `Tech5 / tet-crm`; các bảng Knowledge Base vẫn nằm riêng trong schema `tet_kb`.
 2. **Before user created** → Enable
 3. Chọn **Call a Postgres function**
 4. Function: `public.hook_restrict_signup_tet_edu`

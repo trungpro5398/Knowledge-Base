@@ -25,8 +25,8 @@ Sau khi tạo project, thêm Environment Variables:
 
 | Name | Value | Environment |
 |------|-------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL của project Supabase Knowledge Base (`tet-kb`) | Production, Preview |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key của project Supabase Knowledge Base | Production, Preview |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL của shared Supabase project `tet-crm` | Production, Preview |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key của shared project `tet-crm` | Production, Preview |
 | `NEXT_PUBLIC_API_URL` | `https://knowledge-base-api.fly.dev` | Production, Preview |
 
 ## 4. Deploy
