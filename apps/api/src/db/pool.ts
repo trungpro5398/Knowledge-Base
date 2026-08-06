@@ -17,7 +17,7 @@ function getPool(): pg.Pool {
     _pool = new Pool({
       connectionString: config.databaseUrl,
       // Keep Knowledge Base tables isolated in tet_kb while still sharing auth.users.
-      options: "-c search_path=tet_kb,public",
+      options: "-c search_path=tet_kb",
       max: 8,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
