@@ -25,15 +25,11 @@ export function LoginForm() {
     setLoading(true);
     setError("");
 
-    const redirectPath = new URLSearchParams(window.location.search).get("redirect") || "/admin";
-    const safeRedirectPath = redirectPath.startsWith("/") && !redirectPath.startsWith("//")
-      ? redirectPath
-      : "/admin";
     const supabase = createClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/callback?next=${encodeURIComponent(safeRedirectPath)}`,
+        redirectTo: `${window.location.origin}/callback`,
         queryParams: {
           hd: "tet-edu.com",
           prompt: "select_account",
