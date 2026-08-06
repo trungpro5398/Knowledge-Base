@@ -15,7 +15,11 @@ Trong Supabase Dashboard:
    `https://<project-ref>.supabase.co/auth/v1/callback`.
 5. Trong **Authentication → URL Configuration**, thêm các URL callback của app:
    - local: `http://localhost:3000/callback`
-   - production: `https://<domain-production>/callback`
+   - Knowledge Base production: `https://knowledge-base-web-xi.vercel.app/callback`
+   - Knowledge Base preview: `https://knowledge-base-web-git-main-techfives-projects.vercel.app/callback`
+   - CRM production: `https://crm.tet-edu.com/auth/callback`
+   Site URL mặc định có thể vẫn là CRM; mỗi app phải truyền `redirectTo` riêng để
+   sau khi dùng chung Supabase Auth, người dùng quay về đúng app đã bắt đầu đăng nhập.
 6. Vào **Authentication → Providers → Email** và tắt Email provider để không
    cho đăng nhập/đăng ký bằng mật khẩu riêng.
 
