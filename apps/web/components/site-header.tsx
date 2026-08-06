@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Search, LogIn, UserPlus, Settings, LogOut, Keyboard } from "lucide-react";
+import { BookOpen, Search, LogIn, Settings, LogOut, Keyboard } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LocaleToggle } from "@/components/locale-toggle";
 import { useShortcuts } from "@/components/keyboard/shortcuts-provider";
@@ -72,15 +72,6 @@ export function SiteHeader({
               >
                 <LogIn className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">{t("header.login")}</span>
-              </Link>
-              <Link
-                href="/register"
-                className="flex items-center gap-1.5 rounded-md px-2 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                title={t("header.registerTitle")}
-                aria-label={t("header.register")}
-              >
-                <UserPlus className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden md:inline text-xs">{t("header.register")}</span>
               </Link>
             </>
           )}
