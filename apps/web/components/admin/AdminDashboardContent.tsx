@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { CreateOrganizationForm } from "@/components/organizations/CreateOrganizationForm";
 import { ManageSpacesButton } from "@/components/admin/ManageSpacesButton";
-import { Building2, Settings } from "lucide-react";
+import { ArrowRight, Building2, FileText, LibraryBig, Settings, Sparkles } from "lucide-react";
 import type { Space } from "@/lib/api/types";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
@@ -31,18 +31,32 @@ export function AdminDashboardContent({
   const { t } = useLocale();
 
   const spaceCountLabel = (count: number) => t("admin.spacesCount", { count });
+  const spaceCount = Object.values(spacesByOrg).reduce((total, items) => total + items.length, 0);
 
   return (
-    <div className="p-6 sm:p-8 max-w-5xl w-full mx-auto">
+    <div className="p-5 sm:p-8 max-w-6xl w-full mx-auto">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-balance">{t("admin.organizationsTitle")}</h1>
           <p className="text-muted-foreground mt-1">{t("admin.organizationsSubtitle")}</p>
         </div>
-        <div className="text-xs text-muted-foreground">
-          <span className="tabular-nums">{t("admin.organizationsCount", { count: organizations.length })}</span>
+      </div>
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border bg-card p-4 flex items-center gap-3">
+          <div className="rounded-xl bg-primary/10 p-2.5 text-primary"><LibraryBig className="h-5 w-5" aria-hidden="true" /></div>
+          <div><p className="text-xs text-muted-foreground">Kho tài liệu</p><p className="text-xl font-semibold tabular-nums">{organizations.length}</p></div>
+        </div>
+        <div className="rounded-2xl border bg-card p-4 flex items-center gap-3">
+          <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600 dark:text-blue-400"><FileText className="h-5 w-5" aria-hidden="true" /></div>
+          <div><p className="text-xs text-muted-foreground">Khu vực nội dung</p><p className="text-xl font-semibold tabular-nums">{spaceCount}</p></div>
+        </div>
+        <div className="rounded-2xl border bg-card p-4 flex items-center gap-3">
+          <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-600 dark:text-amber-400"><Sparkles className="h-5 w-5" aria-hidden="true" /></div>
+          <div><p className="text-xs text-muted-foreground">Trạng thái</p><p className="text-sm font-semibold">Sẵn sàng quản lý</p></div>
         </div>
       </div>
+
       <div className="mt-8 space-y-6">
         <CreateOrganizationForm />
 
@@ -89,7 +103,8 @@ export function AdminDashboardContent({
                       className="h-9 px-3 text-sm border rounded-lg hover:bg-muted transition-colors flex items-center justify-center gap-2"
                     >
                       <Settings className="h-4 w-4" />
-                      {t("common.settings")}
+                      Người & quyền
+                      <ArrowRight className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
                     </Link>
                   </div>
                 </div>

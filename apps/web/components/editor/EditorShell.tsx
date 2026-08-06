@@ -20,6 +20,7 @@ interface EditorShellProps {
   pageId: string;
   spaceId: string;
   spaceSlug?: string;
+  pagePath: string;
   initialTitle: string;
   initialContent: string;
   initialStatus: string;
@@ -30,6 +31,7 @@ export function EditorShell({
   pageId,
   spaceId,
   spaceSlug = "",
+  pagePath,
   initialTitle,
   initialContent,
   initialStatus,
@@ -57,6 +59,7 @@ export function EditorShell({
         setSaving(true);
         try {
           await api.patch(`/api/pages/${pageId}`, { title });
+          lastSavedTitleRef.current = title;
           setSavedAt(new Date());
           if (mode === "manual") {
             toast.success(t("page.saveTitleSuccess"));
@@ -99,6 +102,10 @@ export function EditorShell({
   const publish = async () => {
     setPublishing(true);
     try {
+      if (title !== lastSavedTitleRef.current) {
+        await api.patch(`/api/pages/${pageId}`, { title });
+        lastSavedTitleRef.current = title;
+      }
       const versionRes = await api.post<ApiResponse<PageVersion>>(
         `/api/pages/${pageId}/versions`,
         { content_md: content, summary: "Published" }
@@ -165,6 +172,7 @@ export function EditorShell({
         pageId={pageId}
         spaceId={spaceId}
         spaceSlug={spaceSlug}
+        pagePath={pagePath}
         status={status as "draft" | "published" | "archived"}
         saving={saving}
         savedAt={savedAt}

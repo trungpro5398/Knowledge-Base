@@ -26,6 +26,7 @@ interface PageActionsToolbarProps {
     pageId: string;
     spaceId: string;
     spaceSlug: string;
+    pagePath: string;
     status: PageStatus;
     saving?: boolean;
     savedAt?: Date | null;
@@ -45,6 +46,7 @@ export function PageActionsToolbar({
     pageId,
     spaceId,
     spaceSlug,
+    pagePath,
     status,
     saving = false,
     savedAt,
@@ -61,7 +63,7 @@ export function PageActionsToolbar({
 
     const statusLabel = t(`page.status.${status}` as "page.status.draft" | "page.status.published" | "page.status.archived");
     const statusClassName = statusClassNames[status];
-    const pageUrl = `/kb/${spaceSlug}/${pageId}`;
+    const pageUrl = `/kb/${spaceSlug}/${pagePath.split(".").filter(Boolean).join("/")}`;
 
     return (
         <div className="sticky top-0 z-20 -mx-8 px-8 py-3 mb-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border/50">

@@ -82,11 +82,10 @@ export default async function SpaceLayout({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-      <SpaceLayoutHeader
-        spaceId={spaceId}
-        spaceName={space.name}
-        spaceSlug={space.slug}
-        spaces={spaces}
+          <SpaceLayoutHeader
+            spaceId={spaceId}
+            spaceName={space.name}
+            spaces={spaces}
         organizations={organizations}
       />
 

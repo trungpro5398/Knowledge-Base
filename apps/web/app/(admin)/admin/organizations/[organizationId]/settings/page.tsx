@@ -63,12 +63,16 @@ export default async function OrganizationSettingsPage({
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <Settings className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-2xl font-bold">Cài đặt Organization</h1>
+          <h1 className="text-2xl font-bold">Người & quyền truy cập</h1>
         </div>
         <p className="text-muted-foreground">{organization.name}</p>
       </div>
 
       <div className="space-y-8">
+        <p className="text-sm text-muted-foreground -mt-4">
+          Chọn người được xem, chỉnh sửa hoặc quản lý nội dung trong kho này.
+        </p>
+
         <section>
           <OrganizationMembersList organizationId={organizationId} />
         </section>

@@ -11,8 +11,7 @@ function getJWKS() {
   }
   const now = Date.now();
   if (!jwks || now - jwksCreatedAt > JWKS_CACHE_TTL_MS) {
-    const jwksUrl = `${config.supabaseUrl.replace(/\/$/, "")}/auth/v1/.well-known/jwks.json`;
-    jwks = createRemoteJWKSet(new URL(jwksUrl));
+    jwks = createRemoteJWKSet(new URL(config.supabaseJwksUrl));
     jwksCreatedAt = now;
   }
   return jwks;

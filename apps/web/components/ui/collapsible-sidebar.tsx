@@ -125,7 +125,6 @@ export function CollapsibleSidebar({
           widthClass,
           className
         )}
-        aria-expanded={!isCollapsed}
         role="complementary"
       >
         {isCollapsed ? (

@@ -46,7 +46,6 @@ export function SearchBar() {
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), search())}
           placeholder={t("search.placeholder")}
           aria-label={t("search.ariaLabel")}
-          aria-expanded={open}
           aria-controls="admin-search-results"
           inputMode="search"
           enterKeyHint="search"

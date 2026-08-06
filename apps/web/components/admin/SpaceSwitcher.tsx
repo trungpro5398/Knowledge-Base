@@ -185,7 +185,7 @@ export function SpaceSwitcher({
             {currentSpace?.name || t("spaceSwitcher.selectSpace")}
           </p>
           <p className="text-xs text-muted-foreground truncate">
-            {currentSpace ? `/kb/${currentSpace.slug}` : t("spaceSwitcher.noSpaceSelected")}
+            {currentSpace ? "Đang quản lý nội dung" : t("spaceSwitcher.noSpaceSelected")}
           </p>
         </div>
         <ChevronDown
@@ -355,7 +355,7 @@ export function SpaceSwitcher({
                       </div>
                     )}
                     <p className="text-[10px] text-muted-foreground mt-1.5">
-                      /kb/{finalSlug}
+                      Đường dẫn sẽ được tạo tự động
                     </p>
                   </div>
 

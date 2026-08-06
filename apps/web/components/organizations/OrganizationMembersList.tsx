@@ -26,9 +26,9 @@ interface UserSearchResult {
 }
 
 const roleLabels = {
-  member: "Member",
-  admin: "Admin",
-  owner: "Owner",
+  member: "Chỉ xem",
+  admin: "Được chỉnh sửa",
+  owner: "Chủ sở hữu",
 };
 
 const roleIcons = {
@@ -50,7 +50,7 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
       );
       setMembers(res.data ?? []);
     } catch (error) {
-      toast.error("Không thể tải danh sách members");
+      toast.error("Không thể tải danh sách người có quyền");
       console.error(error);
     } finally {
       setLoading(false);
@@ -63,13 +63,13 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
   }, [organizationId]);
 
   const handleRemoveMember = async (userId: string, userEmail: string) => {
-    if (!confirm(`Xác nhận xóa ${userEmail} khỏi organization?`)) return;
+    if (!confirm(`Xác nhận xóa ${userEmail} khỏi kho tài liệu?`)) return;
 
     try {
       await apiClient(`/api/organizations/${organizationId}/members/${userId}`, {
         method: "DELETE",
       });
-      toast.success("Đã xóa member");
+      toast.success("Đã xóa người khỏi kho");
       loadMembers();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Xóa thất bại";
@@ -83,7 +83,7 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
         method: "PATCH",
         body: { role: newRole },
       });
-      toast.success("Đã cập nhật role");
+      toast.success("Đã cập nhật quyền");
       loadMembers();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Cập nhật thất bại";
@@ -104,7 +104,7 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-          <h2 className="text-lg font-semibold">Members ({members.length})</h2>
+          <h2 className="text-lg font-semibold">Người có quyền ({members.length})</h2>
         </div>
         <button
           type="button"
@@ -112,7 +112,7 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
           className="btn-primary h-9 px-3 text-sm gap-2"
         >
           <UserPlus className="h-4 w-4" aria-hidden="true" />
-          Thêm member
+          Thêm người
         </button>
       </div>
 
@@ -129,7 +129,7 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
       {members.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <Users className="h-12 w-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
-          <p>Chưa có members nào</p>
+          <p>Chưa có người nào được thêm</p>
         </div>
       ) : (
         <div className="border rounded-lg divide-y">
@@ -166,9 +166,9 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
                       }
                       className="text-sm border rounded px-2 py-1 bg-background"
                     >
-                      <option value="member">Member</option>
-                      <option value="admin">Admin</option>
-                      <option value="owner">Owner</option>
+                      <option value="member">Chỉ xem</option>
+                      <option value="admin">Được chỉnh sửa</option>
+                      <option value="owner">Chủ sở hữu</option>
                     </select>
                   </div>
                 </div>
@@ -268,8 +268,8 @@ function AddMemberForm({
         method: "POST",
         body: payload,
       });
-      toast.success("Đã thêm member", {
-        description: "User sẽ tự động thấy tất cả không gian của tổ chức",
+      toast.success("Đã thêm người", {
+        description: "Người này sẽ thấy các kho được cấp quyền",
         duration: 5000,
       });
       setQuery("");
@@ -353,9 +353,9 @@ function AddMemberForm({
           className="border rounded px-3 h-10"
           disabled={loading}
         >
-          <option value="member">Member</option>
-          <option value="admin">Admin</option>
-          <option value="owner">Owner</option>
+          <option value="member">Chỉ xem</option>
+          <option value="admin">Được chỉnh sửa</option>
+          <option value="owner">Chủ sở hữu</option>
         </select>
         <button type="submit" disabled={loading} className="btn-primary px-4 h-10">
           {loading ? "Đang thêm..." : "Thêm"}

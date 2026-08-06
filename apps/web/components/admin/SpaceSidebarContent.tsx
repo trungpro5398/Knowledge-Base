@@ -95,14 +95,14 @@ export function SpaceSidebarContent({
       <div className="p-4 border-b border-border/70">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {t("sidebar.spaces")}
+            Kho tài liệu
           </span>
           <button
             type="button"
             onClick={() => setShowCreateForm((prev) => !prev)}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            {t("admin.create")}
+              + Tạo kho
           </button>
         </div>
         {showCreateForm && (
@@ -174,8 +174,8 @@ export function SpaceSidebarContent({
               )}
             >
               <span className="font-medium truncate">{item.name}</span>
-              <span className="text-[10px] text-muted-foreground font-mono">
-                /kb/{item.slug}
+              <span className="text-[10px] text-muted-foreground">
+                Mở để quản lý nội dung
               </span>
             </Link>
           ))}

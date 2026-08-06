@@ -54,7 +54,15 @@ export async function apiClient<T = unknown>(
     fetchOptions.cache = 'no-store';
   }
 
-  const res = await fetch(`${API_URL}${path}`, fetchOptions);
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, fetchOptions);
+  } catch {
+    throw new ApiError(
+      "Không thể kết nối máy chủ. Kiểm tra kết nối mạng rồi thử lại.",
+      0
+    );
+  }
 
   // Handle empty responses (204 No Content)
   if (res.status === 204) {
@@ -66,8 +74,13 @@ export async function apiClient<T = unknown>(
   if (!res.ok) {
     const errorMessage =
       (data as { message?: string }).message ||
-      res.statusText ||
-      "Request failed";
+      (res.status === 401
+        ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+        : res.status === 403
+          ? "Bạn không có quyền thực hiện thao tác này."
+          : res.status >= 500
+            ? "Máy chủ đang gặp sự cố. Vui lòng thử lại sau."
+            : res.statusText || "Không thể hoàn tất thao tác.");
     const errors = (data as { errors?: unknown[] }).errors;
     throw new ApiError(errorMessage, res.status, errors);
   }

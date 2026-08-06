@@ -6,6 +6,12 @@ import { z } from "zod";
 
 export async function organizationsRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   const { authenticate } = auth;
+  const createOrganizationSchema = z.object({
+    name: z.string().trim().min(1, "Tên kho tài liệu là bắt buộc").max(120),
+    slug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Đường dẫn không hợp lệ").max(80),
+    icon: z.string().trim().max(8).optional(),
+    description: z.string().trim().max(500).optional(),
+  });
 
   // List user's organizations
   fastify.get("/organizations", { preHandler: [authenticate] }, async (request) => {
@@ -36,9 +42,16 @@ export async function organizationsRoutes(fastify: FastifyInstance, auth: AuthHa
   // Create organization
   fastify.post("/organizations", { preHandler: [authenticate] }, async (request, reply) => {
     const userId = request.user!.id;
-    const data = request.body as { name: string; slug: string; icon?: string; description?: string };
-    
-    const organization = await organizationsService.createOrganization(data, userId);
+    const parsed = createOrganizationSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        status: "error",
+        message: parsed.error.errors[0]?.message ?? "Thông tin kho tài liệu chưa hợp lệ",
+        errors: parsed.error.errors,
+      });
+    }
+
+    const organization = await organizationsService.createOrganization(parsed.data, userId);
     return reply.status(201).send({ data: organization });
   });
 

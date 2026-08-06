@@ -26,9 +26,9 @@ interface UserSearchResult {
 }
 
 const roleLabels = {
-  viewer: "Viewer",
-  editor: "Editor",
-  admin: "Admin",
+  viewer: "Chỉ xem",
+  editor: "Được chỉnh sửa",
+  admin: "Quản lý kho",
 };
 
 const roleIcons = {
@@ -48,7 +48,7 @@ export function MembersList({ spaceId }: MembersListProps) {
       const res = await api.get<ApiResponse<Member[]>>(`/api/spaces/${spaceId}/members`);
       setMembers(res.data ?? []);
     } catch (error) {
-      toast.error("Không thể tải danh sách members");
+      toast.error("Không thể tải danh sách người có quyền");
       console.error(error);
     } finally {
       setLoading(false);
@@ -61,11 +61,11 @@ export function MembersList({ spaceId }: MembersListProps) {
   }, [spaceId]);
 
   const handleRemoveMember = async (userId: string, userEmail: string) => {
-    if (!confirm(`Xác nhận xóa ${userEmail} khỏi space?`)) return;
+    if (!confirm(`Xác nhận xóa ${userEmail} khỏi kho tài liệu?`)) return;
 
     try {
       await apiClient(`/api/spaces/${spaceId}/members/${userId}`, { method: "DELETE" });
-      toast.success("Đã xóa member");
+      toast.success("Đã xóa người khỏi kho");
       loadMembers();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Xóa thất bại";
@@ -79,7 +79,7 @@ export function MembersList({ spaceId }: MembersListProps) {
         method: "PATCH",
         body: { role: newRole },
       });
-      toast.success("Đã cập nhật role");
+      toast.success("Đã cập nhật quyền");
       loadMembers();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Cập nhật thất bại";
@@ -100,7 +100,7 @@ export function MembersList({ spaceId }: MembersListProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-          <h2 className="text-lg font-semibold">Members ({members.length})</h2>
+          <h2 className="text-lg font-semibold">Người có quyền ({members.length})</h2>
         </div>
         <button
           type="button"
@@ -108,7 +108,7 @@ export function MembersList({ spaceId }: MembersListProps) {
           className="btn-primary h-9 px-3 text-sm gap-2"
         >
           <UserPlus className="h-4 w-4" aria-hidden="true" />
-          Thêm member
+          Thêm người
         </button>
       </div>
 
@@ -119,7 +119,7 @@ export function MembersList({ spaceId }: MembersListProps) {
       {members.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <Users className="h-12 w-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
-          <p>Chưa có members nào</p>
+          <p>Chưa có người nào được thêm</p>
         </div>
       ) : (
         <div className="border rounded-lg divide-y">
@@ -144,9 +144,9 @@ export function MembersList({ spaceId }: MembersListProps) {
                       onChange={(e) => handleUpdateRole(member.user_id, e.target.value as "viewer" | "editor" | "admin")}
                       className="text-sm border rounded px-2 py-1 bg-background"
                     >
-                      <option value="viewer">Viewer</option>
-                      <option value="editor">Editor</option>
-                      <option value="admin">Admin</option>
+                      <option value="viewer">Chỉ xem</option>
+                      <option value="editor">Được chỉnh sửa</option>
+                      <option value="admin">Quản lý kho</option>
                     </select>
                   </div>
                 </div>
@@ -242,8 +242,8 @@ function AddMemberForm({ spaceId, onSuccess }: { spaceId: string; onSuccess: () 
         method: "POST",
         body: payload,
       });
-      toast.success("Đã thêm member", {
-        description: "User cần refresh trang để thấy không gian mới",
+      toast.success("Đã thêm người", {
+        description: "Người này sẽ thấy kho sau khi tải lại trang",
         duration: 5000,
       });
       setQuery("");

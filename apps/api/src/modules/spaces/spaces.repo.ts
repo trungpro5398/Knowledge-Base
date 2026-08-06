@@ -55,11 +55,21 @@ export async function getMemberRole(
   userId: string
 ): Promise<"viewer" | "editor" | "admin" | null> {
   if (!pool) return null;
-  const { rows } = await pool.query<{ role: string }>(
-    "SELECT role FROM memberships WHERE space_id = $1 AND user_id = $2",
+  const { rows } = await pool.query<{ direct_role: string | null; organization_role: string | null }>(
+    `SELECT m.role AS direct_role, om.role AS organization_role
+     FROM spaces s
+     LEFT JOIN memberships m ON m.space_id = s.id AND m.user_id = $2
+     LEFT JOIN organization_memberships om
+       ON om.organization_id = s.organization_id AND om.user_id = $2
+     WHERE s.id = $1`,
     [spaceId, userId]
   );
-  const role = rows[0]?.role;
+  const role = rows[0]?.direct_role ??
+    (rows[0]?.organization_role === "admin" || rows[0]?.organization_role === "owner"
+      ? "admin"
+      : rows[0]?.organization_role === "member"
+        ? "viewer"
+        : null);
   if (role === "viewer" || role === "editor" || role === "admin") return role;
   return null;
 }
@@ -83,8 +93,17 @@ export async function getSpaceForUser(spaceId: string, userId: string): Promise<
   if (!pool) return null;
   const { rows } = await pool.query<SpaceRow>(
     `SELECT s.* FROM spaces s
-     JOIN memberships m ON m.space_id = s.id
-     WHERE s.id = $1 AND m.user_id = $2`,
+     WHERE s.id = $1
+       AND (
+         EXISTS (
+           SELECT 1 FROM memberships m
+           WHERE m.space_id = s.id AND m.user_id = $2
+         )
+         OR EXISTS (
+           SELECT 1 FROM organization_memberships om
+           WHERE om.organization_id = s.organization_id AND om.user_id = $2
+         )
+       )`,
     [spaceId, userId]
   );
   return rows[0] ?? null;

@@ -1,11 +1,20 @@
 import { EditorShell } from "@/components/editor/EditorShell";
 import { getServerAccessToken } from "@/lib/auth/supabase-server";
 import { serverApiGet } from "@/lib/api/server";
-import type { ApiResponse, Page } from "@/lib/api/types";
+import type { ApiResponse, Page, Space } from "@/lib/api/types";
 
 async function getPage(pageId: string, token: string): Promise<Page | null> {
   try {
     const res = await serverApiGet<ApiResponse<Page>>(`/api/pages/${pageId}`, token);
+    return res.data;
+  } catch {
+    return null;
+  }
+}
+
+async function getSpace(spaceId: string, token: string): Promise<Space | null> {
+  try {
+    const res = await serverApiGet<ApiResponse<Space>>(`/api/spaces/${spaceId}`, token);
     return res.data;
   } catch {
     return null;
@@ -20,9 +29,12 @@ export default async function PageEditor({
   const { spaceId, pageId } = await params;
   const token = await getServerAccessToken();
 
-  const page = await getPage(pageId, token);
+  const [page, space] = await Promise.all([
+    getPage(pageId, token),
+    getSpace(spaceId, token),
+  ]);
 
-  if (!page) {
+  if (!page || !space) {
     return (
       <div className="p-8">
         <p>Trang không tồn tại</p>
@@ -35,7 +47,8 @@ export default async function PageEditor({
       <EditorShell
         pageId={pageId}
         spaceId={spaceId}
-        spaceSlug={page.space_id}
+        spaceSlug={space.slug}
+        pagePath={page.path}
         initialTitle={page.title}
         initialContent={page.version?.content_md ?? ""}
         initialStatus={page.status}

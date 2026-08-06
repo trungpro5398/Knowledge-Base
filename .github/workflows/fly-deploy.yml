@@ -32,6 +32,14 @@ jobs:
       - name: Set up flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Align KB API with shared Supabase project
+        run: >-
+          flyctl secrets set
+          SUPABASE_URL=https://uztcacnnwmupfslegwfj.supabase.co
+          SUPABASE_JWKS_URL=https://uztcacnnwmupfslegwfj.supabase.co/auth/v1/.well-known/jwks.json
+          CORS_ORIGINS=https://kb.tet-edu.com,https://knowledge-base-web-xi.vercel.app,https://knowledge-base-web-git-main-techfives-projects.vercel.app
+          --app knowledge-base-api
+
       - name: Deploy
         run: flyctl deploy --remote-only --config fly.toml
         env:

@@ -8,6 +8,17 @@ import { generateSlug } from "@/lib/utils";
 import { toast } from "sonner";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
+interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface Space {
+  id: string;
+  name: string;
+}
+
 export function CreateOrganizationForm() {
   const { t } = useLocale();
   const [name, setName] = useState("");
@@ -28,11 +39,19 @@ export function CreateOrganizationForm() {
     setLoading(true);
     setError("");
 
-    try {
-      const finalName = name.trim() || "New Organization";
-      const finalSlug = slug || generateSlug(name) || "new-organization";
+    const finalName = name.trim();
+    if (!finalName) {
+      const message = "Vui lòng nhập tên kho tài liệu.";
+      setError(message);
+      nameRef.current?.focus();
+      setLoading(false);
+      return;
+    }
 
-      await apiClient("/api/organizations", {
+    try {
+      const finalSlug = slug || generateSlug(finalName) || "kho-tai-lieu-moi";
+
+      const organizationResponse = await apiClient<{ data: Organization }>("/api/organizations", {
         method: "POST",
         body: {
           name: finalName,
@@ -41,6 +60,34 @@ export function CreateOrganizationForm() {
         },
       });
 
+      let space: Space | null = null;
+      let lastSpaceError: unknown = null;
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const spaceSlug = attempt === 0 ? organizationResponse.data.slug : `${organizationResponse.data.slug}-${attempt + 1}`;
+        try {
+          const spaceResponse = await apiClient<{ data: Space }>("/api/spaces", {
+            method: "POST",
+            body: {
+              name: finalName,
+              slug: spaceSlug,
+              organization_id: organizationResponse.data.id,
+            },
+          });
+          space = spaceResponse.data;
+          break;
+        } catch (error) {
+          lastSpaceError = error;
+          const message = error instanceof Error ? error.message.toLowerCase() : "";
+          if (!message.includes("slug") && !message.includes("đường dẫn")) break;
+        }
+      }
+
+      if (!space) {
+        throw lastSpaceError instanceof Error
+          ? new Error(`Kho đã tạo nhưng chưa tạo được khu vực nội dung: ${lastSpaceError.message}`)
+          : new Error("Kho đã tạo nhưng chưa tạo được khu vực nội dung. Bạn có thể mở kho để thử lại.");
+      }
+
       toast.success(t("organization.createdSuccess"), { description: finalName });
       router.refresh();
       setName("");
@@ -48,6 +95,7 @@ export function CreateOrganizationForm() {
       setSlug("");
       setManualSlug(false);
       setShowAdvanced(false);
+      router.push(`/admin/spaces/${space.id}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t("organization.createErrorDefault");
       setError(message);
