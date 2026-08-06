@@ -1,5 +1,9 @@
 # Deploy Web lên Vercel
 
+Project hiện tại: `techfives-projects/knowledge-base-web`, source
+`tetedu123x/knowledge-base-web`, production URL:
+`https://knowledge-base-web-xi.vercel.app`.
+
 ## 1. Đăng nhập Vercel (lần đầu)
 
 ```bash
@@ -10,7 +14,7 @@ Mở link trong trình duyệt để xác thực.
 
 ## 2. Root Directory (bắt buộc cho monorepo)
 
-Vào https://vercel.com/trungpro5398s-projects/knowledge-base-web/settings
+Vào https://vercel.com/techfives-projects/knowledge-base-web/settings
 
 - **Root Directory:** đặt `apps/web` (chọn "Edit" → nhập `apps/web` → Save)
 - Không đặt Root Directory sẽ gây lỗi "No Next.js version detected"
@@ -21,8 +25,8 @@ Sau khi tạo project, thêm Environment Variables:
 
 | Name | Value | Environment |
 |------|-------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://bjflzirgdqqkelfxddhy.supabase.co` | Production, Preview |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | (Supabase anon key) | Production, Preview |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL của project Supabase Knowledge Base (`tet-kb`) | Production, Preview |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key của project Supabase Knowledge Base | Production, Preview |
 | `NEXT_PUBLIC_API_URL` | `https://knowledge-base-api.fly.dev` | Production, Preview |
 
 ## 4. Deploy
@@ -30,7 +34,7 @@ Sau khi tạo project, thêm Environment Variables:
 ### Cách 1: Vercel Dashboard (khuyến nghị)
 
 1. Vào https://vercel.com/new
-2. Import repo GitHub `trungpro5398/Knowledge-Base`
+2. Import repo GitHub `tetedu123x/knowledge-base-web`
 3. **Project Name:** `knowledge-base-web`
 4. **Root Directory:** `apps/web`
 5. **Framework Preset:** Next.js (tự nhận)
@@ -44,12 +48,12 @@ Sau khi tạo project, thêm Environment Variables:
 ```bash
 cd /path/to/Knowledge-Base
 
-# Link project (tạo mới tên knowledge-base-web)
-npx vercel link --yes
+# Link đúng project/team hiện tại
+npx vercel link --yes --project knowledge-base-web --scope techfives-projects
 
 # Set env
 npx vercel env add NEXT_PUBLIC_SUPABASE_URL production
-npx vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
+npx vercel env add NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY production
 npx vercel env add NEXT_PUBLIC_API_URL production
 
 # Deploy production
