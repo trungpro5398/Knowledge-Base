@@ -70,7 +70,7 @@ export default async function OrganizationSettingsPage({
 
       <div className="space-y-8">
         <p className="text-sm text-muted-foreground -mt-4">
-          Chọn người được xem, chỉnh sửa hoặc quản lý nội dung trong kho này.
+          Chọn quyền theo vai trò. Quyền ở một khu vực riêng sẽ được ưu tiên nếu có.
         </p>
 
         <section>

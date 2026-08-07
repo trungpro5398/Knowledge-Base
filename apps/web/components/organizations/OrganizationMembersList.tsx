@@ -27,8 +27,14 @@ interface UserSearchResult {
 
 const roleLabels = {
   member: "Chỉ xem",
-  admin: "Được chỉnh sửa",
+  admin: "Quản lý kho",
   owner: "Chủ sở hữu",
+};
+
+const roleDescriptions = {
+  member: "Đọc tài liệu trong kho",
+  admin: "Tạo nội dung và mời người",
+  owner: "Toàn quyền, kể cả xóa kho",
 };
 
 const roleIcons = {
@@ -165,10 +171,12 @@ export function OrganizationMembersList({ organizationId }: OrganizationMembersL
                         )
                       }
                       className="text-sm border rounded px-2 py-1 bg-background"
+                      aria-label={`Quyền của ${member.user_email}`}
+                      title={roleDescriptions[member.role]}
                     >
-                      <option value="member">Chỉ xem</option>
-                      <option value="admin">Được chỉnh sửa</option>
-                      <option value="owner">Chủ sở hữu</option>
+                      <option value="member">{roleLabels.member}</option>
+                      <option value="admin">{roleLabels.admin}</option>
+                      <option value="owner">{roleLabels.owner}</option>
                     </select>
                   </div>
                 </div>
@@ -353,9 +361,9 @@ function AddMemberForm({
           className="border rounded px-3 h-10"
           disabled={loading}
         >
-          <option value="member">Chỉ xem</option>
-          <option value="admin">Được chỉnh sửa</option>
-          <option value="owner">Chủ sở hữu</option>
+          <option value="member">{roleLabels.member}</option>
+          <option value="admin">{roleLabels.admin}</option>
+          <option value="owner">{roleLabels.owner}</option>
         </select>
         <button type="submit" disabled={loading} className="btn-primary px-4 h-10">
           {loading ? "Đang thêm..." : "Thêm"}
@@ -366,6 +374,7 @@ function AddMemberForm({
           Đã chọn: {selectedUser.name || selectedUser.email} ({selectedUser.email})
         </div>
       )}
+      <p className="text-xs text-muted-foreground">{roleDescriptions[role]}</p>
       {error && <div className="text-sm text-destructive">{error}</div>}
     </form>
   );

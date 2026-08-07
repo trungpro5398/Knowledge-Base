@@ -27,8 +27,14 @@ interface UserSearchResult {
 
 const roleLabels = {
   viewer: "Chỉ xem",
-  editor: "Được chỉnh sửa",
-  admin: "Quản lý kho",
+  editor: "Chỉnh sửa nội dung",
+  admin: "Quản lý khu vực",
+};
+
+const roleDescriptions = {
+  viewer: "Chỉ đọc tài liệu",
+  editor: "Tạo và chỉnh sửa tài liệu",
+  admin: "Quản lý tài liệu và người có quyền",
 };
 
 const roleIcons = {
@@ -143,10 +149,12 @@ export function MembersList({ spaceId }: MembersListProps) {
                       value={member.role}
                       onChange={(e) => handleUpdateRole(member.user_id, e.target.value as "viewer" | "editor" | "admin")}
                       className="text-sm border rounded px-2 py-1 bg-background"
+                      aria-label={`Quyền của ${member.user_email}`}
+                      title={roleDescriptions[member.role]}
                     >
-                      <option value="viewer">Chỉ xem</option>
-                      <option value="editor">Được chỉnh sửa</option>
-                      <option value="admin">Quản lý kho</option>
+                      <option value="viewer">{roleLabels.viewer}</option>
+                      <option value="editor">{roleLabels.editor}</option>
+                      <option value="admin">{roleLabels.admin}</option>
                     </select>
                   </div>
                 </div>
@@ -327,9 +335,9 @@ function AddMemberForm({ spaceId, onSuccess }: { spaceId: string; onSuccess: () 
           className="border rounded px-3 h-10"
           disabled={loading}
         >
-          <option value="viewer">Viewer</option>
-          <option value="editor">Editor</option>
-          <option value="admin">Admin</option>
+          <option value="viewer">{roleLabels.viewer}</option>
+          <option value="editor">{roleLabels.editor}</option>
+          <option value="admin">{roleLabels.admin}</option>
         </select>
         <button type="submit" disabled={loading} className="btn-primary px-4 h-10">
           {loading ? "Đang thêm..." : "Thêm"}
@@ -340,6 +348,7 @@ function AddMemberForm({ spaceId, onSuccess }: { spaceId: string; onSuccess: () 
           Đã chọn: {selectedUser.name || selectedUser.email} ({selectedUser.email})
         </div>
       )}
+      <p className="text-xs text-muted-foreground">{roleDescriptions[role]}</p>
       {error && <div className="text-sm text-destructive">{error}</div>}
     </form>
   );
