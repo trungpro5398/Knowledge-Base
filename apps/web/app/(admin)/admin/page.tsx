@@ -18,33 +18,40 @@ interface SpaceWithOrg extends Space {
   organization_id?: string | null;
 }
 
-async function getOrganizations(token: string): Promise<Organization[]> {
+interface LoadResult<T> {
+  data: T;
+  failed: boolean;
+}
+
+async function getOrganizations(token: string): Promise<LoadResult<Organization[]>> {
   try {
     const res = await serverApiGet<ApiResponse<Organization[]>>("/api/organizations", token);
-    return res.data;
+    return { data: res.data, failed: false };
   } catch {
-    return [];
+    return { data: [], failed: true };
   }
 }
 
-async function getSpaces(token: string): Promise<SpaceWithOrg[]> {
+async function getSpaces(token: string): Promise<LoadResult<SpaceWithOrg[]>> {
   try {
     const res = await serverApiGet<ApiResponse<SpaceWithOrg[]>>("/api/spaces", token, {
       cache: "no-store",
     });
-    return res.data;
+    return { data: res.data, failed: false };
   } catch {
-    return [];
+    return { data: [], failed: true };
   }
 }
 
 export default async function AdminDashboard() {
   const token = await getServerAccessToken();
 
-  const [organizations, spaces] = await Promise.all([
+  const [organizationsResult, spacesResult] = await Promise.all([
     getOrganizations(token),
     getSpaces(token),
   ]);
+  const organizations = organizationsResult.data;
+  const spaces = spacesResult.data;
 
   const spacesByOrg = spaces.reduce((acc, space) => {
     const orgId = space.organization_id || "standalone";
@@ -57,6 +64,7 @@ export default async function AdminDashboard() {
     <AdminDashboardContent
       organizations={organizations}
       spacesByOrg={spacesByOrg}
+      loadError={organizationsResult.failed || spacesResult.failed}
     />
   );
 }

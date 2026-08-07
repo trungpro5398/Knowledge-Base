@@ -56,6 +56,9 @@ export const translations = {
     "admin.subtitle": "Tạo, chỉnh sửa và xuất bản tài liệu",
     "admin.organizationsTitle": "Kho tài liệu",
     "admin.organizationsSubtitle": "Tất cả tài liệu của bạn, được sắp xếp rõ ràng và dễ quản lý",
+    "admin.loadErrorTitle": "Chưa tải được dữ liệu kho tài liệu",
+    "admin.loadErrorDescription": "Dữ liệu chưa bị mất. Hãy thử tải lại trang; nếu vẫn lỗi, kiểm tra kết nối máy chủ.",
+    "admin.retry": "Thử lại",
     "admin.organizationsCount": "{{count}} kho",
     "admin.spacesCount": "{{count}} khu vực",
     "admin.manageSpaces": "Mở kho",
@@ -104,7 +107,7 @@ export const translations = {
 
     // Create Organization Form
     "organization.createTitle": "Tạo kho tài liệu",
-    "organization.createDesc": "Đặt tên kho. Các cài đặt kỹ thuật sẽ được tự động xử lý.",
+    "organization.createDesc": "Chỉ cần nhập tên. Hệ thống sẽ tự tạo khu vực đầu tiên và cấp quyền quản lý cho bạn.",
     "organization.nameLabel": "Tên kho tài liệu",
     "organization.namePlaceholder": "Ví dụ: Hướng dẫn vận hành TET…",
     "organization.descriptionLabel": "Mô tả (tùy chọn)",
@@ -117,6 +120,8 @@ export const translations = {
     "organization.createdSuccess": "Đã tạo kho tài liệu",
     "organization.createFailed": "Không thể tạo kho tài liệu",
     "organization.createErrorDefault": "Không thể tạo kho. Kiểm tra kết nối rồi thử lại.",
+    "organization.createErrorServer": "Máy chủ đang bận. Kho chưa được tạo; vui lòng thử lại sau ít phút.",
+    "organization.setupHint": "Bạn có thể đổi đường dẫn và các cài đặt khác trong Tùy chọn nâng cao.",
 
     // Delete Space
     "deleteSpace.button": "Xóa",
@@ -361,6 +366,9 @@ export const translations = {
     "admin.subtitle": "Edit content, manage pages",
     "admin.organizationsTitle": "Organizations",
     "admin.organizationsSubtitle": "Create organizations and manage spaces from each organization's dedicated page",
+    "admin.loadErrorTitle": "Your document libraries could not be loaded",
+    "admin.loadErrorDescription": "Your data has not been deleted. Reload the page and try again.",
+    "admin.retry": "Try again",
     "admin.organizationsCount": "{{count}} organizations",
     "admin.spacesCount": "{{count}} spaces",
     "admin.manageSpaces": "Manage spaces",
@@ -422,6 +430,8 @@ export const translations = {
     "organization.createdSuccess": "Organization created",
     "organization.createFailed": "Failed to create organization",
     "organization.createErrorDefault": "Failed to create organization. Please try again.",
+    "organization.createErrorServer": "The server is busy. Your library was not created; please try again shortly.",
+    "organization.setupHint": "You can change the URL and other settings under Advanced options.",
 
     // Delete Space
     "deleteSpace.button": "Delete",

@@ -51,6 +51,8 @@ DECLARE
   p9 text := tet_kb.api_param(p_params, 9);
   p10 text := tet_kb.api_param(p_params, 10);
   p11 text := tet_kb.api_param(p_params, 11);
+  executable_sql text := normalized;
+  placeholder_index integer;
 BEGIN
   IF normalized = ''
      OR length(normalized) > 20000
@@ -61,18 +63,32 @@ BEGIN
     RAISE EXCEPTION 'Query is not allowed';
   END IF;
 
+  -- PostgreSQL's native pg client infers parameter types from the query
+  -- (for example, a text UUID bound to a uuid column). EXECUTE USING keeps
+  -- each variable's declared type instead, so text parameters fail on UUID,
+  -- integer, jsonb and timestamp columns. Convert only the trusted API
+  -- placeholders to safely quoted SQL literals, preserving PostgreSQL's
+  -- normal type inference at the destination expression.
+  FOR placeholder_index IN REVERSE 12..1 LOOP
+    executable_sql := replace(
+      executable_sql,
+      '$' || placeholder_index::text,
+      quote_nullable(tet_kb.api_param(p_params, placeholder_index - 1))
+    );
+  END LOOP;
+
   IF normalized ~* '^select([[:space:]]|$)'
      OR (normalized ~* '^with([[:space:]]|$)'
          AND normalized !~* '(^|[[:space:]])(insert|update|delete)([[:space:]]|$)')
      OR normalized ~* '(^|[[:space:]])returning([[:space:]]|$)' THEN
-    FOR returned_row IN EXECUTE normalized USING p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11 LOOP
+    FOR returned_row IN EXECUTE executable_sql LOOP
       result_rows := result_rows || jsonb_build_array(to_jsonb(returned_row));
     END LOOP;
     affected_rows := jsonb_array_length(result_rows);
   ELSIF normalized ~* '^(insert|update|delete)([[:space:]]|$)'
      OR (normalized ~* '^with([[:space:]]|$)'
          AND normalized ~* '(^|[[:space:]])(insert|update|delete)([[:space:]]|$)') THEN
-    EXECUTE normalized USING p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11;
+    EXECUTE executable_sql;
     GET DIAGNOSTICS affected_rows = ROW_COUNT;
   ELSE
     RAISE EXCEPTION 'Only SELECT, INSERT, UPDATE, and DELETE are allowed';

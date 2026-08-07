@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiClient } from "@/lib/api/client";
+import { ApiError, apiClient } from "@/lib/api/client";
 import { Plus, ChevronDown, ChevronUp, Building2 } from "lucide-react";
 import { generateSlug } from "@/lib/utils";
 import { toast } from "sonner";
@@ -32,7 +32,6 @@ export function CreateOrganizationForm() {
   const router = useRouter();
 
   const derivedSlug = name.trim() ? generateSlug(name) : "";
-  const slugPreview = slug || derivedSlug || "new-organization";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +96,11 @@ export function CreateOrganizationForm() {
       setShowAdvanced(false);
       router.push(`/admin/spaces/${space.id}`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : t("organization.createErrorDefault");
+      const message = err instanceof ApiError && err.status >= 500
+        ? t("organization.createErrorServer")
+        : err instanceof Error
+          ? err.message
+          : t("organization.createErrorDefault");
       setError(message);
       toast.error(t("organization.createFailed"), { description: message });
       nameRef.current?.focus();
@@ -150,6 +153,7 @@ export function CreateOrganizationForm() {
               placeholder={t("organization.namePlaceholder")}
               className="flex-1"
               autoComplete="off"
+              required
               aria-invalid={!!error}
               aria-describedby={error ? "create-organization-error" : undefined}
             />
@@ -210,10 +214,9 @@ export function CreateOrganizationForm() {
         </div>
       </div>
 
-      <div className="mt-3 text-xs text-muted-foreground flex items-center gap-2">
+      <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
         <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
-        <span className="font-medium">{t("organization.slugPreview")}:</span>
-        <code className="bg-muted px-1.5 py-0.5 rounded">{slugPreview}</code>
+        <span>{t("organization.setupHint")}</span>
       </div>
     </form>
   );

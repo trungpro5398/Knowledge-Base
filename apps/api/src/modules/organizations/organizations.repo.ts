@@ -58,22 +58,20 @@ export async function createOrganization(data: {
   if (!pool) throw new Error("Database not configured");
   
   const { rows } = await pool.query<OrganizationRow>(
-    `INSERT INTO organizations (name, slug, icon, description)
-     VALUES ($1, $2, $3, $4)
-     RETURNING *`,
-    [data.name, data.slug, data.icon ?? null, data.description ?? null]
+    `WITH created AS (
+       INSERT INTO organizations (name, slug, icon, description)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *
+     ), member AS (
+       INSERT INTO organization_memberships (user_id, organization_id, role)
+       SELECT $5, created.id, 'owner'
+       FROM created
+     )
+     SELECT * FROM created`,
+    [data.name, data.slug, data.icon ?? null, data.description ?? null, data.createdBy]
   );
-  
-  const org = rows[0]!;
-  
-  // Add creator as owner
-  await pool.query(
-    `INSERT INTO organization_memberships (user_id, organization_id, role)
-     VALUES ($1, $2, 'owner')`,
-    [data.createdBy, org.id]
-  );
-  
-  return org;
+
+  return rows[0]!;
 }
 
 export async function getUserRoleInOrganization(

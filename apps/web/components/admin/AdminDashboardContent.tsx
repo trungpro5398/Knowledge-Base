@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { CreateOrganizationForm } from "@/components/organizations/CreateOrganizationForm";
 import { ManageSpacesButton } from "@/components/admin/ManageSpacesButton";
-import { ArrowRight, Building2, FileText, LibraryBig, Settings, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowRight, Building2, FileText, LibraryBig, RefreshCw, Settings, Sparkles } from "lucide-react";
 import type { Space } from "@/lib/api/types";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
@@ -22,11 +22,13 @@ interface SpaceWithOrg extends Space {
 interface AdminDashboardContentProps {
   organizations: Organization[];
   spacesByOrg: Record<string, SpaceWithOrg[]>;
+  loadError?: boolean;
 }
 
 export function AdminDashboardContent({
   organizations,
   spacesByOrg,
+  loadError = false,
 }: AdminDashboardContentProps) {
   const { t } = useLocale();
 
@@ -56,6 +58,29 @@ export function AdminDashboardContent({
           <div><p className="text-xs text-muted-foreground">Trạng thái</p><p className="text-sm font-semibold">Sẵn sàng quản lý</p></div>
         </div>
       </div>
+
+      {loadError && (
+        <div
+          className="mt-6 flex flex-col gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm sm:flex-row sm:items-center sm:justify-between"
+          role="alert"
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" aria-hidden="true" />
+            <div>
+              <p className="font-medium">{t("admin.loadErrorTitle")}</p>
+              <p className="mt-1 text-muted-foreground">{t("admin.loadErrorDescription")}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors hover:bg-muted"
+          >
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+            {t("admin.retry")}
+          </button>
+        </div>
+      )}
 
       <div className="mt-8 space-y-6">
         <CreateOrganizationForm />

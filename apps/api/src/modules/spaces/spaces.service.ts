@@ -2,7 +2,6 @@ import * as spacesRepo from "./spaces.repo.js";
 import * as organizationsRepo from "../organizations/organizations.repo.js";
 import { invalidatePublishedSpace } from "../public/public-cache.js";
 import { NotFoundError, ValidationError, ForbiddenError } from "../../utils/errors.js";
-import { pool } from "../../db/pool.js";
 import { getSpaceBySlugCached, invalidateSpaceCache } from "./spaces-cache.js";
 import { getSpacesForUserCached, getSpacesStatsCached, invalidateSpacesForUser } from "./spaces-user-cache.js";
 
@@ -62,16 +61,7 @@ export async function createSpace(
     createdBy: userId,
   });
 
-  await addMember(space.id, userId, "admin");
   invalidateSpaceCache(space.id, space.slug);
   invalidateSpacesForUser(userId);
   return space;
-}
-
-async function addMember(spaceId: string, userId: string, role: string) {
-  if (!pool) return;
-  await pool.query(
-    "INSERT INTO memberships (user_id, space_id, role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-    [userId, spaceId, role]
-  );
 }

@@ -125,10 +125,17 @@ export async function createSpace(data: {
 }): Promise<SpaceRow> {
   if (!pool) throw new Error("Database not configured");
   const { rows } = await pool.query<SpaceRow>(
-    `INSERT INTO spaces (name, slug, icon, description, organization_id)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING *`,
-    [data.name, data.slug, data.icon ?? null, data.description ?? null, data.organization_id ?? null]
+    `WITH created AS (
+       INSERT INTO spaces (name, slug, icon, description, organization_id)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *
+     ), member AS (
+       INSERT INTO memberships (user_id, space_id, role)
+       SELECT $6, created.id, 'admin'
+       FROM created
+     )
+     SELECT * FROM created`,
+    [data.name, data.slug, data.icon ?? null, data.description ?? null, data.organization_id ?? null, data.createdBy]
   );
   return rows[0]!;
 }
