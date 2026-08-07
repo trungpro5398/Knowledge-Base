@@ -137,8 +137,12 @@ export async function attachmentsRoutes(fastify: FastifyInstance, auth: AuthHand
       // Check user has access to the page's space
       const { rows } = await pool.query(
         `SELECT 1 FROM pages p
-         JOIN memberships m ON m.space_id = p.space_id AND m.user_id = $1
-         WHERE p.id = $2`,
+         JOIN spaces s ON s.id = p.space_id
+         LEFT JOIN memberships m ON m.space_id = p.space_id AND m.user_id = $1
+         LEFT JOIN organization_memberships om
+           ON om.organization_id = s.organization_id AND om.user_id = $1
+         WHERE (m.user_id IS NOT NULL OR om.user_id IS NOT NULL)
+           AND p.id = $2`,
         [userId, pageId]
       );
 

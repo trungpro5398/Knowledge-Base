@@ -10,27 +10,52 @@ function hasMinRole(role: Role, minRole: Role): boolean {
 }
 
 async function getMemberRole(userId: string, spaceId: string): Promise<Role | null> {
-  const { rows } = await pool.query<{ role: Role }>(
-    "SELECT role FROM memberships WHERE user_id = $1 AND space_id = $2",
+  const { rows } = await pool.query<{ direct_role: Role | null; organization_role: string | null }>(
+    `SELECT m.role AS direct_role, om.role AS organization_role
+     FROM spaces s
+     LEFT JOIN memberships m ON m.space_id = s.id AND m.user_id = $1
+     LEFT JOIN organization_memberships om
+       ON om.organization_id = s.organization_id AND om.user_id = $1
+     WHERE s.id = $2`,
     [userId, spaceId]
   );
-  return rows[0]?.role ?? null;
+  const row = rows[0];
+  if (row?.direct_role) return row.direct_role;
+  if (row?.organization_role === "admin" || row?.organization_role === "owner") return "admin";
+  if (row?.organization_role === "member") return "viewer";
+  return null;
 }
 
 async function getPageAccess(
   userId: string,
   pageId: string
 ): Promise<{ spaceId: string; role: Role | null; path: string; status: string } | null> {
-  const { rows } = await pool.query<{ space_id: string; role: Role | null; path: string; status: string }>(
-    `SELECT p.space_id, p.path::text as path, p.status, m.role
+  const { rows } = await pool.query<{
+    space_id: string;
+    direct_role: Role | null;
+    organization_role: string | null;
+    path: string;
+    status: string;
+  }>(
+    `SELECT p.space_id, p.path::text as path, p.status,
+            m.role AS direct_role, om.role AS organization_role
      FROM pages p
+     JOIN spaces s ON s.id = p.space_id
      LEFT JOIN memberships m ON m.space_id = p.space_id AND m.user_id = $1
+     LEFT JOIN organization_memberships om
+       ON om.organization_id = s.organization_id AND om.user_id = $1
      WHERE p.id = $2`,
     [userId, pageId]
   );
   const row = rows[0];
   if (!row) return null;
-  return { spaceId: row.space_id, role: row.role ?? null, path: row.path, status: row.status };
+  const role = row.direct_role ??
+    (row.organization_role === "admin" || row.organization_role === "owner"
+      ? "admin"
+      : row.organization_role === "member"
+        ? "viewer"
+        : null);
+  return { spaceId: row.space_id, role, path: row.path, status: row.status };
 }
 
 async function checkRole(

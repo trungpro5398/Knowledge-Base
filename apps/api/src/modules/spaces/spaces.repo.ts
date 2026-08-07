@@ -155,16 +155,18 @@ export async function deleteSpace(id: string): Promise<void> {
 export async function getSpacesStats(userId: string): Promise<SpaceStats[]> {
   if (!pool) return [];
   const { rows } = await pool.query<SpaceStats>(
-    `SELECT 
+    `SELECT
        s.id as space_id,
        COUNT(p.id) FILTER (WHERE t.page_id IS NULL)::int as total_pages,
        COUNT(p.id) FILTER (WHERE t.page_id IS NULL AND p.status = 'published')::int as published_pages,
        COUNT(p.id) FILTER (WHERE t.page_id IS NULL AND p.status = 'draft')::int as draft_pages
      FROM spaces s
-     JOIN memberships m ON m.space_id = s.id
+     LEFT JOIN memberships m ON m.space_id = s.id AND m.user_id = $1
+     LEFT JOIN organization_memberships om
+       ON om.organization_id = s.organization_id AND om.user_id = $1
      LEFT JOIN pages p ON s.id = p.space_id
      LEFT JOIN trash t ON t.page_id = p.id
-     WHERE m.user_id = $1
+     WHERE m.user_id IS NOT NULL OR om.user_id IS NOT NULL
      GROUP BY s.id`,
     [userId]
   );
