@@ -74,9 +74,11 @@ API project cần các biến server-side sau, Production và Preview:
 * `SUPABASE_URL`
 * `SUPABASE_SECRET_KEY`
 * `SUPABASE_JWKS_URL`
-* `DATABASE_POOLER_URL` — connection string Supabase Session Pooler; không đưa vào client hoặc Git
 * `CORS_ORIGINS` — `https://kb.tet-edu.com,http://localhost:3000`
+
+API dùng Supabase PostgREST/RPC ở phía server với `SUPABASE_SECRET_KEY`, nên không
+cần `DATABASE_POOLER_URL`, Fly.io hoặc IPv4 add-on của Supabase.
 
 Sau khi API deploy thành công, cập nhật `NEXT_PUBLIC_API_URL` của project web bằng domain Vercel API rồi redeploy web.
 
-Fly chỉ giữ làm rollback tạm thời; không cần xoá app hoặc dữ liệu CRM.
+Fly app có thể giữ nguyên làm rollback thủ công; workflow tự động không còn cần thiết.

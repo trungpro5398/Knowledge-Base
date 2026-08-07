@@ -102,20 +102,23 @@ export async function getSpacesByOrganization(organizationId: string) {
 
 export async function deleteOrganization(id: string): Promise<void> {
   if (!pool) throw new Error("Database not configured");
-  await pool.query("BEGIN");
+  const client = await pool.connect();
   try {
+    await client.query("BEGIN");
     // Soft delete organization
-    await pool.query(
+    await client.query(
       "UPDATE organizations SET deleted_at = NOW(), updated_at = NOW() WHERE id = $1",
       [id]
     );
     // Orphan spaces (make them standalone)
-    await pool.query("UPDATE spaces SET organization_id = NULL WHERE organization_id = $1", [id]);
+    await client.query("UPDATE spaces SET organization_id = NULL WHERE organization_id = $1", [id]);
     // Remove memberships
-    await pool.query("DELETE FROM organization_memberships WHERE organization_id = $1", [id]);
-    await pool.query("COMMIT");
+    await client.query("DELETE FROM organization_memberships WHERE organization_id = $1", [id]);
+    await client.query("COMMIT");
   } catch (e) {
-    await pool.query("ROLLBACK");
+    await client.query("ROLLBACK");
     throw e;
+  } finally {
+    client.release();
   }
 }
