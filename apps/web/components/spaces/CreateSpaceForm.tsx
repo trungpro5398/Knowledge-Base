@@ -32,7 +32,7 @@ export function CreateSpaceForm({ organizationId }: CreateSpaceFormProps) {
     try {
       const finalName = name || t("space.defaultName");
       const finalSlug = slug || generateSlug(finalName) || t("space.defaultSlug");
-      await apiClient("/api/spaces", {
+      const res = await apiClient<{ data: { id: string } }>("/api/spaces", {
         method: "POST",
         body: {
           name: finalName,
@@ -41,6 +41,7 @@ export function CreateSpaceForm({ organizationId }: CreateSpaceFormProps) {
         },
       });
       toast.success(t("space.createdSuccess"), { description: finalName });
+      router.push(`/admin/spaces/${res.data.id}/pages/new`);
       router.refresh();
       setName("");
       setSlug("");

@@ -69,7 +69,7 @@ export function ManageSpacesButton({
     try {
       const createdSpace = await createInitialSpace();
       toast.success(t("space.createdSuccess"), { description: createdSpace.name });
-      router.push(`/admin/spaces/${createdSpace.id}`);
+      router.push(`/admin/spaces/${createdSpace.id}/pages/new`);
       router.refresh();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t("space.createErrorDefault");

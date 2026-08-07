@@ -146,7 +146,7 @@ export function SpaceSwitcher({
 
       toast.success(t("space.createdSuccess"), { description: res.data.name });
       closePanel();
-      router.push(`/admin/spaces/${res.data.id}`);
+      router.push(`/admin/spaces/${res.data.id}/pages/new`);
       router.refresh();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t("space.createErrorDefault");
