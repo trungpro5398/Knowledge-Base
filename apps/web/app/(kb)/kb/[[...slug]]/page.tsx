@@ -10,6 +10,7 @@ import { KbNewToProSysLink } from "@/components/kb/KbNewToProSysLink";
 import { MobileSidebar } from "@/components/kb/mobile-sidebar";
 import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
 import { CopyLinkButton } from "@/components/ui/copy-link-button";
+import { KbContextHeader } from "@/components/kb/KbContextHeader";
 import type { TreeNode } from "@/components/kb/PageTree";
 import type { Space } from "@/lib/api/types";
 import { slugToPath } from "@/lib/routing/slug";
@@ -21,6 +22,7 @@ interface RenderData {
   version: { content_md: string | null; rendered_html: string | null; toc: { id: string; text: string; level: number }[] };
   tree: TreeNode[];
   breadcrumb: { title: string; path: string }[];
+  space: { name: string; organization_name?: string | null };
 }
 
 type StartLink = { label: string; path: string };
@@ -118,6 +120,7 @@ export default async function KbPage({
       getPublicSpaces(),
     ]);
     const startLinks = getStartLinks(tree);
+    const currentSpace = spaces.find((space) => space.slug === spaceSlug);
     return (
       <>
         <div className="flex gap-6 py-4 md:py-8">
@@ -126,6 +129,10 @@ export default async function KbPage({
         </CollapsibleSidebar>
         <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
           <div className="container max-w-4xl py-4 md:py-8">
+            <KbContextHeader
+              spaceName={currentSpace?.name || spaceSlug}
+              organizationName={currentSpace?.organization_name}
+            />
             {spaceSlug === "tet-prosys" && startLinks.length > 0 && (
               <ReadThisFirst spaceSlug={spaceSlug} items={startLinks} />
             )}
@@ -155,7 +162,7 @@ export default async function KbPage({
 
   if (!data) notFound();
 
-  const { page, version, breadcrumb } = data;
+  const { page, version, breadcrumb, space } = data;
   const useRenderedHtml = !!version.rendered_html;
   return (
     <>
@@ -165,11 +172,17 @@ export default async function KbPage({
       </CollapsibleSidebar>
       <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
         <div className="container max-w-4xl py-4 md:py-8">
+          <KbContextHeader
+            spaceName={space.name}
+            organizationName={space.organization_name}
+          />
           {spaceSlug === "tet-prosys" && <KbNewToProSysLink spaceSlug={spaceSlug} />}
           <Breadcrumbs
             spaceSlug={spaceSlug}
             path={path}
             title={page.title}
+            spaceName={space.name}
+            organizationName={space.organization_name}
             items={breadcrumb}
             sticky
           />

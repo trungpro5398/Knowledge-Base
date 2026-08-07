@@ -128,8 +128,8 @@ function TreeNodeItem({
           <Link
             href={`/admin/spaces/${spaceId}/pages/new?parentId=${node.id}`}
             className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0"
-            title="Tạo trang con"
-            aria-label="Tạo trang con"
+            title="Tạo tài liệu con"
+            aria-label="Tạo tài liệu con"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
@@ -417,8 +417,8 @@ function SortableTreeItem({
           <Link
             href={`/admin/spaces/${spaceId}/pages/new?parentId=${item.id}`}
             className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0"
-            title="Tạo trang con"
-            aria-label="Tạo trang con"
+            title="Tạo tài liệu con"
+            aria-label="Tạo tài liệu con"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
@@ -667,8 +667,8 @@ export function PageTree({
     return (
       <div className="py-8 text-center">
         <FolderOpen className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
-        <p className="text-sm text-muted-foreground mb-2">Chưa có trang nào.</p>
-        <p className="text-xs text-muted-foreground">Tạo trang mới trong Admin để bắt đầu.</p>
+        <p className="text-sm text-muted-foreground mb-2">Chưa có tài liệu nào.</p>
+        <p className="text-xs text-muted-foreground">Tạo tài liệu mới trong Quản lý để bắt đầu.</p>
         {showCreateLink && linkMode === "admin" && (
           <div className="mt-4">
             <Link
@@ -676,7 +676,7 @@ export function PageTree({
               className="btn-primary h-8 px-3 text-xs gap-2"
             >
               <Plus className="h-3.5 w-3.5" />
-              Tạo trang
+              Tạo tài liệu
             </Link>
           </div>
         )}
@@ -692,7 +692,7 @@ export function PageTree({
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <Plus className="h-4 w-4" />
-          Tạo trang mới
+          Tạo tài liệu mới
         </Link>
       </div>
     ) : null;

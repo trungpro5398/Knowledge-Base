@@ -37,7 +37,7 @@ export default async function PageEditor({
   if (!page || !space) {
     return (
       <div className="p-8">
-        <p>Trang không tồn tại</p>
+        <p>Tài liệu không tồn tại</p>
       </div>
     );
   }

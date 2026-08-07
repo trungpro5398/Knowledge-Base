@@ -133,10 +133,6 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
           aria-invalid={!!error}
           aria-describedby={error ? "new-page-error" : undefined}
         />
-        <p className="text-xs text-muted-foreground mt-2">
-          {t("page.slugAuto")}:{" "}
-          <code className="bg-muted px-1.5 py-0.5 rounded">{slugPreview}</code>
-        </p>
       </div>
 
       {/* Advanced section - collapsed by default */}
@@ -156,6 +152,9 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
 
         {showAdvanced && (
           <div className="mt-4 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Hệ thống tự tạo đường dẫn cho tài liệu. Chỉ thay đổi nếu bạn có nhu cầu đặc biệt.
+            </p>
             <div>
               <label htmlFor="page-slug" className="block text-sm font-medium mb-2">
                 {t("common.urlSlug")}

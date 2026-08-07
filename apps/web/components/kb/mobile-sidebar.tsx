@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SidebarSearchFilter } from "./SidebarSearchFilter";
 import type { TreeNode } from "./PageTree";
 import type { Space } from "@/lib/api/types";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 interface MobileSidebarProps {
   spaceId: string;
@@ -22,6 +23,7 @@ export function MobileSidebar({
   showEditLink = false,
   spaces = [],
 }: MobileSidebarProps) {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -83,7 +85,7 @@ export function MobileSidebar({
               {spaces.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Spaces
+                    {t("sidebar.spaces")}
                   </p>
                   <div className="space-y-1">
                     {spaces.map((space) => (
@@ -95,8 +97,8 @@ export function MobileSidebar({
                         }`}
                       >
                         <span className="font-medium truncate">{space.name}</span>
-                        <span className="text-[10px] text-muted-foreground font-mono">
-                          /kb/{space.slug}
+                        <span className="text-[10px] text-muted-foreground truncate">
+                          {space.organization_name || t("viewer.standaloneLabel")}
                         </span>
                       </Link>
                     ))}

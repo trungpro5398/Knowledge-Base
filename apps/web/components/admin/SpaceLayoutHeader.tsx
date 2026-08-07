@@ -40,7 +40,7 @@ export function SpaceLayoutHeader({
             currentSpaceId={spaceId}
           />
           <p className="mt-1 px-3 text-[11px] text-muted-foreground truncate">
-            Kho: {spaceName}
+            Kho tài liệu: {spaceName}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -49,14 +49,14 @@ export function SpaceLayoutHeader({
             className="h-9 px-3 text-sm border rounded-lg hover:bg-muted transition-colors flex items-center gap-2"
           >
             <Settings className="h-4 w-4" />
-            Người & quyền
+            Thành viên & quyền
           </Link>
           <Link
             href={`/admin/spaces/${spaceId}/pages/new`}
             className="btn-primary h-9 px-3 text-sm gap-2"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Tạo bài viết
+            Tạo tài liệu
           </Link>
         </div>
       </div>

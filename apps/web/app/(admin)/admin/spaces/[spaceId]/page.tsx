@@ -42,12 +42,12 @@ export default async function SpacePage({
   return (
     <div className="flex items-center justify-center h-full p-8">
       <div className="text-center max-w-md">
-        <h2 className="text-xl font-semibold mb-2">Chưa có trang nào</h2>
+          <h2 className="text-xl font-semibold mb-2">Chưa có tài liệu nào</h2>
         <p className="text-muted-foreground mb-4">
-          Tạo trang đầu tiên để bắt đầu xây nội dung cho không gian này.
+          Tạo tài liệu đầu tiên để bắt đầu xây nội dung cho kho này.
         </p>
         <Link href={`/admin/spaces/${spaceId}/pages/new`} className="btn-primary">
-          Tạo trang đầu tiên
+          Tạo tài liệu đầu tiên
         </Link>
       </div>
     </div>

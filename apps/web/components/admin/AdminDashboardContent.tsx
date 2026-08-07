@@ -47,16 +47,19 @@ export function AdminDashboardContent({
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border bg-card p-4 flex items-center gap-3">
           <div className="rounded-xl bg-primary/10 p-2.5 text-primary"><LibraryBig className="h-5 w-5" aria-hidden="true" /></div>
-          <div><p className="text-xs text-muted-foreground">Kho tài liệu</p><p className="text-xl font-semibold tabular-nums">{organizations.length}</p></div>
+          <div><p className="text-xs text-muted-foreground">Nhóm quản lý</p><p className="text-xl font-semibold tabular-nums">{organizations.length}</p></div>
         </div>
         <div className="rounded-2xl border bg-card p-4 flex items-center gap-3">
           <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600 dark:text-blue-400"><FileText className="h-5 w-5" aria-hidden="true" /></div>
-          <div><p className="text-xs text-muted-foreground">Khu vực nội dung</p><p className="text-xl font-semibold tabular-nums">{spaceCount}</p></div>
+          <div><p className="text-xs text-muted-foreground">Kho tài liệu</p><p className="text-xl font-semibold tabular-nums">{spaceCount}</p></div>
         </div>
         <div className="rounded-2xl border bg-card p-4 flex items-center gap-3">
           <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-600 dark:text-amber-400"><Sparkles className="h-5 w-5" aria-hidden="true" /></div>
           <div><p className="text-xs text-muted-foreground">Trạng thái</p><p className="text-sm font-semibold">Sẵn sàng quản lý</p></div>
         </div>
+      </div>
+      <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+        {t("admin.levelsHint")}
       </div>
 
       {loadError && (
@@ -128,7 +131,7 @@ export function AdminDashboardContent({
                       className="h-9 px-3 text-sm border rounded-lg hover:bg-muted transition-colors flex items-center justify-center gap-2"
                     >
                       <Settings className="h-4 w-4" />
-                      Người & quyền
+                      Thành viên & quyền
                       <ArrowRight className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
                     </Link>
                   </div>

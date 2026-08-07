@@ -21,7 +21,7 @@ export function KbSidebarContent({
   const { t } = useLocale();
   return (
     <nav className="flex flex-col h-full">
-      {/* Không gian - danh sách các kho tài liệu */}
+      {/* Danh sách các kho tài liệu */}
       {spaces.length > 0 && (
         <div className="px-3 pt-4 pb-2">
           <p className="text-[11px] font-medium text-muted-foreground mb-2 px-1">
@@ -41,8 +41,8 @@ export function KbSidebarContent({
                 )}
               >
                 <span className="font-medium truncate block">{space.name}</span>
-                <span className="text-[10px] text-muted-foreground font-mono truncate block">
-                  /kb/{space.slug}
+                <span className="text-[10px] text-muted-foreground truncate block">
+                  {space.organization_name || t("viewer.standaloneLabel")}
                 </span>
               </Link>
             ))}

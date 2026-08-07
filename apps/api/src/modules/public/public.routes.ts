@@ -66,6 +66,10 @@ export async function publicRoutes(fastify: FastifyInstance) {
       },
       tree,
       breadcrumb,
+      space: {
+        name: space.name,
+        organization_name: space.organization_name ?? null,
+      },
     };
 
     reply.header("ETag", etag);

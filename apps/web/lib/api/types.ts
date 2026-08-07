@@ -22,6 +22,8 @@ export interface Space {
   description?: string | null;
   created_at: string;
   updated_at: string;
+  organization_id?: string | null;
+  organization_name?: string | null;
 }
 
 // Page types

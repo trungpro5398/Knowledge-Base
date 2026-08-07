@@ -9,6 +9,7 @@ export interface SpaceRow {
   organization_id: string | null;
   created_at: Date;
   updated_at: Date;
+  organization_name?: string | null;
 }
 
 export async function listSpacesForUser(userId: string): Promise<SpaceRow[]> {
@@ -36,7 +37,8 @@ export async function listSpacesForUser(userId: string): Promise<SpaceRow[]> {
 export async function listPublicSpaces(): Promise<SpaceRow[]> {
   if (!pool) return [];
   const { rows } = await pool.query<SpaceRow>(
-    `SELECT s.* FROM spaces s
+    `SELECT s.*, o.name AS organization_name FROM spaces s
+     LEFT JOIN organizations o ON o.id = s.organization_id AND o.deleted_at IS NULL
      WHERE EXISTS (
        SELECT 1
        FROM pages p
@@ -111,7 +113,13 @@ export async function getSpaceForUser(spaceId: string, userId: string): Promise<
 
 export async function getSpaceBySlug(slug: string): Promise<SpaceRow | null> {
   if (!pool) return null;
-  const { rows } = await pool.query<SpaceRow>("SELECT * FROM spaces WHERE slug = $1", [slug]);
+  const { rows } = await pool.query<SpaceRow>(
+    `SELECT s.*, o.name AS organization_name
+     FROM spaces s
+     LEFT JOIN organizations o ON o.id = s.organization_id AND o.deleted_at IS NULL
+     WHERE s.slug = $1`,
+    [slug]
+  );
   return rows[0] ?? null;
 }
 

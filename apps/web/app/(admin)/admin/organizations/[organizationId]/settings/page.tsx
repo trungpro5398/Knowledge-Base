@@ -63,14 +63,14 @@ export default async function OrganizationSettingsPage({
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <Settings className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-2xl font-bold">Người & quyền truy cập</h1>
+          <h1 className="text-2xl font-bold">Nhóm quản lý & quyền</h1>
         </div>
         <p className="text-muted-foreground">{organization.name}</p>
       </div>
 
       <div className="space-y-8">
         <p className="text-sm text-muted-foreground -mt-4">
-          Chọn quyền theo vai trò. Quyền ở một khu vực riêng sẽ được ưu tiên nếu có.
+          Nhóm quản lý dùng để quản lý thành viên và quyền cho các kho tài liệu thuộc nhóm này.
         </p>
 
         <section>

@@ -185,7 +185,7 @@ export function SpaceSwitcher({
             {currentSpace?.name || t("spaceSwitcher.selectSpace")}
           </p>
           <p className="text-xs text-muted-foreground truncate">
-            {currentSpace ? "Đang quản lý nội dung" : t("spaceSwitcher.noSpaceSelected")}
+            {currentSpace ? "Kho tài liệu đang mở" : t("spaceSwitcher.noSpaceSelected")}
           </p>
         </div>
         <ChevronDown
@@ -261,7 +261,7 @@ export function SpaceSwitcher({
                       <div key={org.id}>
                         <div className="flex items-center gap-2 px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           {org.icon || <Building2 className="h-3 w-3" aria-hidden="true" />}
-                          <span>{org.name}</span>
+                          <span>{t("spaceSwitcher.organizationLabel", { name: org.name })}</span>
                         </div>
                         <div className="space-y-0.5 mt-1">
                           {orgSpaces.map((space) => (

@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { pathToSlug } from "@/lib/routing/slug";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 interface BreadcrumbItem {
   title: string;
@@ -10,6 +13,8 @@ interface BreadcrumbsProps {
   spaceSlug: string;
   path: string;
   title: string;
+  spaceName?: string;
+  organizationName?: string | null;
   items?: BreadcrumbItem[];
   className?: string;
   /** Sticky bar below header with chip-style breadcrumbs */
@@ -20,27 +25,35 @@ export function Breadcrumbs({
   spaceSlug,
   path,
   title,
+  spaceName,
+  organizationName,
   items: apiItems,
   className = "",
   sticky = false,
 }: BreadcrumbsProps) {
+  const { t } = useLocale();
   const crumbs: { label: string; href: string }[] = apiItems
-    ? apiItems.map((item, i) => {
-        const isLast = i === apiItems.length - 1;
-        const href = isLast
-          ? ""
-          : item.path === ""
-            ? "/kb"
-            : item.path === spaceSlug
-              ? `/kb/${spaceSlug}`
-              : `/kb/${spaceSlug}/${item.path.split(".").join("/")}`;
-        return { label: item.title, href };
-      })
+    ? [
+        {
+          label: `${t("viewer.organizationLabel")}: ${organizationName || t("viewer.standaloneLabel")}`,
+          href: "/kb",
+        },
+        {
+          label: `${t("viewer.spaceLabel")}: ${spaceName || spaceSlug}`,
+          href: `/kb/${spaceSlug}`,
+        },
+        ...apiItems.slice(2).map((item, i, pageItems) => ({
+          label: item.title,
+          href: i === pageItems.length - 1
+            ? ""
+            : `/kb/${spaceSlug}/${item.path.split(".").join("/")}`,
+        })),
+      ]
     : (() => {
         const parts = pathToSlug(path);
         const c: { label: string; href: string }[] = [
-          { label: "KB", href: "/kb" },
-          { label: spaceSlug, href: `/kb/${spaceSlug}` },
+          { label: t("viewer.organizationLabel"), href: "/kb" },
+          { label: `${t("viewer.spaceLabel")}: ${spaceName || spaceSlug}`, href: `/kb/${spaceSlug}` },
         ];
         let acc = "";
         for (let i = 0; i < parts.length - 1; i++) {
