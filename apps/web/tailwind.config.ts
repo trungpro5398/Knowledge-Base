@@ -11,6 +11,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["Pathway Extreme", "var(--font-sans)", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -34,6 +35,14 @@ const config: Config = {
         },
         input: "hsl(var(--border))",
         ring: "hsl(var(--ring))",
+        brand: {
+          orange: "hsl(var(--brand-orange))",
+          "deep-orange": "hsl(var(--brand-deep-orange))",
+          navy: "hsl(var(--brand-navy))",
+          blue: "hsl(var(--brand-blue))",
+          cyan: "hsl(var(--brand-cyan))",
+          "warm-gray": "hsl(var(--brand-warm-gray))",
+        },
         destructive: "hsl(var(--destructive))",
       },
       borderRadius: {
@@ -86,4 +95,3 @@ const config: Config = {
 };
 
 export default config;
-

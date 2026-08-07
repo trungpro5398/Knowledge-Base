@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Pathway+Extreme:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,44 +9,56 @@
     color-scheme: light;
     --background: 210 20% 98%;
     --foreground: 222 47% 11%;
-    --primary: 160 84% 39%;
+    --primary: 195 83% 16%;
     --primary-foreground: 0 0% 100%;
+    --brand-orange: 7 100% 60%;
+    --brand-deep-orange: 15 78% 27%;
+    --brand-navy: 195 83% 16%;
+    --brand-blue: 202 61% 54%;
+    --brand-cyan: 190 72% 48%;
+    --brand-warm-gray: 50 11% 89%;
     --secondary: 210 40% 94%;
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
     --border: 214 32% 91%;
-    --ring: 160 84% 39%;
+    --ring: 195 83% 16%;
     --radius: 0.625rem;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
 
     /* Active states */
-    --sidebar-active-bg: 160 84% 39% / 0.08;
-    --sidebar-active-border: 160 84% 39%;
+    --sidebar-active-bg: 7 100% 60% / 0.09;
+    --sidebar-active-border: 7 100% 60%;
     --tree-line: 214 32% 85%;
-    --tree-line-active: 160 84% 50%;
+    --tree-line-active: 7 100% 60%;
   }
 
   .dark {
     color-scheme: dark;
     --background: 222 47% 7%;
     --foreground: 210 40% 98%;
-    --primary: 160 70% 45%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 190 72% 48%;
+    --primary-foreground: 195 83% 16%;
+    --brand-orange: 7 100% 60%;
+    --brand-deep-orange: 15 78% 34%;
+    --brand-navy: 195 83% 16%;
+    --brand-blue: 202 61% 60%;
+    --brand-cyan: 190 72% 48%;
+    --brand-warm-gray: 50 11% 89%;
     --secondary: 217 33% 17%;
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
     --border: 217 33% 17%;
-    --ring: 160 70% 45%;
+    --ring: 190 72% 48%;
     --card: 222 47% 10%;
     --card-foreground: 210 40% 98%;
 
     /* Active states - dark */
-    --sidebar-active-bg: 160 70% 45% / 0.12;
-    --sidebar-active-border: 160 70% 50%;
+    --sidebar-active-bg: 7 100% 60% / 0.14;
+    --sidebar-active-border: 7 100% 60%;
     --tree-line: 217 33% 25%;
-    --tree-line-active: 160 70% 50%;
+    --tree-line-active: 7 100% 60%;
   }
 }
 
@@ -57,6 +71,8 @@
   h2,
   h3 {
     text-wrap: balance;
+    font-family: "Pathway Extreme", var(--font-sans), system-ui, sans-serif;
+    letter-spacing: -0.02em;
   }
 
   body {

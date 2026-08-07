@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Search, LogIn, Settings, LogOut, Keyboard } from "lucide-react";
+import { Search, LogIn, Settings, LogOut, Keyboard } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LocaleToggle } from "@/components/locale-toggle";
 import { useShortcuts } from "@/components/keyboard/shortcuts-provider";
@@ -27,11 +28,10 @@ export function SiteHeader({
       <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
         <Link
           href="/"
-          className="flex items-center gap-2 font-semibold text-foreground hover:text-primary transition-colors"
+          className="flex items-center gap-2 font-semibold text-foreground transition-colors"
         >
-          <BookOpen className="h-5 w-5 text-primary" aria-hidden="true" />
-          <span className="hidden sm:inline">{t("header.title")}</span>
-          <span className="sm:hidden">{t("header.titleShort")}</span>
+          <BrandLogo priority className="h-9 w-[152px] sm:h-10 sm:w-[178px]" />
+          <span className="sr-only">{t("header.title")}</span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
           <Link
@@ -46,7 +46,7 @@ export function SiteHeader({
             <>
               <Link
                 href="/admin"
-                className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-brand-orange hover:bg-brand-orange/10 transition-colors"
                 aria-label="Admin"
               >
                 <Settings className="h-4 w-4" aria-hidden="true" />

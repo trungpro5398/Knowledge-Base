@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpen, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { createClient } from "@/lib/auth/supabase-browser";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
@@ -48,10 +49,10 @@ export function LoginForm() {
       <div className="w-full max-w-md">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
+          className="mb-8 inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
         >
-          <BookOpen className="h-5 w-5" aria-hidden="true" />
-          <span className="font-medium">{t("auth.appName")}</span>
+          <BrandLogo className="h-10 w-[178px]" />
+          <span className="sr-only">{t("auth.appName")}</span>
         </Link>
         <div className="card">
           <div className="flex items-center gap-3 mb-6">

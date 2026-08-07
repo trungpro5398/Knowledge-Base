@@ -4,7 +4,8 @@ import Link from "next/link";
 import { SearchBar } from "@/components/search/SearchBar";
 import { LocaleToggle } from "@/components/locale-toggle";
 import { AdminLogoutButton } from "./AdminLogoutButton";
-import { LayoutDashboard, Trash2, BookOpen, FileText } from "lucide-react";
+import { LayoutDashboard, Trash2, BookOpen } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
 export function AdminSidebarContent() {
@@ -13,12 +14,12 @@ export function AdminSidebarContent() {
   return (
     <>
       <div className="p-5 border-b border-border bg-gradient-to-b from-primary/5 to-transparent">
+        <BrandLogo className="mb-4 h-9 w-[164px]" />
         <div className="flex items-center justify-between gap-2 mb-2">
           <Link
             href="/admin"
             className="flex items-center gap-2 font-bold text-lg hover:text-primary transition-colors"
           >
-            <FileText className="h-6 w-6 text-primary" aria-hidden="true" />
             {t("admin.title")}
           </Link>
           <span className="rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
