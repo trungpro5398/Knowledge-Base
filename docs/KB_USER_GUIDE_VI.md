@@ -1,332 +1,442 @@
-# Hướng dẫn sử dụng Kho Tài Liệu TET
+# SOP sử dụng Kho Tài Liệu TET
 
-> Tài liệu này dành cho người không chuyên kỹ thuật. Bạn chỉ cần biết cách đăng nhập Google, đặt tên rõ ràng và viết nội dung; hệ thống tự xử lý đường dẫn, cấu trúc dữ liệu và việc hiển thị bản public.
+> Tài liệu hướng dẫn chuẩn cho người không rành kỹ thuật. Làm theo đúng thứ tự từ trên xuống dưới để tạo, quản lý, xuất bản và chia sẻ tài liệu mà không bị nhầm giữa Nhóm quản lý, Kho tài liệu và Trang tài liệu.
+
+**Phiên bản:** 1.0
+**Cập nhật:** 08/08/2026
+**Môi trường tham chiếu:** [kb.tet-edu.com](https://kb.tet-edu.com)
+**Phạm vi:** Knowledge Base. Không áp dụng cho CRM tại `crm.tet-edu.com`.
+
+## Mục lục
+
+1. [Hiểu đúng ba lớp của hệ thống](#1-hiểu-đúng-ba-lớp-của-hệ-thống)
+2. [Flow chuẩn từ lúc đăng nhập đến lúc bàn giao](#2-flow-chuẩn-từ-lúc-đăng-nhập-đến-lúc-bàn-giao)
+3. [Chuẩn bị trước khi tạo nội dung](#3-chuẩn-bị-trước-khi-tạo-nội-dung)
+4. [Đăng nhập](#4-đăng-nhập)
+5. [Tạo và phân biệt Kho tài liệu](#5-tạo-và-phân-biệt-kho-tài-liệu)
+6. [Tạo Trang tài liệu và mục lục](#6-tạo-trang-tài-liệu-và-mục-lục)
+7. [Soạn nội dung](#7-soạn-nội-dung)
+8. [Lưu bản nháp và xuất bản](#8-lưu-bản-nháp-và-xuất-bản)
+9. [Thiết lập Nhóm quản lý và quyền ở Kho](#9-thiết-lập-nhóm-quản-lý-và-quyền-ở-kho)
+10. [Xem tài liệu như người đọc](#10-xem-tài-liệu-như-người-đọc)
+11. [Nhiều Kho tài liệu và cách tránh nhầm](#11-nhiều-kho-tài-liệu-và-cách-tránh-nhầm)
+12. [Thùng rác và phục hồi](#12-thùng-rác-và-phục-hồi)
+13. [Xử lý lỗi thường gặp](#13-xử-lý-lỗi-thường-gặp)
+14. [Checklist bàn giao](#14-checklist-bàn-giao)
 
 ## 1. Hiểu đúng ba lớp của hệ thống
 
-Điểm dễ nhầm nhất là **Nhóm quản lý**, **Kho tài liệu** và **Tài liệu** không phải là ba tên gọi khác nhau của cùng một thứ. Chúng nằm ở ba tầng khác nhau:
+Đây là phần quan trọng nhất. Nếu chọn nhầm tầng, bạn sẽ tạo sai nơi hoặc cấp quyền sai người.
 
-| Tầng | Tên người dùng nhìn thấy | Dùng để làm gì? | Ví dụ |
+| Tầng | Tên hiển thị | Dùng để làm gì? | Ví dụ |
 |---|---|---|---|
-| 1 | **Nhóm quản lý** | Quản lý thành viên và quyền. Đây là phạm vi quản trị, không phải nơi viết nội dung. | TET Education Group |
-| 2 | **Kho tài liệu** | Một bộ nội dung có chủ đề, đối tượng đọc và phạm vi xuất bản riêng. | TET ProSys – Operation Manual |
-| 3 | **Tài liệu** | Một nội dung cụ thể trong kho; có thể có tài liệu con. | Overview, Workflow & Status |
+| 1 | **Nhóm quản lý** | Nhóm sở hữu và quản lý thành viên, quyền truy cập cho các Kho | `TET Education Group` |
+| 2 | **Kho tài liệu** | Một bộ tài liệu theo chủ đề, dự án hoặc phòng ban | `TET ProSys - Operation Manual` |
+| 3 | **Trang tài liệu** | Một bài viết cụ thể trong Kho; các trang tạo thành mục lục | `Overview`, `Workflow & Status` |
 
 ### Cách hình dung đơn giản
 
-- **Nhóm quản lý** giống như một đội hoặc công ty.
-- **Kho tài liệu** giống như một tủ sách của đội đó.
-- **Tài liệu** giống như một cuốn sách hoặc một mục trong tủ sách.
-
-Một nhóm quản lý có thể có nhiều kho tài liệu. Một kho tài liệu có thể có nhiều tài liệu. Nếu bạn chỉ có một nhóm quản lý, bạn không cần vào phần nhóm thường xuyên; hãy làm việc ở kho tài liệu.
+```text
+Nhóm quản lý: TET Education Group
+└── Kho tài liệu: TET ProSys - Operation Manual
+    ├── Trang: Overview
+    ├── Trang: Workflow & Status
+    └── Trang: Quotes
+```
 
 ### Quy tắc chọn đúng tầng
 
-- Muốn thêm người hoặc đổi quyền của người đó ở nhiều kho: vào **Thành viên & quyền** của **Nhóm quản lý**.
-- Muốn thêm một bộ nội dung mới, có đối tượng đọc hoặc mục đích xuất bản khác: tạo **Kho tài liệu** mới.
-- Muốn thêm một chủ đề, quy trình hoặc bài hướng dẫn trong cùng bộ nội dung: tạo **Tài liệu** mới.
-- Muốn chia một tài liệu thành các phần rõ ràng: tạo **Tài liệu con**.
+- Muốn thêm người hoặc đổi quyền cho toàn bộ nhóm: vào **Nhóm quản lý**.
+- Muốn tạo một bộ nội dung mới: tạo **Kho tài liệu**.
+- Muốn thêm một bài viết vào bộ nội dung đang có: tạo **Trang tài liệu**.
+- Muốn người khác đọc: mở **Xem Tài liệu**, không vào màn hình quản trị.
+- Từ `Kho tài liệu` không có nghĩa là `Nhóm quản lý`. Kho là nội dung; Nhóm là phạm vi quản trị.
 
-> Không tạo kho mới chỉ vì một chủ đề nhỏ. Ví dụ Invoice nên là một tài liệu trong kho vận hành, không nên trở thành một kho riêng nếu cùng người đọc và cùng phạm vi quản lý.
+## 2. Flow chuẩn từ lúc đăng nhập đến lúc bàn giao
 
-## 2. Đăng nhập
+Làm theo flow này cho mỗi bộ tài liệu mới:
 
-1. Mở địa chỉ Knowledge Base của TET.
-2. Chọn **Đăng nhập bằng Google**.
-3. Chọn tài khoản Google Workspace có email @tet-edu.com.
-4. Nếu Google hỏi lại mật khẩu, hãy nhập mật khẩu của tài khoản Google Workspace; đây không phải mật khẩu riêng của Knowledge Base.
-5. Sau khi đăng nhập:
-   - **Xem Tài Liệu**: đọc nội dung đã xuất bản.
-   - **Quản lý**: tạo, sửa, sắp xếp và xuất bản nội dung nếu tài khoản có quyền.
+```text
+1. Đăng nhập bằng Google Workspace @tet-edu.com
+       |
+2. Kiểm tra đang ở đúng Nhóm quản lý
+       |
+3. Tạo hoặc chọn đúng Kho tài liệu
+       |
+4. Tạo Trang đầu tiên và các Trang con
+       |
+5. Soạn nội dung theo mẫu thống nhất
+       |
+6. Lưu bản nháp, kiểm tra preview, rồi Xuất bản
+       |
+7. Mở Xem Tài liệu để kiểm tra mục lục, breadcrumb và nội dung
+       |
+8. Cấp quyền đúng phạm vi và bàn giao link
+```
 
-Không tạo tài khoản/mật khẩu riêng cho Knowledge Base. Nếu trình duyệt đang giữ nhiều tài khoản Google, chọn đúng tài khoản TET trước khi bấm tiếp tục.
+**Nguyên tắc giảm thao tác thủ công:** tạo một Kho rõ ràng ngay từ đầu, tạo Trang đầu tiên làm trang điều hướng, dùng cấu trúc Trang con thay vì gom mọi thứ vào một bài dài, và luôn kiểm tra ở chế độ người đọc trước khi gửi link.
 
-## 3. Tạo kho tài liệu đầu tiên
+## 3. Chuẩn bị trước khi tạo nội dung
 
-### Khi nào cần tạo kho mới?
+Trước khi bấm **Tạo kho tài liệu**, thống nhất 4 thông tin:
 
-Chỉ tạo kho mới khi ít nhất một điều sau khác với kho hiện tại:
+1. Tên Nhóm quản lý sở hữu nội dung.
+2. Tên Kho tài liệu.
+3. Danh sách Trang cấp đầu và Trang con.
+4. Người có quyền `Quản lý kho` và người chỉ cần `Được chỉnh sửa` hoặc `Chỉ xem`.
 
-- Người đọc hoặc nhóm chịu trách nhiệm khác.
-- Bộ tài liệu cần xuất bản tại một mục riêng.
-- Quyền truy cập cần khác.
-- Nội dung là một sản phẩm hoặc quy trình độc lập, không nên nằm cùng mục lục.
+### Chuẩn đặt tên khuyến nghị
 
-Ví dụ phù hợp:
+| Đối tượng | Mẫu tên | Ví dụ tốt |
+|---|---|---|
+| Nhóm quản lý | Tên pháp nhân hoặc tổ chức | `TET Education Group` |
+| Kho tài liệu | `[Chủ đề] - [Phạm vi hoặc năm]` | `TET ProSys - Operation Manual` |
+| Trang tài liệu | Tên tác vụ hoặc chủ đề cụ thể | `Workflow & Status` |
+| Trang tổng quan | `Overview` hoặc `Bắt đầu tại đây` | `Overview` |
 
-- TET ProSys – Operation Manual: tài liệu vận hành ProSys.
-- TET HR Handbook: hướng dẫn nhân sự, người đọc và người quản lý khác.
-- TET Sales Playbook: tài liệu bán hàng, có phạm vi riêng.
+Không nên đặt nhiều Kho có tên gần giống nhau như `TET`, `TET 2`, `TET new`. Nếu cần bản mới, thêm chủ đề hoặc năm vào tên để người đọc biết ngay đang ở đâu.
 
-Ví dụ không nên tách thành kho mới:
+## 4. Đăng nhập
 
-- Invoice trong cùng quy trình ProSys.
-- Quotes trong cùng một bộ hướng dẫn.
-- Một phiên bản nhỏ của cùng quy trình.
+**Địa chỉ:** [https://kb.tet-edu.com/login](https://kb.tet-edu.com/login)
+
+![Màn hình đăng nhập Knowledge Base production](./screenshots/11-login-production.png)
 
 ### Các bước
 
-1. Vào **Quản lý** → **Kho tài liệu**.
-2. Ở thẻ **Tạo kho tài liệu**, nhập tên dễ hiểu, ví dụ TET HR Handbook.
-3. Có thể thêm mô tả ngắn: kho này dùng cho ai và chứa nội dung gì.
-4. Bấm **Tạo kho tài liệu**.
-5. Hệ thống tự tạo phần quản lý phía sau và mở kho mới. Bạn không cần tự tạo organization, schema, slug hoặc URL.
+1. Mở link đăng nhập.
+2. Bấm **Đăng nhập bằng Google**.
+3. Chọn đúng tài khoản Google Workspace có đuôi `@tet-edu.com`.
+4. Nếu Google hỏi xác nhận, chấp thuận để quay lại Knowledge Base.
+5. Kiểm tra thanh điều hướng đã hiện **Admin** nếu bạn có quyền quản trị.
 
-![Tổng quan quản lý kho tài liệu — các vùng được đánh dấu](./screenshots/annotated-06-quan-ly-kho-context.png)
+**Kết quả mong đợi:** bạn quay về Knowledge Base, không quay sang `crm.tet-edu.com`. Nếu quay sai trang, xem [Xử lý lỗi thường gặp](#13-xử-lý-lỗi-thường-gặp).
 
-### Tên kho nên đặt thế nào?
+**Lưu ý an toàn:** không dùng mật khẩu riêng của Knowledge Base. Hệ thống dùng Google Workspace; người dùng không cần tự đăng ký tài khoản hoặc tạo mật khẩu mới.
 
-Nên dùng mẫu:
+## 5. Tạo và phân biệt Kho tài liệu
 
-[Đơn vị hoặc sản phẩm] – [mục đích của bộ tài liệu]
+### 5.1. Mở màn hình quản lý Kho
 
-Tên tốt:
+Sau khi đăng nhập, bấm **Admin** trên thanh trên cùng rồi chọn **Kho tài liệu**.
 
-- TET ProSys – Operation Manual
-- TET Finance – Approval Guide
-- TET HR – Staff Handbook
+![Màn hình quản lý Kho tài liệu production](./screenshots/annotated-06-quan-ly-kho-context.png)
 
-Tên khó phân biệt:
+Màn hình này là nơi tạo và chọn Kho. Các ô thống kê phía trên chỉ là thông tin tổng quan; không phải các cấp phân quyền.
 
-- Test
-- New
-- Docs 2
-- Kho mới
+### 5.2. Tạo Kho mới
 
-Tên kho là thứ người đọc nhìn thấy trong mục chọn kho, vì vậy không dùng tên kỹ thuật hoặc chỉ dùng mã nội bộ.
+1. Tại thẻ **Tạo kho tài liệu**, nhập tên Kho.
+2. Nhập mô tả ngắn để người khác nhận biết phạm vi nội dung.
+3. Chỉ mở **Tùy chọn nâng cao** khi bạn thực sự cần đường dẫn hoặc cài đặt kỹ thuật.
+4. Bấm **Tạo kho** một lần.
+5. Chờ thẻ Kho mới xuất hiện trong danh sách.
+6. Bấm **Mở kho** để bắt đầu tạo Trang.
 
-## 4. Nhiều kho khác nhau như thế nào?
+**Kết quả mong đợi:** một Kho mới xuất hiện dưới đúng Nhóm quản lý; hệ thống tự tạo khu vực nội dung đầu tiên để bạn không phải dựng cấu trúc kỹ thuật thủ công.
 
-Trong màn hình quản lý, các kho có thể nằm dưới cùng một **Nhóm quản lý**. Điều đó nghĩa là nhóm có thể quản lý thành viên chung, nhưng nội dung vẫn tách biệt.
+### 5.3. Chọn Kho đã có
 
-| Tình huống | Nên làm |
-|---|---|
-| Cùng nhóm người đọc, cùng chủ đề lớn | Dùng cùng một kho, tạo thêm tài liệu hoặc tài liệu con |
-| Khác nhóm người đọc | Tạo kho riêng hoặc đặt quyền riêng cho kho |
-| Khác chủ sở hữu hoặc quy trình phê duyệt | Tạo kho riêng |
-| Chỉ khác một phần nhỏ của quy trình | Tạo tài liệu con |
-| Muốn thử nội dung tạm thời | Dùng kho thử nghiệm riêng; không đặt tên chung chung nếu có thể nhầm với production |
+Nếu Kho đã tồn tại, không tạo thêm Kho trùng tên. Hãy tìm thẻ Kho trong danh sách, kiểm tra dòng mô tả và Nhóm quản lý, sau đó bấm **Mở kho**.
 
-### Khi đọc tài liệu public
+### 5.4. Phân biệt nhanh
 
-Màn hình đọc luôn cho biết:
+- **Nhóm quản lý**: thấy tên tổ chức và mục **Người có quyền**.
+- **Kho tài liệu**: thấy tên Kho, nút **Mở kho**, nút **Người & quyền**.
+- **Trang tài liệu**: thấy tiêu đề bài viết, thanh soạn thảo, **Lưu bản nháp** và **Xuất bản**.
 
-1. **Nhóm quản lý**: ai là phạm vi quản trị của kho.
-2. **Kho tài liệu**: bộ nội dung bạn đang xem.
-3. **Mục lục tài liệu**: các tài liệu trong kho hiện tại.
-4. **Tài liệu đang mở**: nội dung cụ thể ở vùng chính.
+## 6. Tạo Trang tài liệu và mục lục
 
-Nếu muốn sang bộ nội dung khác, chọn tên kho khác ở phần **Kho tài liệu**. Mục lục sẽ thay đổi theo kho được chọn; không trộn tài liệu giữa hai kho.
+### 6.1. Tạo Trang cấp đầu
 
-![Trang xem tài liệu — phân biệt nhóm quản lý, kho và mục lục](./screenshots/annotated-04-xem-tai-lieu-context.png)
+Trong Kho, bấm **Tạo tài liệu mới**. Dùng Trang cấp đầu cho các nhóm nội dung lớn, ví dụ:
 
-Ở trang đọc một tài liệu cụ thể, dòng đường dẫn phía trên nội dung cũng lặp lại thứ tự này: **Nhóm quản lý → Kho tài liệu → Tài liệu**. Vì vậy người đọc luôn biết mình đang ở đúng bộ nội dung nào, kể cả khi có nhiều kho cùng thuộc một nhóm.
+- `Overview`
+- `Workflow & Status`
+- `Services to Procure`
+- `Quotes`
 
-![Mục lục và breadcrumb của một tài liệu](./screenshots/annotated-05-xem-tai-lieu-muc-luc.png)
+![Màn hình soạn và cấu trúc mục lục trong Kho](./screenshots/08-editor-production.png)
 
-## 5. Tạo tài liệu và tài liệu con
+**Kết quả mong đợi:** Trang mới xuất hiện trong cột **Danh mục** ở bên trái và có thể mở để soạn nội dung.
 
-### Tài liệu cấp đầu
+### 6.2. Tạo Trang con
 
-1. Mở kho cần làm việc.
-2. Bấm **Tạo tài liệu**.
-3. Chọn mẫu nếu có mẫu phù hợp; nếu không chọn, bắt đầu từ trang trống.
-4. Nhập **Tên tài liệu**. Tên nên mô tả đúng nội dung, ví dụ Workflow & Status.
-5. Bấm **Tạo tài liệu**.
+Tách một chủ đề dài thành Trang con khi:
 
-![Tạo tài liệu và chọn kho](./screenshots/02-tao-tai-lieu-va-nhieu-kho.png)
+- Một bài có nhiều quy trình khác nhau.
+- Người đọc cần link trực tiếp đến từng tác vụ.
+- Mục lục bắt đầu quá dài.
 
-### Tài liệu con
+Đặt tên theo tác vụ, không đặt tên chung chung. Ví dụ `PM Approve Quote` rõ hơn `Page 2`.
 
-Dùng **Tạo tài liệu con** khi nội dung là một phần trực tiếp của tài liệu cha. Ví dụ:
+### 6.3. Đổi thứ tự Trang
 
-~~~text
-ProSys – Operation Manual          (kho tài liệu)
-├── Overview                        (tài liệu)
-├── Workflow & Status               (tài liệu)
-│   ├── Request lifecycle           (tài liệu con)
-│   └── Approval rules              (tài liệu con)
-└── Quotes                          (tài liệu)
-~~~
+1. Tìm biểu tượng kéo ở bên trái tiêu đề Trang.
+2. Kéo Trang lên hoặc xuống theo thứ tự người đọc cần.
+3. Kiểm tra lại ở **Xem Tài liệu**.
 
-Cấu trúc này giúp người đọc hiểu quan hệ giữa các phần. Không dùng quá nhiều tầng; thường hai hoặc ba tầng là đủ.
+**Kết quả mong đợi:** mục lục của Kho đi theo trình tự đọc; Trang tổng quan nằm trước các Trang chi tiết.
 
-### Đổi thứ tự
+### 6.4. Cấu trúc mục lục khuyến nghị
 
-Trong màn hình quản lý kho, kéo biểu tượng tay nắm cạnh tài liệu để sắp xếp lại. Thứ tự này là thứ người đọc nhìn thấy trong mục lục. Hãy đặt phần giới thiệu, hướng dẫn bắt đầu và nội dung thường dùng lên trên.
+```text
+Overview
+├── Bối cảnh và mục tiêu
+├── Workflow & Status
+│   ├── Các trạng thái
+│   └── Quy tắc chuyển trạng thái
+├── Services to Procure
+└── Quotes
+```
 
-## 6. Soạn nội dung: giải thích từng nút
+## 7. Soạn nội dung
 
-Màn hình soạn tài liệu có khu vực nhập nội dung và khu vực xem trước. Bạn có thể dùng thanh công cụ; không cần biết Markdown để viết tài liệu cơ bản.
+![Màn hình editor production với vùng nội dung và preview](./screenshots/08-editor-production.png)
 
-![Màn hình soạn tài liệu](./screenshots/01-soan-tai-lieu.png)
+### 7.1. Các nút trong thanh soạn thảo
 
-| Nút | Tác dụng | Khi nên dùng |
+| Nút | Công dụng | Khi nên dùng |
 |---|---|---|
-| **B** | In đậm | Từ khóa, cảnh báo hoặc tên nút trên giao diện |
-| *I* | In nghiêng | Ghi chú nhẹ, thuật ngữ hoặc nhấn giọng |
-| <> | Mã nội tuyến hoặc đoạn mã | Tên lệnh, tên trường, mã lỗi, giá trị kỹ thuật |
-| Biểu tượng liên kết | Chèn liên kết | Trỏ tới tài liệu liên quan hoặc nguồn chính thức |
-| Hình ảnh | Chèn ảnh | Screenshot, sơ đồ, ví dụ trực quan |
-| H1 | Tiêu đề lớn | Tên phần chính; thường chỉ dùng một H1 cho mỗi tài liệu |
-| H2 | Tiêu đề phần | Các chương hoặc phần lớn |
-| H3 | Tiêu đề mục con | Các bước hoặc chủ đề nằm trong H2 |
-| Danh sách chấm | Danh sách không thứ tự | Liệt kê các ý không theo trình tự |
-| Danh sách số | Danh sách có thứ tự | Các bước cần làm theo thứ tự |
-| Trích dẫn | Khối ghi chú hoặc trích dẫn | Quy tắc, lưu ý hoặc câu trích dẫn quan trọng |
-| Hoàn tác | Bỏ thao tác gần nhất | Khi vừa sửa nhầm |
-| Làm lại | Khôi phục thao tác vừa hoàn tác | Khi muốn lấy lại thay đổi |
+| **B** | In đậm | Từ khóa, điều kiện quan trọng |
+| *I* | In nghiêng | Thuật ngữ hoặc chú thích |
+| `<>` | Code | Tên trường, mã, URL kỹ thuật |
+| Biểu tượng link | Chèn liên kết | Link đến tài liệu liên quan |
+| Biểu tượng ảnh | Chèn hình ảnh | Screenshot, sơ đồ, ví dụ |
+| H1, H2, H3 | Tạo cấp tiêu đề | Chia nội dung thành phần rõ ràng |
+| Danh sách | Bullet hoặc đánh số | Checklist và các bước |
+| Dấu ngoặc kép | Trích dẫn hoặc lưu ý | Quy định, cảnh báo |
+| Mũi tên cong | Hoàn tác hoặc làm lại | Sửa nhanh thao tác gần nhất |
 
-### Cách viết dễ đọc
+### 7.2. Mẫu bài viết chuẩn
 
-- Mỗi đoạn chỉ nên nói một ý.
-- Dùng tiêu đề để chia phần, không dùng một đoạn chữ rất dài.
-- Dùng danh sách số cho quy trình.
-- Dùng danh sách chấm cho các lựa chọn hoặc điều kiện.
-- Tên nút nên viết đúng như trên màn hình, ví dụ **Tạo tài liệu**.
-- Khi đưa thông tin kỹ thuật, giải thích ý nghĩa trước rồi mới đưa mã hoặc URL.
-- Không đặt cả đoạn dài trong in đậm hoặc in nghiêng.
+Mỗi Trang nên có cấu trúc dưới đây:
 
-### Mẫu tài liệu nên dùng
-
-~~~markdown
+```markdown
 # Tên tài liệu
 
 ## Mục đích
-Nói tài liệu này dùng để làm gì và dành cho ai.
+Trang này giúp người dùng làm được việc gì?
 
 ## Khi nào sử dụng
-- Trường hợp 1
-- Trường hợp 2
+Điều kiện hoặc trường hợp áp dụng.
 
 ## Các bước
 1. Bước đầu tiên.
 2. Bước tiếp theo.
 3. Kiểm tra kết quả.
 
-## Lưu ý
-> Nêu một lỗi thường gặp hoặc điều không được làm.
-~~~
+## Kết quả mong đợi
+Người dùng nhìn thấy gì sau khi hoàn thành?
 
-### Đính kèm hình ảnh
+## Lưu ý hoặc lỗi thường gặp
+Các trường hợp cần tránh.
+```
 
-Dùng **Đính kèm** khi tài liệu cần file gốc để tải về. Dùng nút hình ảnh trong thanh công cụ khi hình cần xuất hiện trực tiếp trong nội dung. Với screenshot hướng dẫn, nên khoanh vùng hoặc đánh số khu vực cần bấm và thêm chú thích ngay bên dưới.
+### 7.3. Quy tắc viết cho người không rành kỹ thuật
 
-## 7. Lưu bản nháp và xuất bản
+- Mỗi bước chỉ nên có một hành động chính.
+- Dùng tên nút đúng như giao diện, đặt trong dấu **đậm**.
+- Luôn nói rõ người dùng đang ở Nhóm, Kho hay Trang.
+- Sau mỗi nhóm bước, ghi **Kết quả mong đợi**.
+- Không đưa `slug`, UUID, schema hoặc API vào flow người dùng thông thường.
+- Khi cần gửi link, lấy link từ **Copy Link** hoặc từ thanh địa chỉ sau khi đã kiểm tra đúng Trang.
 
-Tài liệu có hai trạng thái chính:
+### 7.4. Hình ảnh và tệp đính kèm
 
-- **Bản nháp**: phù hợp khi đang viết hoặc đang kiểm tra.
-- **Đã xuất bản**: người đọc ở **Xem Tài Liệu** có thể truy cập.
+- Chỉ chèn ảnh giúp người đọc hiểu thao tác hoặc kết quả.
+- Cắt ảnh ở mức vừa đủ để thấy nút cần bấm và vùng liên quan.
+- Đặt chú thích dưới ảnh: `Hình X - [màn hình] - [ý nghĩa]`.
+- Không chèn mật khẩu, mã xác thực, secret key hoặc thông tin cá nhân không cần thiết.
 
-Quy trình an toàn:
+## 8. Lưu bản nháp và xuất bản
 
-1. Viết nội dung.
-2. Bấm **Lưu bản nháp**.
-3. Kiểm tra tiêu đề, mục lục, liên kết và ảnh ở vùng xem trước.
-4. Bấm **Xuất bản**.
-5. Bấm **Xem tài liệu đã xuất bản** hoặc mở **Xem Tài Liệu** để kiểm tra như người đọc.
+### 8.1. Soạn và lưu bản nháp
 
-Không xuất bản khi:
+1. Nhập hoặc dán nội dung vào editor.
+2. Kiểm tra tiêu đề, heading, danh sách và link.
+3. Bấm **Lưu bản nháp**.
+4. Chờ trạng thái cập nhật.
 
-- Còn chữ mẫu như TODO, TBD, Test.
-- Tiêu đề chưa rõ.
-- Liên kết hoặc ảnh chưa kiểm tra.
-- Nội dung còn nhầm kho.
+**Lưu bản nháp** chỉ lưu nội dung để tiếp tục chỉnh sửa; người đọc public chưa nên xem đó là phiên bản chính thức.
 
-## 8. Cách đọc và dùng mục lục
+### 8.2. Xuất bản
 
-Khi mở một tài liệu public, hãy đọc giao diện theo thứ tự từ ngoài vào trong:
+1. Đọc lại toàn bộ nội dung trong vùng preview.
+2. Kiểm tra không còn chữ nháp, link hỏng hoặc tiêu đề tạm.
+3. Bấm **Xuất bản**.
+4. Xác nhận trạng thái chuyển thành **Đã xuất bản** hoặc **Official**.
+5. Mở **Xem Tài liệu** ở tab mới để kiểm tra như người đọc.
 
-1. **Nhóm quản lý** ở khung ngữ cảnh: xác nhận đơn vị quản trị.
-2. **Kho tài liệu** ở ngay bên cạnh: xác nhận bộ nội dung.
-3. **Đường dẫn phân cấp**: cho biết tài liệu hiện tại nằm trong phần nào.
-4. **Mục lục tài liệu** ở sidebar: chọn tài liệu khác trong cùng kho.
-5. **Mục lục trong tài liệu** ở cuối nội dung nếu bài có nhiều heading: nhảy nhanh tới một phần trong chính tài liệu đó.
+![Thanh trạng thái và các nút lưu, xuất bản trong editor](./screenshots/08-editor-production.png)
 
-Mục lục sidebar chỉ hiển thị tài liệu của kho đang chọn. Nếu không thấy nội dung cần tìm, kiểm tra tên kho trước khi tìm kiếm.
+### 8.3. Khi nào không nên xuất bản?
 
-## 9. Thành viên và quyền
+- Nội dung còn thiếu phần kết quả mong đợi.
+- Mục lục chưa đúng thứ tự.
+- Link đang trỏ vào bản nháp hoặc sai Kho.
+- Chưa kiểm tra quyền người đọc.
+- Đang sửa tài liệu cũ nhưng chưa thống nhất người duyệt.
 
-### Quyền ở Nhóm quản lý
+## 9. Thiết lập Nhóm quản lý và quyền ở Kho
 
-| Vai trò hiển thị | Ý nghĩa |
-|---|---|
-| **Chỉ xem** | Đọc tài liệu trong các kho thuộc nhóm theo quyền được cấp. |
-| **Quản lý kho** | Tạo nội dung và mời người trong phạm vi nhóm. |
-| **Chủ sở hữu** | Toàn quyền, bao gồm các thao tác quản trị nguy hiểm. |
+### 9.1. Quyền ở Nhóm quản lý
 
-### Quyền trực tiếp ở Kho tài liệu
+Vào **Admin > Nhóm quản lý** hoặc mở phần **Nhóm quản lý & quyền**. Màn hình này quản lý người và quyền dùng cho các Kho thuộc Nhóm.
 
-| Vai trò hiển thị | Ý nghĩa |
-|---|---|
-| **Chỉ xem** | Chỉ đọc tài liệu. |
-| **Chỉnh sửa nội dung** | Tạo và chỉnh sửa tài liệu. |
-| **Quản lý khu vực** | Quản lý tài liệu và người có quyền trong kho. |
+![Màn hình Nhóm quản lý và quyền](./screenshots/09-organization-permissions-production.png)
 
-Thông thường quyền từ nhóm quản lý được kế thừa xuống kho. Nếu một người có quyền trực tiếp ở kho, quyền trực tiếp có thể được ưu tiên cho kho đó. Vì vậy:
+Các vai trò nên hiểu như sau:
 
-- Muốn cấp quyền chung cho nhiều kho: chỉnh ở **Nhóm quản lý**.
-- Muốn tạo ngoại lệ chỉ áp dụng cho một kho: chỉnh ở **Thành viên & quyền** của kho.
-- Nếu ai đó không thấy kho, kiểm tra cả hai nơi.
+- **Quản lý kho**: được quản lý Kho, thành viên và nội dung trong phạm vi được cấp.
+- **Được chỉnh sửa**: được sửa nội dung nhưng không nên tự thay đổi phạm vi quản trị nếu không cần.
+- **Chỉ xem**: chỉ đọc nội dung đã được phép xem.
 
-## 10. Xử lý lỗi thường gặp
+### 9.2. Quyền trực tiếp ở Kho
 
-### Bấm Google nhưng quay lại trang đăng nhập
+Vào Kho cụ thể, bấm **Thành viên & quyền**. Đây là nơi giới hạn quyền cho một Kho, không phải toàn bộ Nhóm.
 
-- Kiểm tra đang dùng đúng tài khoản @tet-edu.com.
-- Nếu đang dùng nhiều tài khoản, mở cửa sổ riêng tư hoặc chọn **Use another account**.
-- Không dùng đường dẫn callback cũ từ tab trước; mở lại trang login của Knowledge Base.
+![Màn hình cài đặt quyền của một Kho](./screenshots/10-space-permissions-production.png)
+
+### 9.3. Cách cấp quyền an toàn
+
+1. Cấp ở Nhóm quản lý khi người đó cần quản lý nhiều Kho.
+2. Cấp trực tiếp ở Kho khi người đó chỉ làm việc với một Kho.
+3. Dùng quyền thấp nhất đủ để hoàn thành công việc.
+4. Sau khi thêm người, kiểm tra lại danh sách và vai trò.
+5. Không xóa Nhóm quản lý nếu chưa kiểm tra cảnh báo vùng nguy hiểm.
+
+## 10. Xem tài liệu như người đọc
+
+### 10.1. Trang Kho
+
+![Trang Xem Tài liệu ở cấp Kho](./screenshots/12-viewer-root-production.png)
+
+Ở phía trên có hai thông tin quan trọng:
+
+- **Nhóm quản lý:** cho biết nội dung thuộc tổ chức nào.
+- **Kho tài liệu:** cho biết đang đọc bộ nội dung nào.
+
+Ở cột trái là **Mục lục tài liệu**. Đây là danh sách Trang trong Kho, không phải danh sách Nhóm quản lý.
+
+### 10.2. Trang bài viết
+
+![Trang bài viết với breadcrumb và mục lục](./screenshots/13-viewer-article-production.png)
+
+Kiểm tra theo thứ tự:
+
+1. Breadcrumb có đúng Nhóm quản lý không?
+2. Breadcrumb có đúng Kho tài liệu không?
+3. Tên Trang hiện tại có đúng không?
+4. Trang đang chọn có được đánh dấu trong mục lục không?
+5. Nội dung, hình ảnh và link có hiển thị đúng không?
+
+### 10.3. Link bàn giao
+
+Chỉ gửi link sau khi mở link ở cửa sổ mới và kiểm tra đúng ba lớp. Nếu người nhận chỉ cần đọc, gửi link **Xem Tài liệu**, không gửi link `/admin`.
+
+## 11. Nhiều Kho tài liệu và cách tránh nhầm
+
+Khi có nhiều Kho, người dùng thường nhầm vì tên Kho hoặc Trang giống nhau. Dùng quy tắc sau:
+
+- Mỗi Kho có một tên chủ đề duy nhất.
+- Mỗi Kho có một Trang `Overview` làm điểm bắt đầu.
+- Mô tả Kho ghi rõ đối tượng sử dụng và phạm vi nội dung.
+- Không dùng cùng một tên Trang để đại diện cho hai quy trình khác nhau nếu có thể đặt tên cụ thể hơn.
+- Khi tạo link, luôn nhìn breadcrumb trước khi copy.
+- Với nhóm nội dung lớn, tách thành Kho riêng thay vì tạo quá nhiều tầng Trang.
+
+### Quyết định nhanh: tạo Kho hay tạo Trang?
+
+| Câu hỏi | Trả lời | Hành động |
+|---|---|---|
+| Nội dung có cùng chủ đề và cùng nhóm người dùng không? | Có | Tạo Trang trong Kho hiện tại |
+| Nội dung thuộc chủ đề hoặc phòng ban khác hẳn? | Có | Tạo Kho mới |
+| Chỉ cần thêm một quy trình trong bộ hiện tại? | Có | Tạo Trang hoặc Trang con |
+| Người mới không biết bắt đầu từ đâu? | Có | Tạo hoặc cập nhật Trang `Overview` |
+
+## 12. Thùng rác và phục hồi
+
+Khi không thấy Trang hoặc Kho:
+
+1. Kiểm tra bạn đang chọn đúng Nhóm quản lý.
+2. Kiểm tra đang ở đúng Kho.
+3. Mở **Thùng rác** trong Admin.
+4. Tìm theo tên Trang hoặc Kho.
+5. Chỉ phục hồi khi đã xác nhận đúng đối tượng.
+
+Không xóa hàng loạt để xử lý nhanh. Các thao tác xóa vùng nguy hiểm có thể không hoàn tác.
+
+## 13. Xử lý lỗi thường gặp
+
+### Bấm Google nhưng quay lại đăng nhập
+
+1. Đảm bảo đang dùng tài khoản `@tet-edu.com`.
+2. Đóng tab Google đang dở và mở lại từ `kb.tet-edu.com/login`.
+3. Không dùng link callback cũ hoặc link có `code=` đã hết hạn.
+4. Nếu vẫn lỗi, chụp URL lỗi và thời điểm xảy ra để kiểm tra cấu hình OAuth.
 
 ### Đăng nhập xong lại nhảy sang CRM
 
-Đây là lỗi callback hoặc redirect của phiên bản cũ. Hãy đóng tab callback cũ, mở lại trang Knowledge Base từ domain kb.tet-edu.com, rồi đăng nhập lại. Knowledge Base và CRM dùng chung Supabase Auth nhưng mỗi ứng dụng có callback riêng; không được lấy callback của CRM cho Knowledge Base.
+Đây là dấu hiệu callback đang trỏ sai ứng dụng. Không tiếp tục bấm lại nhiều lần vì mã OAuth chỉ dùng một lần. Quay lại `https://kb.tet-edu.com/login`, thử một phiên đăng nhập mới. Nếu còn lặp lại, báo đúng URL đích và không thay đổi cấu hình CRM.
 
-### Không thấy kho hoặc tài liệu
+### Thấy `State has already been used`
 
-1. Kiểm tra tên **Nhóm quản lý** và **Kho tài liệu** ở khung ngữ cảnh.
-2. Chuyển sang kho khác trong danh sách kho.
-3. Nếu vẫn không thấy, nhờ người có quyền kiểm tra thành viên ở cấp nhóm và cấp kho.
-4. Tải lại trang sau khi vừa được cấp quyền.
+Tab Google callback cũ đã được dùng hoặc bị mở lại. Đóng tab lỗi, mở lại trang login của Knowledge Base và bắt đầu một flow mới.
 
-### Thấy “Không thể tải dữ liệu” hoặc “Failed to fetch”
+### Không thấy Kho hoặc Trang
 
-- Tải lại một lần.
-- Kiểm tra mạng và phiên đăng nhập.
-- Nếu chỉ xảy ra ở một màn hình, chụp URL và thông báo lỗi gửi cho người quản trị.
-- Không bấm tạo lại nhiều lần khi chưa biết thao tác trước đã thành công hay chưa; điều này có thể tạo dữ liệu trùng.
+- Kiểm tra đúng Nhóm quản lý.
+- Kiểm tra vai trò của tài khoản.
+- Kiểm tra Kho có bị xóa vào Thùng rác không.
+- Tải lại một lần; nếu vẫn lỗi, không tạo thêm bản trùng.
+
+### Thấy `Failed to fetch` hoặc `Không thể tải dữ liệu`
+
+1. Tải lại trang một lần.
+2. Kiểm tra mạng.
+3. Nếu đang ở Admin, kiểm tra session Google còn hiệu lực.
+4. Không bấm nút tạo nhiều lần.
+5. Nếu lỗi chỉ xảy ra ở một màn hình, chụp màn hình kèm URL để truy vết.
 
 ### Đã xuất bản nhưng người đọc chưa thấy
 
-- Kiểm tra tài liệu có trạng thái **Đã xuất bản**.
-- Mở đúng kho.
-- Tải lại trang public.
-- Nếu vừa đổi nội dung, chờ một chút để cache public cập nhật rồi kiểm tra lại.
+- Kiểm tra trạng thái Trang là **Đã xuất bản**.
+- Mở URL public ở tab mới.
+- Kiểm tra đúng Kho và đúng Trang trong breadcrumb.
+- Tải lại bằng cửa sổ mới để tránh xem dữ liệu cũ.
 
-## 11. Checklist trước khi bàn giao một kho
+## 14. Checklist bàn giao
 
-- [ ] Tên kho nói rõ chủ đề và đối tượng sử dụng.
-- [ ] Kho đã được đặt đúng Nhóm quản lý.
-- [ ] Mục lục có phần bắt đầu hoặc tổng quan.
-- [ ] Không tạo kho riêng cho những chủ đề nhỏ có thể là tài liệu con.
-- [ ] Tên tài liệu không dùng New, Test, Untitled.
-- [ ] Heading được dùng theo thứ tự H1 → H2 → H3.
-- [ ] Quy trình dùng danh sách số.
-- [ ] Nút, mã lỗi và tên trường được định dạng đúng.
-- [ ] Ảnh có chú thích và dễ nhìn.
-- [ ] Đã lưu bản nháp, kiểm tra preview và xuất bản.
-- [ ] Đã mở trang public bằng vai trò người đọc để kiểm tra.
+### Checklist cho người tạo nội dung
 
-## 12. Checklist cực nhanh cho người mới
+- [ ] Đã đăng nhập đúng tài khoản `@tet-edu.com`.
+- [ ] Đã chọn đúng Nhóm quản lý.
+- [ ] Đã chọn Kho hiện có hoặc tạo Kho với tên không trùng.
+- [ ] Đã có Trang `Overview`.
+- [ ] Mục lục được sắp xếp theo thứ tự đọc.
+- [ ] Mỗi Trang có mục đích, các bước và kết quả mong đợi.
+- [ ] Hình ảnh rõ, không lộ thông tin nhạy cảm.
+- [ ] Đã lưu bản nháp trước khi xuất bản.
+- [ ] Đã kiểm tra preview và trạng thái xuất bản.
+- [ ] Đã mở link public và kiểm tra như người đọc.
 
-1. Vào **Quản lý**.
-2. Chọn đúng **Kho tài liệu**.
-3. Nếu là chủ đề mới nhưng cùng bộ nội dung: **Tạo tài liệu**.
-4. Nếu là bộ nội dung, đối tượng hoặc quyền khác: **Tạo kho tài liệu**.
-5. Viết tài liệu bằng tiêu đề, danh sách và thanh công cụ.
-6. **Lưu bản nháp** → kiểm tra → **Xuất bản**.
-7. Vào **Xem Tài Liệu** để đọc thử như người dùng cuối.
+### Checklist cho người cấp quyền
 
-## 13. Tóm tắt một câu
+- [ ] Người nhận có đúng email.
+- [ ] Quyền được cấp ở đúng tầng: Nhóm hoặc Kho.
+- [ ] Không cấp quyền quản lý nếu chỉ cần đọc hoặc sửa.
+- [ ] Đã kiểm tra lại danh sách sau khi lưu.
+- [ ] Không xóa Nhóm hoặc Kho khi chưa có xác nhận.
 
-**Nhóm quản lý quản lý con người; Kho tài liệu quản lý một bộ nội dung; Tài liệu là từng nội dung trong kho.**
+### Checklist cho người nhận link
+
+- [ ] Link mở đúng `kb.tet-edu.com`.
+- [ ] Header cho biết đúng Nhóm quản lý.
+- [ ] Header cho biết đúng Kho tài liệu.
+- [ ] Mục lục bên trái có đúng các Trang cần đọc.
+- [ ] Trang đang mở có đúng tiêu đề và trạng thái chính thức.
+
+## Tóm tắt một câu
+
+**Nhóm quản lý là nơi quản người và quyền; Kho tài liệu là nơi gom một bộ nội dung; Trang tài liệu là từng bài viết; luôn xuất bản xong rồi kiểm tra lại ở Xem Tài liệu trước khi bàn giao.**
