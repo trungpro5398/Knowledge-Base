@@ -10,7 +10,7 @@ import rbacPlugin from "./plugins/rbac.js";
 import { registerRoutes } from "./routes/index.js";
 import { recordRequest } from "./utils/metrics.js";
 
-const fastify = Fastify({ logger: logger as any });
+export const fastify = Fastify({ logger: logger as any });
 
 fastify.addHook("onRequest", (request, _reply, done) => {
   request._startAt = process.hrtime.bigint();
@@ -53,4 +53,10 @@ const start = async () => {
   }
 };
 
-start();
+// Vercel imports this module as a serverless handler. A traditional listener
+// is only needed for local development and the standalone Fly deployment.
+if (!process.env.VERCEL) {
+  start();
+}
+
+export default fastify;

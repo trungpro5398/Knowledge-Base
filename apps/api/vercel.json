@@ -1,0 +1,9 @@
+{
+  "buildCommand": "pnpm --filter @kb/shared build && pnpm --filter api build",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "functions": {
+    "api/index.ts": {
+      "runtime": "nodejs20.x"
+    }
+  }
+}

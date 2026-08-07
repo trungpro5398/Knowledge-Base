@@ -3,17 +3,17 @@
 ## Overview
 
 ```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   Browser   │────▶│  Next.js (Vercel)│────▶│  Fastify (Fly)  │
-└─────────────┘     └──────────────────┘     └────────┬────────┘
-                               │                      │
-                               │                      ▼
-                               │              ┌───────────────┐
-                               └─────────────▶│   Supabase    │
-                                              │ - Auth        │
-                                              │ - Postgres    │
-                                              │ - Storage     │
-                                              └───────────────┘
+┌─────────────┐     ┌──────────────────┐     ┌─────────────────────┐
+│   Browser   │────▶│  Next.js (Vercel)│────▶│ Fastify API (Vercel)│
+└─────────────┘     └──────────────────┘     └──────────┬──────────┘
+                               │                         │
+                               │                         ▼
+                               │                 ┌───────────────┐
+                               └────────────────▶│   Supabase    │
+                                                 │ - Auth         │
+                                                 │ - tet_kb       │
+                                                 │ - Storage      │
+                                                 └───────────────┘
 ```
 
 ## Data Flow
@@ -33,5 +33,7 @@
 ## Deployment
 
 - **Web**: Vercel, root `apps/web`
-- **API**: Fly.io, Dockerfile.api at repo root
-- **DB**: Supabase (migrations in `supabase/migrations/`)
+- **API**: Vercel serverless Node function, root `apps/api`
+- **DB/Auth/Storage**: shared Supabase project `tet-crm`; Knowledge Base tables are isolated in schema `tet_kb`
+- **CRM isolation**: CRM tables remain in their existing schema and are not changed by KB routes
+- **Rollback**: Fly configuration remains available until the Vercel API is smoke-tested in production

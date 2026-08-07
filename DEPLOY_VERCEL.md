@@ -1,4 +1,4 @@
-# Deploy Web lên Vercel
+# Deploy Knowledge Base lên Vercel
 
 Project hiện tại: `techfives-projects/knowledge-base-web`, source
 `tetedu123x/knowledge-base-web`, production URL:
@@ -27,7 +27,7 @@ Sau khi tạo project, thêm Environment Variables:
 |------|-------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | URL của shared Supabase project `tet-crm` | Production, Preview |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key của shared project `tet-crm` | Production, Preview |
-| `NEXT_PUBLIC_API_URL` | `https://knowledge-base-api.fly.dev` | Production, Preview |
+| `NEXT_PUBLIC_API_URL` | Vercel API URL (sau khi tạo project `knowledge-base-api`) | Production, Preview |
 
 ## 4. Deploy
 
@@ -60,10 +60,23 @@ npx vercel env add NEXT_PUBLIC_API_URL production
 npx vercel deploy --prod
 ```
 
-## 5. Cập nhật CORS trên Fly.io
+## 5. Tạo API project trên Vercel
 
-Sau khi có URL Vercel (vd: `https://knowledge-base-web.vercel.app`):
+Tạo project thứ hai từ cùng repository `tetedu123x/knowledge-base-web`:
 
-```bash
-fly secrets set CORS_ORIGINS="https://knowledge-base-web.vercel.app,http://localhost:3000" --app knowledge-base-api
-```
+* Project name: `knowledge-base-api`
+* Root Directory: `apps/api`
+* Framework: Other
+* Build Command: giữ nguyên trong `apps/api/vercel.json`
+
+API project cần các biến server-side sau, Production và Preview:
+
+* `SUPABASE_URL`
+* `SUPABASE_SECRET_KEY`
+* `SUPABASE_JWKS_URL`
+* `DATABASE_POOLER_URL` — connection string Supabase Session Pooler; không đưa vào client hoặc Git
+* `CORS_ORIGINS` — `https://kb.tet-edu.com,http://localhost:3000`
+
+Sau khi API deploy thành công, cập nhật `NEXT_PUBLIC_API_URL` của project web bằng domain Vercel API rồi redeploy web.
+
+Fly chỉ giữ làm rollback tạm thời; không cần xoá app hoặc dữ liệu CRM.
