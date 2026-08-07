@@ -7,11 +7,48 @@ import { OptimizedImage } from "./OptimizedImage";
 interface PageRendererProps {
   content?: string;
   html?: string;
+  pageTitle?: string;
 }
 
-export function PageRenderer({ content, html }: PageRendererProps) {
+function normalizeHeadingText(value: string): string {
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase();
+}
+
+function removeDuplicateHtmlTitle(html: string, pageTitle?: string): string {
+  if (!pageTitle) return html;
+  const normalizedTitle = normalizeHeadingText(pageTitle);
+  return html.replace(/<h1\b[^>]*>[\s\S]*?<\/h1>/i, (heading) =>
+    normalizeHeadingText(heading) === normalizedTitle ? "" : heading
+  );
+}
+
+function removeDuplicateMarkdownTitle(content: string, pageTitle?: string): string {
+  if (!pageTitle) return content;
+  const lines = content.split("\n");
+  const firstContentLine = lines.findIndex((line) => line.trim().length > 0);
+  if (firstContentLine === -1) return content;
+
+  const match = lines[firstContentLine]!.match(/^#\s+(.+?)\s*#*\s*$/);
+  if (!match || normalizeHeadingText(match[1]!) !== normalizeHeadingText(pageTitle)) {
+    return content;
+  }
+
+  lines.splice(firstContentLine, 1);
+  return lines.join("\n");
+}
+
+export function PageRenderer({ content, html, pageTitle }: PageRendererProps) {
   if (html) {
-    return <div className="prose-kb" dangerouslySetInnerHTML={{ __html: html }} />;
+    return <div className="prose-kb" dangerouslySetInnerHTML={{ __html: removeDuplicateHtmlTitle(html, pageTitle) }} />;
   }
   return (
     <div className="prose-kb">
@@ -50,7 +87,7 @@ export function PageRenderer({ content, html }: PageRendererProps) {
           ),
         }}
       >
-        {content ?? ""}
+        {removeDuplicateMarkdownTitle(content ?? "", pageTitle)}
       </ReactMarkdown>
     </div>
   );

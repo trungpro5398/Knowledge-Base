@@ -211,6 +211,7 @@ export default async function KbPage({
               <PageRenderer
                 html={useRenderedHtml ? version.rendered_html! : undefined}
                 content={useRenderedHtml ? undefined : version.content_md ?? ""}
+                pageTitle={page.title}
               />
             </div>
           </article>
