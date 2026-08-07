@@ -31,7 +31,9 @@ export async function registerRoutes(fastify: FastifyInstance) {
     return reply.status(500).send({ status: "error", message: "Internal server error" });
   });
 
-  fastify.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
+  const healthHandler = async () => ({ status: "ok", timestamp: new Date().toISOString() });
+  fastify.get("/health", healthHandler);
+  fastify.get("/api/health", healthHandler);
   fastify.get("/metrics", async (request, reply) => {
     if (!config.metricsToken) {
       return reply.status(404).send();
