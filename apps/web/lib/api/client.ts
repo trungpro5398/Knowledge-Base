@@ -73,14 +73,14 @@ export async function apiClient<T = unknown>(
 
   if (!res.ok) {
     const errorMessage =
-      (data as { message?: string }).message ||
-      (res.status === 401
-        ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
-        : res.status === 403
-          ? "Bạn không có quyền thực hiện thao tác này."
-          : res.status >= 500
-            ? "Máy chủ đang gặp sự cố. Vui lòng thử lại sau."
-            : res.statusText || "Không thể hoàn tất thao tác.");
+      (res.status >= 500
+        ? "Máy chủ đang bận. Dữ liệu chưa được thay đổi; vui lòng thử lại sau ít phút."
+        : (data as { message?: string }).message ||
+          (res.status === 401
+            ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            : res.status === 403
+              ? "Bạn không có quyền thực hiện thao tác này."
+              : res.statusText || "Không thể hoàn tất thao tác."));
     const errors = (data as { errors?: unknown[] }).errors;
     throw new ApiError(errorMessage, res.status, errors);
   }
