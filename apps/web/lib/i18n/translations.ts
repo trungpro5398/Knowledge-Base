@@ -6,6 +6,7 @@ export const translations = {
     "header.title": "Kho Tài Liệu TET",
     "header.titleShort": "Tài Liệu",
     "header.viewDocs": "Xem Tài Liệu",
+    "header.searchDocs": "Tìm tài liệu",
     "header.logout": "Đăng xuất",
     "header.login": "Đăng nhập",
     "header.register": "Đăng ký (@tet-edu.com)",
@@ -194,6 +195,14 @@ export const translations = {
     "search.placeholder": "Tìm trang… (Enter)",
     "search.ariaLabel": "Tìm trang",
     "search.searching": "Đang tìm…",
+    "publicSearch.placeholder": "Tìm trong tất cả kho tài liệu…",
+    "publicSearch.ariaLabel": "Tìm kiếm tài liệu công khai",
+    "publicSearch.searching": "Đang tìm…",
+    "publicSearch.hint": "Nhập ít nhất 2 ký tự để tìm trong các tài liệu đã xuất bản.",
+    "publicSearch.noResults": "Không tìm thấy tài liệu phù hợp",
+    "kbNav.ariaLabel": "Điều hướng tài liệu",
+    "kbNav.previous": "Trang trước",
+    "kbNav.next": "Trang tiếp theo",
 
     // Page / Editor
     "page.createTitle": "Tạo tài liệu",
@@ -339,6 +348,7 @@ export const translations = {
     "header.login": "Log in",
     "header.register": "Register (@tet-edu.com)",
     "header.registerTitle": "Email @tet-edu.com only",
+    "header.searchDocs": "Search documents",
     "header.shortcuts": "Shortcuts",
     "header.shortcutsTitle": "Shortcuts (?)",
 
@@ -523,6 +533,14 @@ export const translations = {
     "search.placeholder": "Search pages… (Enter)",
     "search.ariaLabel": "Search pages",
     "search.searching": "Searching…",
+    "publicSearch.placeholder": "Search all document libraries…",
+    "publicSearch.ariaLabel": "Search public documents",
+    "publicSearch.searching": "Searching…",
+    "publicSearch.hint": "Enter at least 2 characters to search published documents.",
+    "publicSearch.noResults": "No matching documents found",
+    "kbNav.ariaLabel": "Document navigation",
+    "kbNav.previous": "Previous page",
+    "kbNav.next": "Next page",
 
     // Page / Editor
     "page.createTitle": "Create page",

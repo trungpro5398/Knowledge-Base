@@ -34,14 +34,15 @@ export function SiteHeader({
           <span className="sr-only">{t("header.title")}</span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
-          <Link
-            href="/kb/tet-prosys"
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("kb:open-search"))}
             className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
             aria-label={t("header.viewDocs")}
           >
             <Search className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{t("header.viewDocs")}</span>
-          </Link>
+            <span className="hidden sm:inline">{t("header.searchDocs")}</span>
+          </button>
           {isLoggedIn ? (
             <>
               <Link

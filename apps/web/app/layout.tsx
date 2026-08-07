@@ -36,7 +36,7 @@ export default async function RootLayout({
         <ErrorBoundary>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <LocaleProvider>
-            <CommandProvider>
+            <CommandProvider isLoggedIn={isLoggedIn}>
               <ShortcutsProvider>
               <a
                 href="#main-content"

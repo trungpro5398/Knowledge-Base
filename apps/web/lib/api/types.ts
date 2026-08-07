@@ -80,6 +80,17 @@ export interface SearchResult {
   snippet?: string;
 }
 
+export interface PublicSearchResult {
+  page_id: string;
+  title: string;
+  path: string;
+  space_id: string;
+  space_slug: string;
+  space_name: string;
+  organization_name: string | null;
+  content_snippet: string;
+}
+
 // Trash types
 export interface TrashItem {
   page_id: string;

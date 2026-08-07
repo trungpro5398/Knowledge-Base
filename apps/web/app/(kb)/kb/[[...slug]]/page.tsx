@@ -11,6 +11,7 @@ import { MobileSidebar } from "@/components/kb/mobile-sidebar";
 import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
 import { CopyLinkButton } from "@/components/ui/copy-link-button";
 import { KbContextHeader } from "@/components/kb/KbContextHeader";
+import { PageNavigation } from "@/components/kb/PageNavigation";
 import type { TreeNode } from "@/components/kb/PageTree";
 import type { Space } from "@/lib/api/types";
 import { slugToPath } from "@/lib/routing/slug";
@@ -215,6 +216,7 @@ export default async function KbPage({
               />
             </div>
           </article>
+          <PageNavigation spaceSlug={spaceSlug} tree={tree} currentPath={page.path} />
           {version.toc.length > 1 && (
             <aside className="mt-12">
               <Toc items={version.toc} />
