@@ -65,3 +65,29 @@ export async function createSpace(
   invalidateSpacesForUser(userId);
   return space;
 }
+
+export async function updateSpace(
+  spaceId: string,
+  data: { name: string; slug: string; description?: string | null },
+  userId: string
+) {
+  const current = await spacesRepo.getSpaceForUser(spaceId, userId);
+  if (!current) throw new NotFoundError("Space not found");
+
+  const role = await spacesRepo.getMemberRole(spaceId, userId);
+  if (role !== "admin") {
+    throw new ForbiddenError("Chỉ admin mới được chỉnh sửa kho tài liệu");
+  }
+
+  const existing = await spacesRepo.getSpaceBySlug(data.slug);
+  if (existing && existing.id !== spaceId) {
+    throw new ValidationError("Space slug already exists");
+  }
+
+  const updated = await spacesRepo.updateSpace(spaceId, data);
+  invalidateSpaceCache(spaceId, current.slug);
+  invalidateSpaceCache(spaceId, updated.slug);
+  invalidatePublishedSpace(spaceId);
+  invalidateSpacesForUser(userId);
+  return updated;
+}

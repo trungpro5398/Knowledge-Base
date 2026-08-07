@@ -5,9 +5,11 @@ import { AlertCircle, BookOpen, ArrowRight } from "lucide-react";
 
 export function ReadThisFirst({
   spaceSlug,
+  spaceName,
   items,
 }: {
   spaceSlug: string;
+  spaceName: string;
   items: Array<{ label: string; path: string }>;
 }) {
   return (
@@ -18,7 +20,7 @@ export function ReadThisFirst({
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="font-semibold text-foreground mb-1 flex items-center gap-2">
-            <span>Bắt đầu với ProSys</span>
+            <span>Bắt đầu với {spaceName}</span>
           </h2>
           <p className="text-sm text-muted-foreground mb-4">
             Nếu bạn mới dùng hệ thống này, hãy đọc lần lượt các mục dưới đây (tổng khoảng 10 phút).

@@ -16,6 +16,7 @@ export const translations = {
     // Sidebar
     "sidebar.menu": "Danh mục",
     "sidebar.spaces": "Kho tài liệu",
+    "sidebar.publicOnlyHint": "Chỉ hiện Kho có ít nhất một Trang đã xuất bản",
     "sidebar.pagesInSpace": "Mục lục tài liệu",
     "sidebar.searchPlaceholder": "Tìm tài liệu…",
     "sidebar.expand": "Mở danh mục",
@@ -100,6 +101,18 @@ export const translations = {
     "space.createErrorDefault": "Tạo thất bại. Vui lòng thử lại.",
     "space.createNameRequired": "Vui lòng nhập tên kho tài liệu",
     "space.slugPlaceholder": "tu-dong-tao-tu-ten-khong-gian…",
+    "space.editTitle": "Thông tin kho tài liệu",
+    "space.editDescription": "Sửa tên, mô tả hoặc đường dẫn của Kho. Thay đổi đường dẫn có thể làm link cũ không còn hoạt động.",
+    "space.descriptionLabel": "Mô tả (tùy chọn)",
+    "space.descriptionPlaceholder": "Ví dụ: Bộ tài liệu vận hành dành cho đội ProSys…",
+    "space.publicUrlHint": "Đường dẫn xem tài liệu: /kb/{{slug}}",
+    "space.slugChangeWarning": "Chỉ đổi đường dẫn khi thật sự cần; hãy báo lại link mới cho người đọc.",
+    "space.editRequired": "Vui lòng nhập tên và đường dẫn hợp lệ.",
+    "space.saving": "Đang lưu…",
+    "space.saveChanges": "Lưu thay đổi",
+    "space.updatedSuccess": "Đã cập nhật kho tài liệu",
+    "space.updateFailed": "Không thể cập nhật kho tài liệu",
+    "space.updateErrorDefault": "Cập nhật thất bại. Vui lòng thử lại.",
 
     // Space Switcher
     "spaceSwitcher.selectSpace": "Chọn kho tài liệu",
@@ -332,6 +345,7 @@ export const translations = {
     // Sidebar
     "sidebar.menu": "Menu",
     "sidebar.spaces": "Spaces",
+    "sidebar.publicOnlyHint": "Only libraries with published pages are shown",
     "sidebar.pagesInSpace": "Pages",
     "sidebar.searchPlaceholder": "Search pages...",
     "sidebar.expand": "Expand menu",
@@ -416,6 +430,18 @@ export const translations = {
     "space.createErrorDefault": "Creation failed. Please try again.",
     "space.createNameRequired": "Please enter a space name",
     "space.slugPlaceholder": "auto-generated-from-name…",
+    "space.editTitle": "Library details",
+    "space.editDescription": "Update the name, description, or URL. Changing the URL can break old links.",
+    "space.descriptionLabel": "Description (optional)",
+    "space.descriptionPlaceholder": "e.g. Operations documentation for the ProSys team…",
+    "space.publicUrlHint": "Public documentation URL: /kb/{{slug}}",
+    "space.slugChangeWarning": "Only change the URL when necessary; share the new link with readers.",
+    "space.editRequired": "Enter a valid name and URL.",
+    "space.saving": "Saving…",
+    "space.saveChanges": "Save changes",
+    "space.updatedSuccess": "Library updated",
+    "space.updateFailed": "Could not update library",
+    "space.updateErrorDefault": "Update failed. Please try again.",
 
     // Space Switcher
     "spaceSwitcher.selectSpace": "Select space",

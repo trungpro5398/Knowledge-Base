@@ -46,6 +46,9 @@ export default async function SpacePage({
         <p className="text-muted-foreground mb-4">
           Tạo tài liệu đầu tiên để bắt đầu xây nội dung cho kho này.
         </p>
+        <p className="text-sm text-muted-foreground mb-4">
+          Kho chỉ xuất hiện ở <strong>Xem Tài liệu</strong> sau khi có ít nhất một Trang đã xuất bản.
+        </p>
         <Link href={`/admin/spaces/${spaceId}/pages/new`} className="btn-primary">
           Tạo tài liệu đầu tiên
         </Link>

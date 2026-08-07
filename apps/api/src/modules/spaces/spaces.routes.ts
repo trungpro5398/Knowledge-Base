@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import type { AuthHandlers } from "../../routes/auth-types.js";
 import * as spacesService from "./spaces.service.js";
 import { getPublishedPageByPathCached, getPublishedTreeCached } from "../public/public-cache.js";
-import { createSpaceSchema } from "@kb/shared";
+import { createSpaceSchema, updateSpaceSchema } from "@kb/shared";
 
 export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   const { authenticate } = auth;
@@ -90,6 +90,21 @@ export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers)
       return reply.status(204).send();
     }
   );
+
+  fastify.patch("/spaces/:id", { preHandler: [authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const parsed = updateSpaceSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        status: "error",
+        message: "Validation failed",
+        errors: parsed.error.errors,
+      });
+    }
+    const userId = request.user!.id;
+    const space = await spacesService.updateSpace(id, parsed.data, userId);
+    return { data: space };
+  });
 
   fastify.post("/spaces", { preHandler: [authenticate] }, async (request, reply) => {
     const parsed = createSpaceSchema.safeParse(request.body);

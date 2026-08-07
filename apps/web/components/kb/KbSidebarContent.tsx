@@ -27,6 +27,9 @@ export function KbSidebarContent({
           <p className="text-[11px] font-medium text-muted-foreground mb-2 px-1">
             {t("sidebar.spaces")}
           </p>
+          <p className="mb-2 px-1 text-[10px] leading-relaxed text-muted-foreground">
+            {t("sidebar.publicOnlyHint")}
+          </p>
           <div className="space-y-0.5">
             {spaces.map((space) => (
               <Link

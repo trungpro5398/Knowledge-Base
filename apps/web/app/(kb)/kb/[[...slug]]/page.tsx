@@ -68,7 +68,7 @@ async function getRenderData(spaceSlug: string, path: string): Promise<RenderDat
   const res = await fetch(
     `${API_URL}/api/public/render?spaceSlug=${encodeURIComponent(spaceSlug)}&path=${encodeURIComponent(path)}`,
     {
-      next: { revalidate: 300, tags: ["kb"] },
+      cache: "no-store",
     }
   );
   if (!res.ok) return null;
@@ -80,7 +80,7 @@ async function getTreeOnly(spaceSlug: string): Promise<TreeNode[]> {
   const res = await fetch(
     `${API_URL}/api/spaces/by-slug/${spaceSlug}/pages/tree`,
     {
-      next: { revalidate: 300, tags: ["kb"] },
+      cache: "no-store",
     }
   );
   if (!res.ok) return [];
@@ -90,14 +90,12 @@ async function getTreeOnly(spaceSlug: string): Promise<TreeNode[]> {
 
 async function getPublicSpaces(): Promise<Space[]> {
   const res = await fetch(`${API_URL}/api/spaces/public`, {
-    next: { revalidate: 300, tags: ["kb"] },
+    cache: "no-store",
   });
   if (!res.ok) return [];
   const json = await res.json();
   return json.data ?? [];
 }
-
-const DEFAULT_SPACE_SLUG = "tet-prosys";
 
 export default async function KbPage({
   params,
@@ -108,8 +106,13 @@ export default async function KbPage({
   const segments = slug ?? [];
 
   if (segments.length === 0) {
-    const { redirect } = await import("next/navigation");
-    redirect(`/kb/${DEFAULT_SPACE_SLUG}`);
+    const publicSpaces = await getPublicSpaces();
+    const defaultSpace = publicSpaces.find((space) => space.slug === "tet-prosys") ?? publicSpaces[0];
+    if (defaultSpace) {
+      const { redirect } = await import("next/navigation");
+      redirect(`/kb/${defaultSpace.slug}`);
+    }
+    return <KbWelcomeEmpty />;
   }
 
   const spaceSlug = segments[0]!;
@@ -133,11 +136,15 @@ export default async function KbPage({
               spaceName={currentSpace?.name || spaceSlug}
               organizationName={currentSpace?.organization_name}
             />
-            {spaceSlug === "tet-prosys" && startLinks.length > 0 && (
-              <ReadThisFirst spaceSlug={spaceSlug} items={startLinks} />
+            {tree.length > 0 && startLinks.length > 0 && (
+              <ReadThisFirst
+                spaceSlug={spaceSlug}
+                spaceName={currentSpace?.name || spaceSlug}
+                items={startLinks}
+              />
             )}
             
-            {!spaceSlug.includes("tet-prosys") && <KbWelcomeEmpty />}
+            {tree.length === 0 && <KbWelcomeEmpty />}
           </div>
         </main>
         <MobileSidebar

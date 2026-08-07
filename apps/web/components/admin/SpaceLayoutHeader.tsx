@@ -49,7 +49,7 @@ export function SpaceLayoutHeader({
             className="h-9 px-3 text-sm border rounded-lg hover:bg-muted transition-colors flex items-center gap-2"
           >
             <Settings className="h-4 w-4" />
-            Thành viên & quyền
+            Cài đặt kho
           </Link>
           <Link
             href={`/admin/spaces/${spaceId}/pages/new`}

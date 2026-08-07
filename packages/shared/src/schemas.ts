@@ -8,6 +8,12 @@ export const createSpaceSchema = z.object({
   organization_id: z.string().uuid().optional().nullable(),
 });
 
+export const updateSpaceSchema = z.object({
+  name: z.string().min(1).max(100),
+  slug: z.string().min(1).max(50).regex(/^[a-z0-9-]+$/),
+  description: z.string().max(500).optional().nullable(),
+});
+
 export const createPageSchema = z.object({
   space_id: z.string().uuid(),
   parent_id: z.string().uuid().optional().nullable(),

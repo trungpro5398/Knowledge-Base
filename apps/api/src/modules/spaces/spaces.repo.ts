@@ -148,6 +148,24 @@ export async function createSpace(data: {
   return rows[0]!;
 }
 
+export async function updateSpace(
+  id: string,
+  data: { name: string; slug: string; description?: string | null }
+): Promise<SpaceRow> {
+  if (!pool) throw new Error("Database not configured");
+  const { rows } = await pool.query<SpaceRow>(
+    `UPDATE spaces
+     SET name = $2,
+         slug = $3,
+         description = $4,
+         updated_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [id, data.name, data.slug, data.description ?? null]
+  );
+  return rows[0]!;
+}
+
 export interface SpaceStats {
   space_id: string;
   total_pages: number;

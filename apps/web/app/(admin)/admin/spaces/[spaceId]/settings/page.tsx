@@ -2,6 +2,7 @@ import { getServerAccessToken } from "@/lib/auth/supabase-server";
 import { serverApiGet } from "@/lib/api/server";
 import { MembersList } from "@/components/spaces/MembersList";
 import { DeleteSpaceSection } from "@/components/spaces/DeleteSpaceSection";
+import { EditSpaceForm } from "@/components/spaces/EditSpaceForm";
 import { Settings } from "lucide-react";
 import type { ApiResponse, Space, PageNode } from "@/lib/api/types";
 import { redirect } from "next/navigation";
@@ -61,6 +62,7 @@ export default async function SpaceSettingsPage({
       </div>
 
       <div className="space-y-8">
+        <EditSpaceForm space={space} />
         <section>
           <MembersList spaceId={spaceId} />
         </section>

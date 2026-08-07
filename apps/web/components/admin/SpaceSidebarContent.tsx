@@ -7,6 +7,7 @@ import { PageTree, type TreeNode } from "@/components/kb/PageTree";
 import { TET_PROSYS_GROUPS } from "@/lib/kb/sidebar-groups";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { cn, generateSlug } from "@/lib/utils";
+import { Settings2 } from "lucide-react";
 import type { ApiResponse, Space } from "@/lib/api/types";
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
@@ -165,19 +166,28 @@ export function SpaceSidebarContent({
         )}
         <div className="mt-3 space-y-1">
           {spaces.map((item) => (
-            <Link
+            <div
               key={item.id}
-              href={`/admin/spaces/${item.id}`}
               className={cn(
-                "flex flex-col gap-0.5 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-muted/60",
+                "group flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-muted/60",
                 item.id === space.id && "bg-primary/10 text-primary"
               )}
             >
-              <span className="font-medium truncate">{item.name}</span>
-              <span className="text-[10px] text-muted-foreground">
-                Mở kho để quản lý tài liệu
-              </span>
-            </Link>
+              <Link href={`/admin/spaces/${item.id}`} className="min-w-0 flex-1">
+                <span className="block truncate font-medium">{item.name}</span>
+                <span className="block text-[10px] text-muted-foreground">
+                  Mở kho để quản lý tài liệu
+                </span>
+              </Link>
+              <Link
+                href={`/admin/spaces/${item.id}/settings`}
+                className="shrink-0 rounded-md p-1.5 text-muted-foreground opacity-60 transition-colors hover:bg-background hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                title="Cài đặt kho"
+                aria-label={`Cài đặt kho ${item.name}`}
+              >
+                <Settings2 className="h-3.5 w-3.5" aria-hidden="true" />
+              </Link>
+            </div>
           ))}
         </div>
       </div>
