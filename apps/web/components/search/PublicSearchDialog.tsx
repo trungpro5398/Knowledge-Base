@@ -27,35 +27,46 @@ export function PublicSearchDialog({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PublicSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setQuery("");
       setResults([]);
+      setSearchError(false);
       return;
     }
 
     if (query.trim().length < 2) {
       setResults([]);
       setSearching(false);
+      setSearchError(false);
       return;
     }
 
+    const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       setSearching(true);
+      setSearchError(false);
       try {
         const response = await api.get<PaginatedResponse<PublicSearchResult>>(
-          `/api/public/search?q=${encodeURIComponent(query.trim())}&limit=12`
+          `/api/public/search?q=${encodeURIComponent(query.trim())}&limit=12`,
+          { signal: controller.signal, auth: false }
         );
         setResults(response.data ?? []);
       } catch {
+        if (controller.signal.aborted) return;
         setResults([]);
+        setSearchError(true);
       } finally {
-        setSearching(false);
+        if (!controller.signal.aborted) setSearching(false);
       }
     }, 250);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, [open, query]);
 
   const openResult = (result: PublicSearchResult) => {
@@ -78,6 +89,10 @@ export function PublicSearchDialog({
             <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               {t("publicSearch.searching")}
+            </div>
+          ) : searchError ? (
+            <div className="px-6 py-10 text-center text-sm text-destructive" role="status" aria-live="polite">
+              {t("publicSearch.error")}
             </div>
           ) : query.trim().length < 2 ? (
             <div className="flex flex-col items-center gap-2 px-6 py-10 text-center text-sm text-muted-foreground">

@@ -1,4 +1,4 @@
-app = "knowledge-base-api"
+app = "tetedu-knowledge-base-api"
 primary_region = "sin"
 
 [build]

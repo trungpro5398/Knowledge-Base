@@ -1,7 +1,6 @@
 import { FastifyInstance } from "fastify";
 import * as spacesService from "../spaces/spaces.service.js";
-import { getPublishedPageByPathCached, getPublishedTreeCached } from "./public-cache.js";
-import { searchPublic } from "../search/search.repo.js";
+import { getPublishedPageByPathCached, getPublishedTreeCached, searchPublicCached } from "./public-cache.js";
 
 function buildBreadcrumb(
   spaceSlug: string,
@@ -26,16 +25,16 @@ function buildBreadcrumb(
 }
 
 export async function publicRoutes(fastify: FastifyInstance) {
-  fastify.get("/search", async (request, reply) => {
+  fastify.get("/search", { config: { rateLimit: { max: 60, timeWindow: "1 minute" } } }, async (request, reply) => {
     const query = request.query as { q?: string; spaceSlug?: string; limit?: string; page?: string };
-    const q = query.q?.trim() ?? "";
+    const q = query.q?.trim().slice(0, 200) ?? "";
     if (q.length < 2) {
       return { data: [], pagination: { page: 1, limit: 10, total: 0, pages: 0 } };
     }
 
     const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
     const limit = Math.min(20, Math.max(1, Number.parseInt(query.limit ?? "10", 10) || 10));
-    const { results, total } = await searchPublic({
+    const { results, total } = await searchPublicCached({
       q,
       spaceSlug: query.spaceSlug,
       limit,

@@ -56,6 +56,13 @@ export const getServerUser = cache(async () => {
   return data.user ?? null;
 });
 
+export const hasSupabaseAuthCookie = cache(async () => {
+  const cookieStore = await cookies();
+  return cookieStore
+    .getAll()
+    .some(({ name }) => /^sb-.*-auth-token(?:\.\d+)?$/.test(name));
+});
+
 export const getServerAccessToken = cache(async () => {
   const session = await getServerSession();
   return session?.access_token ?? "";

@@ -112,7 +112,7 @@ export function CollapsibleSidebar({
     <div
       className={cn(
         responsive,
-        "flex shrink-0 items-stretch",
+        "shrink-0 items-stretch",
         resizable && "min-w-0"
       )}
     >

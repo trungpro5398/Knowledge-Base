@@ -7,8 +7,9 @@ import { createSpaceSchema, updateSpaceSchema } from "@kb/shared";
 export async function spacesRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   const { authenticate } = auth;
 
-  fastify.get("/spaces/public", async () => {
+  fastify.get("/spaces/public", async (_request, reply) => {
     const spaces = await spacesService.listPublicSpaces();
+    reply.header("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=3600");
     return { data: spaces };
   });
 

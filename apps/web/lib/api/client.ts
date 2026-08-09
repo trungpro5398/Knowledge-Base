@@ -14,21 +14,23 @@ export class ApiError extends Error {
 interface ApiClientOptions extends Omit<RequestInit, "body"> {
   token?: string | null;
   body?: unknown;
+  auth?: boolean;
 }
 
 export async function apiClient<T = unknown>(
   path: string,
   options: ApiClientOptions = {}
 ): Promise<T> {
-  const { token, body, ...init } = options;
+  const { token, body, auth = true, ...init } = options;
   const headers = new Headers(init.headers);
 
   // Get access token - from param or from session
-  const accessToken =
-    token ??
-    (typeof window !== "undefined"
-      ? await (await import("./auth")).getAccessToken()
-      : null);
+  const accessToken = auth
+    ? token ??
+      (typeof window !== "undefined"
+        ? await (await import("./auth")).getAccessToken()
+        : null)
+    : null;
 
   if (accessToken) {
     headers.set("Authorization", `Bearer ${accessToken}`);
@@ -57,7 +59,8 @@ export async function apiClient<T = unknown>(
   let res: Response;
   try {
     res = await fetch(`${API_URL}${path}`, fetchOptions);
-  } catch {
+  } catch (error) {
+    if (init.signal?.aborted) throw error;
     throw new ApiError(
       "Không thể kết nối máy chủ. Kiểm tra kết nối mạng rồi thử lại.",
       0

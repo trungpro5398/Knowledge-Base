@@ -1,4 +1,6 @@
 import * as pagesRepo from "../pages/pages.repo.js";
+import * as searchRepo from "../search/search.repo.js";
+import * as spacesRepo from "../spaces/spaces.repo.js";
 import { TtlCache } from "../../utils/ttl-cache.js";
 import { config } from "../../config/env.js";
 import { buildPagesTree, type PageNode } from "../pages/pages-tree.js";
@@ -16,12 +18,73 @@ const pageCache = new TtlCache<Awaited<ReturnType<typeof pagesRepo.getPageByPath
   defaultTtlMs: DEFAULT_TTL_MS,
   maxEntries: MAX_ENTRIES,
 });
+const publicSpacesCache = new TtlCache<Awaited<ReturnType<typeof spacesRepo.listPublicSpaces>>>({
+  defaultTtlMs: DEFAULT_TTL_MS,
+  maxEntries: 1,
+});
+const publicSearchCache = new TtlCache<Awaited<ReturnType<typeof searchRepo.searchPublic>>>({
+  defaultTtlMs: DEFAULT_TTL_MS,
+  maxEntries: MAX_ENTRIES,
+});
 
 const inflightTree = new Map<
   string,
   Promise<{ tree: PageNode[]; pageTitleByPath: Map<string, string>; etag: string }>
 >();
 const inflightPage = new Map<string, Promise<Awaited<ReturnType<typeof pagesRepo.getPageByPath>>>>();
+let inflightPublicSpaces: Promise<Awaited<ReturnType<typeof spacesRepo.listPublicSpaces>>> | null = null;
+const inflightPublicSearch = new Map<
+  string,
+  Promise<Awaited<ReturnType<typeof searchRepo.searchPublic>>>
+>();
+
+export async function getPublicSpacesCached() {
+  if (DEFAULT_TTL_MS <= 0) return spacesRepo.listPublicSpaces();
+  const key = "public-spaces";
+  const cached = publicSpacesCache.get(key);
+  if (cached) return cached;
+  if (inflightPublicSpaces) return inflightPublicSpaces;
+
+  inflightPublicSpaces = spacesRepo.listPublicSpaces().then((spaces) => {
+    publicSpacesCache.set(key, spaces);
+    return spaces;
+  });
+  try {
+    return await inflightPublicSpaces;
+  } finally {
+    inflightPublicSpaces = null;
+  }
+}
+
+export async function searchPublicCached(params: {
+  q: string;
+  spaceSlug?: string;
+  limit: number;
+  offset: number;
+}) {
+  if (DEFAULT_TTL_MS <= 0) return searchRepo.searchPublic(params);
+  const key = [
+    params.q.trim().toLocaleLowerCase("vi"),
+    params.spaceSlug?.trim().toLocaleLowerCase("vi") ?? "",
+    params.limit,
+    params.offset,
+  ].join(":");
+  const cached = publicSearchCache.get(key);
+  if (cached) return cached;
+  const inflight = inflightPublicSearch.get(key);
+  if (inflight) return inflight;
+
+  const promise = searchRepo.searchPublic(params).then((result) => {
+    publicSearchCache.set(key, result);
+    return result;
+  });
+  inflightPublicSearch.set(key, promise);
+  try {
+    return await promise;
+  } finally {
+    inflightPublicSearch.delete(key);
+  }
+}
 
 function buildTitleMap(tree: PageNode[]): Map<string, string> {
   const map = new Map<string, string>();
@@ -120,8 +183,11 @@ export function invalidatePublishedSpace(spaceId: string): void {
       pageCache.delete(key);
     }
   }
+  publicSpacesCache.clear();
+  publicSearchCache.clear();
 }
 
 export function invalidatePublishedPage(spaceId: string, path: string): void {
   pageCache.delete(`page:${spaceId}:${path}`);
+  publicSearchCache.clear();
 }

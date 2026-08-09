@@ -2,14 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
-import { PageTree, type TreeNode } from "./PageTree";
+import type { TreeNode } from "./PageTree";
+import { PublicPageTree } from "./PublicPageTree";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 interface SidebarSearchFilterProps {
   spaceSlug: string;
   nodes: TreeNode[];
-  showEditLink?: boolean;
   className?: string;
 }
 
@@ -38,7 +38,6 @@ function filterTree(nodes: TreeNode[], query: string): TreeNode[] {
 export function SidebarSearchFilter({
   spaceSlug,
   nodes,
-  showEditLink = false,
   className,
 }: SidebarSearchFilterProps) {
   const { t } = useLocale();
@@ -74,12 +73,7 @@ export function SidebarSearchFilter({
         )}
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto -mx-1 px-1">
-        <PageTree
-          spaceId=""
-          spaceSlug={spaceSlug}
-          nodes={filteredNodes}
-          showEditLink={showEditLink}
-        />
+        <PublicPageTree spaceSlug={spaceSlug} nodes={filteredNodes} />
         {hasQuery && filteredNodes.length === 0 && (
           <p className="text-sm text-muted-foreground py-4 text-center">
             {t("common.noResults")}

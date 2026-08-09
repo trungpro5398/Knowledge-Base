@@ -12,13 +12,14 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
 }
 
 export function SkeletonText({ lines = 3, className }: { lines?: number; className?: string }) {
+  const widths = ["100%", "88%", "72%", "92%", "64%"];
   return (
     <div className={cn("space-y-2", className)}>
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton
           key={i}
           className="h-4"
-          style={{ width: `${Math.random() * 40 + 60}%` }}
+          style={{ width: widths[i % widths.length] }}
         />
       ))}
     </div>

@@ -154,6 +154,30 @@
   .prose-kb pre code {
     @apply p-0 bg-transparent;
   }
+
+  .prose-kb blockquote {
+    @apply my-4 border-l-4 border-primary/30 bg-muted/50 px-4 py-3 text-muted-foreground;
+  }
+
+  .prose-kb hr {
+    @apply my-8 border-border;
+  }
+
+  .prose-kb table {
+    @apply my-5 block w-full overflow-x-auto border-collapse text-left text-sm;
+  }
+
+  .prose-kb th {
+    @apply whitespace-nowrap border border-border bg-muted px-3 py-2 font-semibold;
+  }
+
+  .prose-kb td {
+    @apply border border-border px-3 py-2 align-top;
+  }
+
+  .prose-kb img {
+    @apply h-auto max-w-full rounded-lg border;
+  }
 }
 
 /* Command Palette (cmdk) */

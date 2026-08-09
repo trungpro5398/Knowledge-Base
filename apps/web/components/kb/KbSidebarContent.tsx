@@ -66,7 +66,6 @@ export function KbSidebarContent({
         <SidebarSearchFilter
           spaceSlug={spaceSlug}
           nodes={tree}
-          showEditLink={false}
           className="flex-1 min-h-0 flex flex-col"
         />
       </div>

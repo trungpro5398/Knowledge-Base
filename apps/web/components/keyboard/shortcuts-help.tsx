@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { X, Command } from "lucide-react";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { useShortcuts } from "./shortcuts-provider";
@@ -7,6 +8,40 @@ import { useShortcuts } from "./shortcuts-provider";
 export function ShortcutsHelp() {
   const { t } = useLocale();
   const { shortcuts, showHelp, setShowHelp } = useShortcuts();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showHelp) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
+  }, [showHelp]);
+
+  const handleDialogKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Tab") return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>('button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+    );
+    if (focusable.length === 0) return;
+
+    const first = focusable[0]!;
+    const last = focusable[focusable.length - 1]!;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
 
   if (!showHelp) return null;
 
@@ -29,12 +64,20 @@ export function ShortcutsHelp() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) setShowHelp(false);
+      }}
+    >
       <div
+        ref={dialogRef}
         className="bg-card border rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col overscroll-contain"
         role="dialog"
         aria-modal="true"
         aria-labelledby="shortcuts-title"
+        tabIndex={-1}
+        onKeyDown={handleDialogKeyDown}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div className="flex items-center gap-2">
@@ -43,6 +86,7 @@ export function ShortcutsHelp() {
           </div>
           <button
             type="button"
+            ref={closeButtonRef}
             onClick={() => setShowHelp(false)}
             className="p-2 hover:bg-muted rounded-md transition-colors"
             aria-label={t("shortcuts.close")}

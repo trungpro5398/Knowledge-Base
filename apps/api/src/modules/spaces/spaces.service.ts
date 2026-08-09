@@ -1,6 +1,6 @@
 import * as spacesRepo from "./spaces.repo.js";
 import * as organizationsRepo from "../organizations/organizations.repo.js";
-import { invalidatePublishedSpace } from "../public/public-cache.js";
+import { getPublicSpacesCached, invalidatePublishedSpace } from "../public/public-cache.js";
 import { NotFoundError, ValidationError, ForbiddenError } from "../../utils/errors.js";
 import { getSpaceBySlugCached, invalidateSpaceCache } from "./spaces-cache.js";
 import { getSpacesForUserCached, getSpacesStatsCached, invalidateSpacesForUser } from "./spaces-user-cache.js";
@@ -10,7 +10,7 @@ export async function listSpaces(userId: string) {
 }
 
 export async function listPublicSpaces() {
-  return spacesRepo.listPublicSpaces();
+  return getPublicSpacesCached();
 }
 
 export async function getSpacesStats(userId: string) {

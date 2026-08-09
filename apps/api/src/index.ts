@@ -53,9 +53,22 @@ const start = async () => {
   }
 };
 
+const shutdown = async (signal: string) => {
+  fastify.log.info({ signal }, "Shutting down API server");
+  try {
+    await fastify.close();
+    process.exit(0);
+  } catch (error) {
+    fastify.log.error(error, "Failed to shut down API server cleanly");
+    process.exit(1);
+  }
+};
+
 // Vercel imports this module as a serverless handler. A traditional listener
 // is only needed for local development and the standalone Fly deployment.
 if (!process.env.VERCEL) {
+  process.once("SIGTERM", () => void shutdown("SIGTERM"));
+  process.once("SIGINT", () => void shutdown("SIGINT"));
   start();
 }
 

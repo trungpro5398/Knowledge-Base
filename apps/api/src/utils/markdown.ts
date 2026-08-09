@@ -3,7 +3,6 @@ import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import rehypeSanitize from "rehype-sanitize";
-import rehypeSlug from "rehype-slug";
 import rehypeHighlight from "rehype-highlight";
 import rehypeStringify from "rehype-stringify";
 
@@ -18,28 +17,84 @@ export interface CompileResult {
   toc: TocItem[];
 }
 
+function slugify(text: string): string {
+  return text
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "section";
+}
+
+function headingSlug(baseId: string, count: number): string {
+  return count === 0 ? baseId : `${baseId}-${count + 1}`;
+}
+
+function headingId(baseId: string, count: number): string {
+  return `user-content-${headingSlug(baseId, count)}`;
+}
+
+function getHeadingText(node: MarkdownNode): string {
+  if (typeof node.value === "string") return node.value;
+  return (node.children ?? []).map(getHeadingText).join("");
+}
+
+interface MarkdownNode {
+  type?: string;
+  tagName?: string;
+  value?: string;
+  children?: MarkdownNode[];
+  properties?: Record<string, unknown>;
+}
+
+function applyHeadingIds() {
+  return (tree: MarkdownNode) => {
+    const counts = new Map<string, number>();
+    const visit = (node: MarkdownNode) => {
+      if (node.type === "element" && ["h1", "h2", "h3"].includes(node.tagName ?? "")) {
+        const baseId = slugify(getHeadingText(node));
+        const count = counts.get(baseId) ?? 0;
+        counts.set(baseId, count + 1);
+        node.properties = { ...node.properties, id: headingSlug(baseId, count) };
+      }
+      node.children?.forEach(visit);
+    };
+    visit(tree);
+  };
+}
+
+function plainHeadingText(value: string): string {
+  return value
+    .replace(/\s+#+\s*$/, "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[`*_~]/g, "")
+    .trim();
+}
+
 const processor = unified()
   .use(remarkParse)
   .use(remarkGfm)
   .use(remarkRehype)
-  .use(rehypeSlug)
+  .use(applyHeadingIds)
   .use(rehypeHighlight)
   .use(rehypeSanitize)
   .use(rehypeStringify);
 
-function slugify(text: string): string {
-  return text.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-}
-
 function extractToc(md: string): TocItem[] {
   const toc: TocItem[] = [];
+  const counts = new Map<string, number>();
   const lines = md.split("\n");
   for (const line of lines) {
     const match = line.match(/^(#{1,3})\s+(.+)$/);
     if (match) {
       const level = match[1]!.length;
-      const text = match[2]!.trim();
-      toc.push({ id: slugify(text), text, level });
+      const text = plainHeadingText(match[2]!);
+      const baseId = slugify(text);
+      const count = counts.get(baseId) ?? 0;
+      counts.set(baseId, count + 1);
+      toc.push({ id: headingId(baseId, count), text, level });
     }
   }
   return toc;

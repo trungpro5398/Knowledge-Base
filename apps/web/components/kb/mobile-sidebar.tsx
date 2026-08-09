@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { SidebarSearchFilter } from "./SidebarSearchFilter";
@@ -12,7 +12,6 @@ interface MobileSidebarProps {
   spaceId: string;
   spaceSlug: string;
   nodes: TreeNode[];
-  showEditLink?: boolean;
   spaces?: Space[];
 }
 
@@ -20,14 +19,17 @@ export function MobileSidebar({
   spaceId,
   spaceSlug,
   nodes,
-  showEditLink = false,
   spaces = [],
 }: MobileSidebarProps) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
@@ -37,8 +39,31 @@ export function MobileSidebar({
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
     };
   }, [open]);
+
+  const handleDialogKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Tab") return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    );
+    if (focusable.length === 0) return;
+
+    const first = focusable[0]!;
+    const last = focusable[focusable.length - 1]!;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
 
   return (
     <>
@@ -60,19 +85,23 @@ export function MobileSidebar({
             type="button"
             className="fixed inset-0 bg-black/50 z-50 md:hidden animate-fade-in"
             onClick={() => setOpen(false)}
-            aria-label="Close menu"
+            aria-label="Đóng danh mục"
           />
           <div
             id="kb-mobile-sidebar"
+            ref={dialogRef}
             className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-card border-r z-50 md:hidden overflow-auto overscroll-contain animate-slide-in-left"
             role="dialog"
             aria-modal="true"
-            aria-label="Navigation"
+            aria-labelledby="kb-mobile-sidebar-title"
+            tabIndex={-1}
+            onKeyDown={handleDialogKeyDown}
           >
             <div className="sticky top-0 bg-card border-b px-4 py-3 flex items-center justify-between">
-              <h2 className="font-semibold">Danh mục</h2>
+              <h2 id="kb-mobile-sidebar-title" className="font-semibold">Danh mục</h2>
               <button
                 type="button"
+                ref={closeButtonRef}
                 onClick={() => setOpen(false)}
                 className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
                 aria-label="Đóng danh mục"
@@ -81,7 +110,12 @@ export function MobileSidebar({
                 <span>Đóng</span>
               </button>
             </div>
-            <div className="p-4 space-y-4">
+            <div
+              className="space-y-4 p-4"
+              onClick={(event) => {
+                if ((event.target as HTMLElement).closest("a")) setOpen(false);
+              }}
+            >
               {spaces.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -108,7 +142,6 @@ export function MobileSidebar({
               <SidebarSearchFilter
                 spaceSlug={spaceSlug}
                 nodes={nodes}
-                showEditLink={showEditLink}
               />
             </div>
           </div>

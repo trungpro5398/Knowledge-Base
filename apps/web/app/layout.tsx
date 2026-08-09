@@ -9,7 +9,7 @@ import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import { ShortcutsProvider } from "@/components/keyboard/shortcuts-provider";
 import { ShortcutsHelp } from "@/components/keyboard/shortcuts-help";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { getServerUser } from "@/lib/auth/supabase-server";
+import { getServerUser, hasSupabaseAuthCookie } from "@/lib/auth/supabase-server";
 import { signOut } from "@/lib/auth/actions";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -18,6 +18,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://kb.tet-edu.com"),
   title: "Kho Tài Liệu TET - Knowledge Base",
   description: "Tài liệu vận hành, quy trình và quyết định nội bộ của TET. Luôn cập nhật, dễ tìm, dễ hiểu.",
 };
@@ -27,7 +28,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getServerUser();
+  const user = (await hasSupabaseAuthCookie()) ? await getServerUser() : null;
   const isLoggedIn = !!user;
 
   return (

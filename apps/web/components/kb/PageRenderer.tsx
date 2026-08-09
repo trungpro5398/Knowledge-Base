@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import { isValidElement, type ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
@@ -21,6 +22,27 @@ function normalizeHeadingText(value: string): string {
     .replace(/\s+/g, " ")
     .trim()
     .toLocaleLowerCase();
+}
+
+function slugifyHeading(text: string): string {
+  return text
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "section";
+}
+
+function headingId(baseId: string, count: number): string {
+  const suffix = count === 0 ? baseId : `${baseId}-${count + 1}`;
+  return `user-content-${suffix}`;
+}
+
+function getNodeText(value: ReactNode): string {
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (Array.isArray(value)) return value.map(getNodeText).join("");
+  if (isValidElement<{ children?: ReactNode }>(value)) return getNodeText(value.props.children);
+  return "";
 }
 
 function removeDuplicateHtmlTitle(html: string, pageTitle?: string): string {
@@ -50,21 +72,27 @@ export function PageRenderer({ content, html, pageTitle }: PageRendererProps) {
   if (html) {
     return <div className="prose-kb" dangerouslySetInnerHTML={{ __html: removeDuplicateHtmlTitle(html, pageTitle) }} />;
   }
+
+  const headingCounts = new Map<string, number>();
+  const getHeadingId = (children: ReactNode) => {
+    const baseId = slugifyHeading(getNodeText(children));
+    const count = headingCounts.get(baseId) ?? 0;
+    headingCounts.set(baseId, count + 1);
+    return headingId(baseId, count);
+  };
+
   return (
     <div className="prose-kb">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
         components={{
+          h1: ({ children }) => <h1 id={getHeadingId(children)}>{children}</h1>,
           h2: ({ children }) => {
-            const text = Array.isArray(children) ? children.join("") : String(children ?? "");
-            const id = text.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-            return <h2 id={id}>{children}</h2>;
+            return <h2 id={getHeadingId(children)}>{children}</h2>;
           },
           h3: ({ children }) => {
-            const text = Array.isArray(children) ? children.join("") : String(children ?? "");
-            const id = text.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-            return <h3 id={id}>{children}</h3>;
+            return <h3 id={getHeadingId(children)}>{children}</h3>;
           },
           img: ({ src, alt, width, height }) => {
             const parsedWidth =
