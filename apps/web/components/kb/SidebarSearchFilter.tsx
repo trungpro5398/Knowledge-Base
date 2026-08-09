@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react";
 import type { TreeNode } from "./PageTree";
 import { PublicPageTree } from "./PublicPageTree";
 import { useLocale } from "@/lib/i18n/locale-provider";
+import { normalizeSpaceSearch } from "@/lib/kb/space-groups";
 import { cn } from "@/lib/utils";
 
 interface SidebarSearchFilterProps {
@@ -14,11 +15,11 @@ interface SidebarSearchFilterProps {
 }
 
 function filterTree(nodes: TreeNode[], query: string): TreeNode[] {
-  const q = query.trim().toLowerCase();
+  const q = normalizeSpaceSearch(query.trim());
   if (!q) return nodes;
 
   function matches(node: TreeNode): boolean {
-    return node.title.toLowerCase().includes(q);
+    return normalizeSpaceSearch(node.title).includes(q);
   }
 
   function collect(n: TreeNode): TreeNode | null {
@@ -55,30 +56,32 @@ export function SidebarSearchFilter({
         />
         <input
           type="search"
+          name="page-filter"
+          autoComplete="off"
           placeholder={t("sidebar.searchPlaceholder")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="search-input-no-native-clear w-full h-8 pl-8 pr-7 rounded-md bg-muted/40 text-sm placeholder:text-muted-foreground/80 border-0 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-muted/60 transition-colors"
-          aria-label="Tìm kiếm trong danh mục"
+          className="search-input-no-native-clear h-8 w-full rounded-md border-0 bg-muted/40 pl-8 pr-7 text-sm placeholder:text-muted-foreground/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:bg-muted/60"
+          aria-label={t("sidebar.searchPagesLabel")}
         />
-        {hasQuery && (
+        {hasQuery ? (
           <button
             type="button"
             onClick={() => setQuery("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-            aria-label="Xóa tìm kiếm"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            aria-label={t("sidebar.clearPageSearch")}
           >
-            <X className="h-3 w-3" />
+            <X className="h-3 w-3" aria-hidden="true" />
           </button>
-        )}
+        ) : null}
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto -mx-1 px-1">
         <PublicPageTree spaceSlug={spaceSlug} nodes={filteredNodes} />
-        {hasQuery && filteredNodes.length === 0 && (
+        {hasQuery && filteredNodes.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4 text-center">
             {t("common.noResults")}
           </p>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -92,7 +92,13 @@ export function PublicSpaceNavigator({ spaces, activeSpaceSlug }: PublicSpaceNav
           const isExpanded = normalizedQuery.length > 0 || expandedGroups.has(group.key);
           const panelId = `${navigationId}-space-group-${group.key.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
           return (
-            <div key={group.key} className="rounded-lg border border-border/60 bg-card/30">
+            <div
+              key={group.key}
+              className={cn(
+                "rounded-lg border bg-card/30",
+                group.isActive ? "border-primary/30 bg-primary/[0.02]" : "border-border/60"
+              )}
+            >
               <button
                 type="button"
                 onClick={() => toggleGroup(group.key)}
@@ -110,11 +116,6 @@ export function PublicSpaceNavigator({ spaces, activeSpaceSlug }: PublicSpaceNav
                     {t("sidebar.groupSpaceCount", { count: group.spaces.length })}
                   </span>
                 </span>
-                {group.isActive ? (
-                  <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-medium text-primary">
-                    {t("sidebar.currentGroup")}
-                  </span>
-                ) : null}
                 <ChevronDown
                   className={cn("h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform", isExpanded && "rotate-180")}
                   aria-hidden="true"
@@ -135,7 +136,14 @@ export function PublicSpaceNavigator({ spaces, activeSpaceSlug }: PublicSpaceNav
                           isActive ? "bg-primary/10 text-primary" : "text-foreground"
                         )}
                       >
-                        <span className="block truncate font-medium">{space.name}</span>
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className="min-w-0 flex-1 truncate font-medium">{space.name}</span>
+                          {isActive ? (
+                            <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-medium text-primary">
+                              {t("sidebar.currentSpace")}
+                            </span>
+                          ) : null}
+                        </span>
                         {space.description ? (
                           <span className="mt-0.5 block line-clamp-1 text-[10px] text-muted-foreground">
                             {space.description}
@@ -156,9 +164,6 @@ export function PublicSpaceNavigator({ spaces, activeSpaceSlug }: PublicSpaceNav
           {t("sidebar.noLibrariesFound")}
         </p>
       ) : null}
-      <p className="mt-2 px-1 text-[10px] leading-relaxed text-muted-foreground">
-        {t("sidebar.publicOnlyHint")}
-      </p>
     </section>
   );
 }

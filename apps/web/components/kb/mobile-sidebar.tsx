@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Menu, X } from "lucide-react";
-import { SidebarSearchFilter } from "./SidebarSearchFilter";
-import { PublicSpaceNavigator } from "./PublicSpaceNavigator";
+import { KbSidebarContent } from "./KbSidebarContent";
 import type { TreeNode } from "./PageTree";
 import type { Space } from "@/lib/api/types";
 
@@ -15,7 +14,6 @@ interface MobileSidebarProps {
 }
 
 export function MobileSidebar({
-  spaceId,
   spaceSlug,
   nodes,
   spaces = [],
@@ -88,14 +86,14 @@ export function MobileSidebar({
           <div
             id="kb-mobile-sidebar"
             ref={dialogRef}
-            className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-card border-r z-50 md:hidden overflow-auto overscroll-contain animate-slide-in-left"
+            className="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col overflow-hidden overscroll-contain border-r bg-card md:hidden animate-slide-in-left"
             role="dialog"
             aria-modal="true"
             aria-labelledby="kb-mobile-sidebar-title"
             tabIndex={-1}
             onKeyDown={handleDialogKeyDown}
           >
-            <div className="sticky top-0 bg-card border-b px-4 py-3 flex items-center justify-between">
+            <div className="flex shrink-0 items-center justify-between border-b bg-card px-4 py-3">
               <h2 id="kb-mobile-sidebar-title" className="font-semibold">Danh mục</h2>
               <button
                 type="button"
@@ -109,21 +107,15 @@ export function MobileSidebar({
               </button>
             </div>
             <div
-              className="space-y-4 p-4"
+              className="min-h-0 flex-1"
               onClick={(event) => {
                 if ((event.target as HTMLElement).closest("a")) setOpen(false);
               }}
             >
-              {spaces.length > 0 && (
-                <PublicSpaceNavigator
-                  key={spaceSlug}
-                  spaces={spaces}
-                  activeSpaceSlug={spaceSlug}
-                />
-              )}
-              <SidebarSearchFilter
+              <KbSidebarContent
+                spaces={spaces}
                 spaceSlug={spaceSlug}
-                nodes={nodes}
+                tree={nodes}
               />
             </div>
           </div>
