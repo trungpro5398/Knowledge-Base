@@ -279,8 +279,8 @@ async function renderKbPage({ params }: KbPageProps) {
             items={breadcrumb}
             sticky
           />
-          <header className="mb-6 flex flex-wrap items-center gap-2">
-            <h1 className="min-w-0 flex-1 break-words text-balance text-2xl font-bold md:text-3xl">
+          <header className="mb-6 grid min-w-0 grid-cols-[auto_1fr] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+            <h1 className="col-span-2 min-w-0 break-words text-balance text-2xl font-bold sm:col-span-1 md:text-3xl">
               {page.title}
             </h1>
             <PageStatusBadge status={page.status} />

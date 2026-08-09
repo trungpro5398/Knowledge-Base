@@ -76,7 +76,7 @@ export function SidebarSearchFilter({
         ) : null}
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto -mx-1 px-1">
-        <PublicPageTree spaceSlug={spaceSlug} nodes={filteredNodes} />
+        <PublicPageTree spaceSlug={spaceSlug} nodes={filteredNodes} expandAll={hasQuery} />
         {hasQuery && filteredNodes.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4 text-center">
             {t("common.noResults")}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { pathToSlug } from "@/lib/routing/slug";
 import { useLocale } from "@/lib/i18n/locale-provider";
@@ -30,6 +31,8 @@ export function Breadcrumbs({
   sticky = false,
 }: BreadcrumbsProps) {
   const { t } = useLocale();
+  const breadcrumbRef = useRef<HTMLElement>(null);
+  const currentCrumbRef = useRef<HTMLSpanElement>(null);
   const crumbs: { label: string; href: string }[] = apiItems
     ? [
         {
@@ -65,13 +68,24 @@ export function Breadcrumbs({
         return c;
       })();
 
+  useEffect(() => {
+    const breadcrumb = breadcrumbRef.current;
+    const currentCrumb = currentCrumbRef.current;
+    if (!breadcrumb || !currentCrumb) return;
+    breadcrumb.scrollLeft = Math.max(
+      0,
+      currentCrumb.offsetLeft + currentCrumb.offsetWidth - breadcrumb.clientWidth
+    );
+  }, [path, title]);
+
   const content = (
     <nav
-      className={`flex flex-wrap items-center gap-1.5 text-sm ${className}`}
+      ref={breadcrumbRef}
+      className={`flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain pb-1 text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}
       aria-label={t("viewer.breadcrumbLabel")}
     >
       {crumbs.map((c, i) => (
-        <span key={`${c.href}-${c.label}`} className="flex min-w-0 items-center gap-1.5">
+        <span key={`${c.href}-${c.label}`} className="flex shrink-0 items-center gap-1.5">
           {i > 0 ? (
             <span className="text-muted-foreground/60" aria-hidden="true">
               /
@@ -80,13 +94,18 @@ export function Breadcrumbs({
           {c.href ? (
             <Link
               href={c.href}
-              className="inline-flex max-w-full items-center truncate rounded-full bg-muted/70 px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="inline-flex max-w-[70vw] items-center truncate rounded-full bg-muted/70 px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 md:max-w-72"
               title={c.label}
             >
               {c.label}
             </Link>
           ) : (
-            <span className="inline-flex max-w-full items-center truncate rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary" title={c.label}>
+            <span
+              ref={currentCrumbRef}
+              aria-current="page"
+              className="inline-flex max-w-[70vw] items-center truncate rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary md:max-w-72"
+              title={c.label}
+            >
               {c.label}
             </span>
           )}
