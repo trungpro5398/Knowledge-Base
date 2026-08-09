@@ -34,7 +34,7 @@ export function ReadingProgress() {
   }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-14 z-[45] h-0.5" aria-hidden="true">
+    <div className="pointer-events-none fixed inset-x-0 top-14 z-[45] h-0.5 print:hidden" aria-hidden="true">
       <div
         ref={indicatorRef}
         className="h-full origin-left scale-x-0 bg-brand-orange"

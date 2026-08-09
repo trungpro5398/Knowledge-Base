@@ -41,7 +41,7 @@ export function PageNavigation({
 
   return (
     <nav
-      className="mt-12 grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 border-t pt-6 sm:grid-cols-2"
+      className="mt-12 grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 border-t pt-6 print:hidden sm:grid-cols-2"
       aria-label={t("kbNav.ariaLabel")}
     >
       {previous ? (

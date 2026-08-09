@@ -67,7 +67,7 @@ export function MobileSidebar({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="md:hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-40 inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-primary-foreground shadow-lg hover:opacity-90 transition-opacity"
+        className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-40 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-primary-foreground shadow-lg transition-opacity hover:opacity-90 print:hidden md:hidden"
         aria-label={t("sidebar.expand")}
         aria-expanded={open}
         aria-controls="kb-mobile-sidebar"

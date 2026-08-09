@@ -16,12 +16,15 @@ import { KbContextHeader } from "@/components/kb/KbContextHeader";
 import { PageNavigation } from "@/components/kb/PageNavigation";
 import { ReadingProgress } from "@/components/kb/ReadingProgress";
 import { PageStatusBadge } from "@/components/kb/PageStatusBadge";
+import { ReadingTimeBadge } from "@/components/kb/ReadingTimeBadge";
+import { PrintButton } from "@/components/ui/print-button";
 import { KbUnavailable } from "@/components/kb/KbUnavailable";
 import { PublicLibraryDirectory } from "@/components/kb/PublicLibraryDirectory";
 import type { TreeNode } from "@/components/kb/PageTree";
 import type { Space } from "@/lib/api/types";
 import { slugToPath } from "@/lib/routing/slug";
 import { extractMarkdownToc } from "@/lib/kb/headings";
+import { estimateReadingMinutes } from "@/lib/kb/reading-time";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -259,11 +262,12 @@ async function renderKbPage({ params }: KbPageProps) {
     ? apiToc
     : extractMarkdownToc(version.content_md ?? "");
   const useRenderedHtml = !!version.rendered_html;
+  const readingMinutes = estimateReadingMinutes(version.rendered_html ?? version.content_md ?? "");
   return (
     <>
       <ReadingProgress />
       <div className="flex gap-6 py-4 md:py-8">
-      <CollapsibleSidebar storageKey="kb" resizable responsive="hidden md:flex" sticky>
+      <CollapsibleSidebar storageKey="kb" resizable responsive="hidden md:flex print:hidden" sticky>
         <KbSidebarContent spaces={spaces} spaceSlug={spaceSlug} tree={tree} />
       </CollapsibleSidebar>
       <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
@@ -281,16 +285,20 @@ async function renderKbPage({ params }: KbPageProps) {
             items={breadcrumb}
             sticky
           />
-          <header className="mb-6 grid min-w-0 grid-cols-[auto_1fr] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
-            <h1 className="col-span-2 min-w-0 break-words text-balance text-2xl font-bold sm:col-span-1 md:text-3xl">
+          <header className="mb-6 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <h1 className="min-w-0 break-words text-balance text-2xl font-bold md:text-3xl">
               {page.title}
             </h1>
-            <PageStatusBadge status={page.status} />
-            <CopyLinkButton />
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+              <PageStatusBadge status={page.status} />
+              <ReadingTimeBadge minutes={readingMinutes} />
+              <CopyLinkButton className="print:hidden" />
+              <PrintButton />
+            </div>
           </header>
           <div className={toc.length > 0 ? "grid xl:grid-cols-[minmax(0,1fr)_13rem] xl:gap-10" : ""}>
             {toc.length > 0 ? (
-              <aside className="order-first min-w-0 xl:order-none xl:col-start-2 xl:row-start-1">
+              <aside className="order-first min-w-0 print:hidden xl:order-none xl:col-start-2 xl:row-start-1">
                 <div className="xl:sticky xl:top-28 xl:max-h-[calc(100dvh-8rem)] xl:overflow-y-auto xl:overscroll-contain">
                   <Toc items={toc} responsive />
                 </div>
