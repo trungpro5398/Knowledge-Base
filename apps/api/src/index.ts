@@ -10,7 +10,7 @@ import rbacPlugin from "./plugins/rbac.js";
 import { registerRoutes } from "./routes/index.js";
 import { recordRequest } from "./utils/metrics.js";
 
-export const fastify = Fastify({ logger: logger as any });
+export const fastify = Fastify({ loggerInstance: logger });
 
 fastify.addHook("onRequest", (request, _reply, done) => {
   request._startAt = process.hrtime.bigint();
