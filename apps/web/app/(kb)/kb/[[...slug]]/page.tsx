@@ -14,6 +14,7 @@ import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
 import { CopyLinkButton } from "@/components/ui/copy-link-button";
 import { KbContextHeader } from "@/components/kb/KbContextHeader";
 import { PageNavigation } from "@/components/kb/PageNavigation";
+import { ReadingProgress } from "@/components/kb/ReadingProgress";
 import { PageStatusBadge } from "@/components/kb/PageStatusBadge";
 import { KbUnavailable } from "@/components/kb/KbUnavailable";
 import { PublicLibraryDirectory } from "@/components/kb/PublicLibraryDirectory";
@@ -260,6 +261,7 @@ async function renderKbPage({ params }: KbPageProps) {
   const useRenderedHtml = !!version.rendered_html;
   return (
     <>
+      <ReadingProgress />
       <div className="flex gap-6 py-4 md:py-8">
       <CollapsibleSidebar storageKey="kb" resizable responsive="hidden md:flex" sticky>
         <KbSidebarContent spaces={spaces} spaceSlug={spaceSlug} tree={tree} />

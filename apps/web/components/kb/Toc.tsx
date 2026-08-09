@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, List } from "lucide-react";
+import { ArrowUp, ChevronDown, Copy, List } from "lucide-react";
+import { toast } from "sonner";
 import { useLocale } from "@/lib/i18n/locale-provider";
 import { extractMarkdownToc } from "@/lib/kb/headings";
 
@@ -87,6 +88,17 @@ export function Toc({ headings, items: tocItems, responsive = false }: TocProps)
     return () => observer.disconnect();
   }, [items, resolvedIds]);
 
+  const copySectionLink = async (targetId: string) => {
+    const url = new URL(window.location.href);
+    url.hash = targetId;
+    try {
+      await navigator.clipboard.writeText(url.toString());
+      toast.success(t("viewer.sectionLinkCopied"));
+    } catch {
+      toast.error(t("viewer.sectionLinkCopyFailed"));
+    }
+  };
+
   const renderItems = () => (
     <ul className="space-y-1 text-sm">
       {items.map((item) => {
@@ -95,18 +107,37 @@ export function Toc({ headings, items: tocItems, responsive = false }: TocProps)
           <li
             key={item.id}
             style={{ paddingLeft: Math.max(0, item.level - 2) * 12 }}
-            className={activeId === targetId ? "font-medium text-primary" : "text-muted-foreground"}
+            className={`group/toc-item flex min-w-0 items-start gap-0.5 ${activeId === targetId ? "font-medium text-primary" : "text-muted-foreground"}`}
           >
             <a
               href={`#${targetId}`}
-              className="block rounded-md px-2 py-1.5 leading-snug transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-w-0 flex-1 break-words rounded-md px-2 py-1.5 leading-snug transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-current={activeId === targetId ? "location" : undefined}
+              title={item.text}
             >
               {item.text}
             </a>
+            <button
+              type="button"
+              onClick={() => void copySectionLink(targetId)}
+              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md p-0 text-muted-foreground/70 transition-[color,background-color,opacity] hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:opacity-0 md:group-hover/toc-item:opacity-100 md:focus-visible:opacity-100"
+              aria-label={`${t("viewer.copySectionLink")}: ${item.text}`}
+              title={t("viewer.copySectionLink")}
+            >
+              <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
           </li>
         );
       })}
+      <li className="pt-2">
+        <a
+          href="#main-content"
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
+          {t("viewer.backToTop")}
+        </a>
+      </li>
     </ul>
   );
 
