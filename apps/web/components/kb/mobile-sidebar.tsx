@@ -2,11 +2,10 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Menu, X } from "lucide-react";
-import Link from "next/link";
 import { SidebarSearchFilter } from "./SidebarSearchFilter";
+import { PublicSpaceNavigator } from "./PublicSpaceNavigator";
 import type { TreeNode } from "./PageTree";
 import type { Space } from "@/lib/api/types";
-import { useLocale } from "@/lib/i18n/locale-provider";
 
 interface MobileSidebarProps {
   spaceId: string;
@@ -21,7 +20,6 @@ export function MobileSidebar({
   nodes,
   spaces = [],
 }: MobileSidebarProps) {
-  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -117,27 +115,11 @@ export function MobileSidebar({
               }}
             >
               {spaces.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t("sidebar.spaces")}
-                  </p>
-                  <div className="space-y-1">
-                    {spaces.map((space) => (
-                      <Link
-                        key={space.id}
-                        href={`/kb/${space.slug}`}
-                        className={`flex min-w-0 flex-col gap-0.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted/60 ${
-                          space.slug === spaceSlug ? "bg-primary/10 text-primary" : ""
-                        }`}
-                      >
-                        <span className="font-medium truncate">{space.name}</span>
-                        <span className="text-[10px] text-muted-foreground truncate">
-                          {space.organization_name || t("viewer.standaloneLabel")}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
+                <PublicSpaceNavigator
+                  key={spaceSlug}
+                  spaces={spaces}
+                  activeSpaceSlug={spaceSlug}
+                />
               )}
               <SidebarSearchFilter
                 spaceSlug={spaceSlug}

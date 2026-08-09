@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { SidebarSearchFilter } from "./SidebarSearchFilter";
+import { PublicSpaceNavigator } from "./PublicSpaceNavigator";
 import type { TreeNode } from "./PageTree";
 import type { Space } from "@/lib/api/types";
 import { useLocale } from "@/lib/i18n/locale-provider";
-import { cn } from "@/lib/utils";
 
 interface KbSidebarContentProps {
   spaces: Space[];
@@ -24,32 +23,11 @@ export function KbSidebarContent({
       {/* Danh sách các kho tài liệu */}
       {spaces.length > 0 && (
         <div className="px-3 pt-4 pb-2">
-          <p className="text-[11px] font-medium text-muted-foreground mb-2 px-1">
-            {t("sidebar.spaces")}
-          </p>
-          <p className="mb-2 px-1 text-[10px] leading-relaxed text-muted-foreground">
-            {t("sidebar.publicOnlyHint")}
-          </p>
-          <div className="space-y-0.5">
-            {spaces.map((space) => (
-              <Link
-                key={space.id}
-                href={`/kb/${space.slug}`}
-                className={cn(
-                  "block rounded-lg px-3 py-2 text-sm transition-colors",
-                  "hover:bg-muted/60",
-                  space.slug === spaceSlug
-                    ? "bg-primary/10 text-primary"
-                    : "text-foreground"
-                )}
-              >
-                <span className="font-medium truncate block">{space.name}</span>
-                <span className="text-[10px] text-muted-foreground truncate block">
-                  {space.organization_name || t("viewer.standaloneLabel")}
-                </span>
-              </Link>
-            ))}
-          </div>
+          <PublicSpaceNavigator
+            key={spaceSlug}
+            spaces={spaces}
+            activeSpaceSlug={spaceSlug}
+          />
         </div>
       )}
 
