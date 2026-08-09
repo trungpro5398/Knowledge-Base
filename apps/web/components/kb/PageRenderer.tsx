@@ -4,38 +4,12 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 import { OptimizedImage } from "./OptimizedImage";
+import { headingId, slugifyHeading } from "@/lib/kb/headings";
 
 interface PageRendererProps {
   content?: string;
   html?: string;
   pageTitle?: string;
-}
-
-function normalizeHeadingText(value: string): string {
-  return value
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLocaleLowerCase();
-}
-
-function slugifyHeading(text: string): string {
-  return text
-    .normalize("NFKD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "section";
-}
-
-function headingId(baseId: string, count: number): string {
-  const suffix = count === 0 ? baseId : `${baseId}-${count + 1}`;
-  return `user-content-${suffix}`;
 }
 
 function getNodeText(value: ReactNode): string {
@@ -47,10 +21,7 @@ function getNodeText(value: ReactNode): string {
 
 function removeDuplicateHtmlTitle(html: string, pageTitle?: string): string {
   if (!pageTitle) return html;
-  const normalizedTitle = normalizeHeadingText(pageTitle);
-  return html.replace(/<h1\b[^>]*>[\s\S]*?<\/h1>/i, (heading) =>
-    normalizeHeadingText(heading) === normalizedTitle ? "" : heading
-  );
+  return html.replace(/<h1\b[^>]*>[\s\S]*?<\/h1>/i, "");
 }
 
 function removeDuplicateMarkdownTitle(content: string, pageTitle?: string): string {
@@ -60,9 +31,7 @@ function removeDuplicateMarkdownTitle(content: string, pageTitle?: string): stri
   if (firstContentLine === -1) return content;
 
   const match = lines[firstContentLine]!.match(/^#\s+(.+?)\s*#*\s*$/);
-  if (!match || normalizeHeadingText(match[1]!) !== normalizeHeadingText(pageTitle)) {
-    return content;
-  }
+  if (!match) return content;
 
   lines.splice(firstContentLine, 1);
   return lines.join("\n");

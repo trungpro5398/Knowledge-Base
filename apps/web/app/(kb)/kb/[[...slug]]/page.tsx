@@ -14,11 +14,13 @@ import { ReadThisFirst } from "@/components/kb/ReadThisFirst";
 import { CopyLinkButton } from "@/components/ui/copy-link-button";
 import { KbContextHeader } from "@/components/kb/KbContextHeader";
 import { PageNavigation } from "@/components/kb/PageNavigation";
+import { PageStatusBadge } from "@/components/kb/PageStatusBadge";
 import { KbUnavailable } from "@/components/kb/KbUnavailable";
 import { PublicLibraryDirectory } from "@/components/kb/PublicLibraryDirectory";
 import type { TreeNode } from "@/components/kb/PageTree";
 import type { Space } from "@/lib/api/types";
 import { slugToPath } from "@/lib/routing/slug";
+import { extractMarkdownToc } from "@/lib/kb/headings";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -52,15 +54,6 @@ async function readPublicJson(response: Response): Promise<unknown> {
   } catch {
     throw new PublicApiError("Public API returned an invalid response");
   }
-}
-
-function normalizeTocText(value: string): string {
-  return value
-    .normalize("NFKD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
 }
 
 function getPageDescription(content: string | null, fallback: string): string {
@@ -223,19 +216,18 @@ async function renderKbPage({ params }: KbPageProps) {
             <h1 className="mb-6 break-words text-balance text-2xl font-bold md:text-3xl">
               {currentSpace?.name || spaceSlug}
             </h1>
-            {tree.length > 0 && startLinks.length > 0 && (
+            {tree.length > 0 && startLinks.length > 0 ? (
               <ReadThisFirst
                 spaceSlug={spaceSlug}
                 spaceName={currentSpace?.name || spaceSlug}
                 items={startLinks}
               />
-            )}
+            ) : null}
             
-            {tree.length === 0 && <KbWelcomeEmpty />}
+            {tree.length === 0 ? <KbWelcomeEmpty /> : null}
           </div>
         </main>
         <MobileSidebar
-          spaceId=""
           spaceSlug={spaceSlug}
           nodes={tree}
           spaces={spaces}
@@ -256,12 +248,15 @@ async function renderKbPage({ params }: KbPageProps) {
 
   const { page, version, breadcrumb, space } = data;
   const tree = data.tree;
-  const toc = version.toc
-    .filter((item) => item.level !== 1 || normalizeTocText(item.text) !== normalizeTocText(page.title))
+  const apiToc = version.toc
+    .filter((item) => item.level >= 2)
     .map((item) => ({
       ...item,
       id: item.id.startsWith("user-content-") ? item.id : `user-content-${item.id}`,
     }));
+  const toc = apiToc.length > 0
+    ? apiToc
+    : extractMarkdownToc(version.content_md ?? "");
   const useRenderedHtml = !!version.rendered_html;
   return (
     <>
@@ -275,13 +270,12 @@ async function renderKbPage({ params }: KbPageProps) {
             spaceName={space.name}
             organizationName={space.organization_name}
           />
-          {spaceSlug === "tet-prosys" && <KbNewToProSysLink spaceSlug={spaceSlug} />}
+          {spaceSlug === "tet-prosys" ? <KbNewToProSysLink spaceSlug={spaceSlug} /> : null}
           <Breadcrumbs
             spaceSlug={spaceSlug}
             path={path}
             title={page.title}
             spaceName={space.name}
-            organizationName={space.organization_name}
             items={breadcrumb}
             sticky
           />
@@ -289,25 +283,17 @@ async function renderKbPage({ params }: KbPageProps) {
             <h1 className="min-w-0 flex-1 break-words text-balance text-2xl font-bold md:text-3xl">
               {page.title}
             </h1>
-            <span
-              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
-                page.status === "published"
-                  ? "bg-primary/15 text-primary"
-                  : "bg-amber-500/15 text-amber-700 dark:text-amber-400"
-              }`}
-            >
-              {page.status === "published" ? "OFFICIAL" : "DRAFT"}
-            </span>
+            <PageStatusBadge status={page.status} />
             <CopyLinkButton />
           </header>
           <div className={toc.length > 0 ? "grid xl:grid-cols-[minmax(0,1fr)_13rem] xl:gap-10" : ""}>
-            {toc.length > 0 && (
+            {toc.length > 0 ? (
               <aside className="order-first min-w-0 xl:order-none xl:col-start-2 xl:row-start-1">
                 <div className="xl:sticky xl:top-28 xl:max-h-[calc(100dvh-8rem)] xl:overflow-y-auto xl:overscroll-contain">
                   <Toc items={toc} responsive />
                 </div>
               </aside>
-            )}
+            ) : null}
             <div className="min-w-0 xl:col-start-1 xl:row-start-1">
               <article className="prose-kb max-w-none">
                 <PageRenderer
@@ -322,7 +308,6 @@ async function renderKbPage({ params }: KbPageProps) {
         </div>
       </main>
       <MobileSidebar
-        spaceId=""
         spaceSlug={spaceSlug}
         nodes={tree}
         spaces={spaces}

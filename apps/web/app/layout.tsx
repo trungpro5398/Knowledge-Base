@@ -11,6 +11,7 @@ import { ShortcutsHelp } from "@/components/keyboard/shortcuts-help";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { getServerUser, hasSupabaseAuthCookie } from "@/lib/auth/supabase-server";
 import { signOut } from "@/lib/auth/actions";
+import { SkipLink } from "@/components/skip-link";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -39,12 +40,7 @@ export default async function RootLayout({
             <LocaleProvider>
             <CommandProvider isLoggedIn={isLoggedIn}>
               <ShortcutsProvider>
-              <a
-                href="#main-content"
-                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:shadow"
-              >
-                Bỏ qua để đến nội dung chính
-              </a>
+              <SkipLink />
               <SiteHeader isLoggedIn={isLoggedIn} signOutAction={signOut} />
               {children}
               <Toaster />

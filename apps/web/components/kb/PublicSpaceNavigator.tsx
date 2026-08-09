@@ -71,7 +71,7 @@ export function PublicSpaceNavigator({ spaces, activeSpaceSlug }: PublicSpaceNav
             placeholder={t("sidebar.librarySearchPlaceholder")}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className="search-input-no-native-clear h-8 w-full rounded-md border-0 bg-muted/40 pl-8 pr-7 text-sm placeholder:text-muted-foreground/80 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="search-input-no-native-clear h-8 w-full rounded-md border-0 bg-muted/40 pl-8 pr-7 text-sm placeholder:text-muted-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             aria-label={t("sidebar.librarySearchLabel")}
           />
           {query ? (

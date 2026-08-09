@@ -100,7 +100,7 @@ export function PublicLibraryDirectory({ spaces }: { spaces: Space[] }) {
                             <FolderOpen className="h-5 w-5" aria-hidden="true" />
                           </span>
                           <ArrowRight
-                            className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                            className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary motion-reduce:transition-none"
                             aria-hidden="true"
                           />
                         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, List } from "lucide-react";
 import { useLocale } from "@/lib/i18n/locale-provider";
+import { extractMarkdownToc } from "@/lib/kb/headings";
 
 interface TocItem {
   id: string;
@@ -16,25 +17,12 @@ interface TocProps {
   responsive?: boolean;
 }
 
-function slugifyHeading(text: string): string {
-  return text
-    .normalize("NFKD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "section";
-}
-
-function headingId(baseId: string, count: number): string {
-  const suffix = count === 0 ? baseId : `${baseId}-${count + 1}`;
-  return `user-content-${suffix}`;
-}
-
 function normalizeHeadingText(text: string): string {
   return text
     .normalize("NFKD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
+    .replace(/đ/g, "d")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
@@ -45,18 +33,7 @@ export function Toc({ headings, items: tocItems, responsive = false }: TocProps)
   const { t } = useLocale();
   const items = useMemo(() => {
     if (tocItems) return tocItems;
-    const counts = new Map<string, number>();
-    return (headings ?? []).map((h) => {
-      const match = h.match(/^(#{1,3})\s+(.+)$/);
-      if (!match) return null;
-      const [, hashes, text] = match;
-      const level = hashes.length;
-      const baseId = slugifyHeading(text);
-      const count = counts.get(baseId) ?? 0;
-      counts.set(baseId, count + 1);
-      const id = headingId(baseId, count);
-      return { id, text, level };
-    }).filter(Boolean) as TocItem[];
+    return extractMarkdownToc((headings ?? []).join("\n"));
   }, [headings, tocItems]);
 
   useEffect(() => {
@@ -140,7 +117,7 @@ export function Toc({ headings, items: tocItems, responsive = false }: TocProps)
           <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
             <List className="h-4 w-4 text-primary" aria-hidden="true" />
             <span className="flex-1">{t("viewer.contentsLabel")}</span>
-            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open/toc:rotate-180" aria-hidden="true" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open/toc:rotate-180 motion-reduce:transition-none" aria-hidden="true" />
           </summary>
           <nav className="border-t px-3 py-3" aria-label={t("viewer.contentsLabel")}>
             {renderItems()}

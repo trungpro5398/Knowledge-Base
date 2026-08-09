@@ -5,9 +5,9 @@ import { Menu, X } from "lucide-react";
 import { KbSidebarContent } from "./KbSidebarContent";
 import type { TreeNode } from "./PageTree";
 import type { Space } from "@/lib/api/types";
+import { useLocale } from "@/lib/i18n/locale-provider";
 
 interface MobileSidebarProps {
-  spaceId: string;
   spaceSlug: string;
   nodes: TreeNode[];
   spaces?: Space[];
@@ -18,6 +18,7 @@ export function MobileSidebar({
   nodes,
   spaces = [],
 }: MobileSidebarProps) {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -67,21 +68,21 @@ export function MobileSidebar({
         type="button"
         onClick={() => setOpen(true)}
         className="md:hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-40 inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary text-primary-foreground shadow-lg hover:opacity-90 transition-opacity"
-        aria-label="Mở danh mục"
+        aria-label={t("sidebar.expand")}
         aria-expanded={open}
         aria-controls="kb-mobile-sidebar"
       >
         <Menu className="h-5 w-5" aria-hidden="true" />
-        <span className="text-sm font-medium">Danh mục</span>
+        <span className="text-sm font-medium">{t("sidebar.menu")}</span>
       </button>
 
-      {open && (
+      {open ? (
         <>
           <button
             type="button"
             className="fixed inset-0 bg-black/50 z-50 md:hidden animate-fade-in"
             onClick={() => setOpen(false)}
-            aria-label="Đóng danh mục"
+            aria-label={t("sidebar.close")}
           />
           <div
             id="kb-mobile-sidebar"
@@ -94,16 +95,16 @@ export function MobileSidebar({
             onKeyDown={handleDialogKeyDown}
           >
             <div className="flex shrink-0 items-center justify-between border-b bg-card px-4 py-3">
-              <h2 id="kb-mobile-sidebar-title" className="font-semibold">Danh mục</h2>
+              <h2 id="kb-mobile-sidebar-title" className="font-semibold">{t("sidebar.menu")}</h2>
               <button
                 type="button"
                 ref={closeButtonRef}
                 onClick={() => setOpen(false)}
                 className="inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
-                aria-label="Đóng danh mục"
+                aria-label={t("sidebar.close")}
               >
                 <X className="h-4 w-4" aria-hidden="true" />
-                <span>Đóng</span>
+                <span>{t("common.close")}</span>
               </button>
             </div>
             <div
@@ -120,7 +121,7 @@ export function MobileSidebar({
             </div>
           </div>
         </>
-      )}
+      ) : null}
     </>
   );
 }

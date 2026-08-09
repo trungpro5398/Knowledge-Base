@@ -14,7 +14,6 @@ interface BreadcrumbsProps {
   path: string;
   title: string;
   spaceName?: string;
-  organizationName?: string | null;
   items?: BreadcrumbItem[];
   className?: string;
   /** Sticky bar below header with chip-style breadcrumbs */
@@ -26,7 +25,6 @@ export function Breadcrumbs({
   path,
   title,
   spaceName,
-  organizationName,
   items: apiItems,
   className = "",
   sticky = false,
@@ -35,11 +33,11 @@ export function Breadcrumbs({
   const crumbs: { label: string; href: string }[] = apiItems
     ? [
         {
-          label: `${t("viewer.organizationLabel")}: ${organizationName || t("viewer.standaloneLabel")}`,
+          label: t("library.allLibraries"),
           href: "/kb",
         },
         {
-          label: `${t("viewer.spaceLabel")}: ${spaceName || spaceSlug}`,
+          label: spaceName || spaceSlug,
           href: `/kb/${spaceSlug}`,
         },
         ...apiItems.slice(2).map((item, i, pageItems) => ({
@@ -52,8 +50,8 @@ export function Breadcrumbs({
     : (() => {
         const parts = pathToSlug(path);
         const c: { label: string; href: string }[] = [
-          { label: t("viewer.organizationLabel"), href: "/kb" },
-          { label: `${t("viewer.spaceLabel")}: ${spaceName || spaceSlug}`, href: `/kb/${spaceSlug}` },
+          { label: t("library.allLibraries"), href: "/kb" },
+          { label: spaceName || spaceSlug, href: `/kb/${spaceSlug}` },
         ];
         let acc = "";
         for (let i = 0; i < parts.length - 1; i++) {
@@ -70,24 +68,25 @@ export function Breadcrumbs({
   const content = (
     <nav
       className={`flex flex-wrap items-center gap-1.5 text-sm ${className}`}
-      aria-label="Breadcrumb"
+      aria-label={t("viewer.breadcrumbLabel")}
     >
       {crumbs.map((c, i) => (
-        <span key={i} className="flex items-center gap-1.5">
-          {i > 0 && (
+        <span key={`${c.href}-${c.label}`} className="flex min-w-0 items-center gap-1.5">
+          {i > 0 ? (
             <span className="text-muted-foreground/60" aria-hidden="true">
               /
             </span>
-          )}
+          ) : null}
           {c.href ? (
             <Link
               href={c.href}
-              className="inline-flex items-center rounded-full px-2.5 py-1 text-muted-foreground bg-muted/70 hover:bg-muted hover:text-foreground transition-colors text-xs font-medium"
+              className="inline-flex max-w-full items-center truncate rounded-full bg-muted/70 px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              title={c.label}
             >
               {c.label}
             </Link>
           ) : (
-            <span className="inline-flex items-center rounded-full px-2.5 py-1 text-foreground bg-primary/10 text-primary font-medium text-xs">
+            <span className="inline-flex max-w-full items-center truncate rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary" title={c.label}>
               {c.label}
             </span>
           )}

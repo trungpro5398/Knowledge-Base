@@ -4,13 +4,13 @@ import { useLocale } from "@/lib/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 export function LocaleToggle() {
-  const { locale, setLocale } = useLocale();
+  const { locale, setLocale, t } = useLocale();
 
   return (
     <div
       className="inline-flex rounded-lg border border-border/60 bg-muted/30 p-0.5"
       role="group"
-      aria-label="Chọn ngôn ngữ"
+      aria-label={t("header.languageLabel")}
     >
       <button
         type="button"
@@ -22,7 +22,7 @@ export function LocaleToggle() {
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-pressed={locale === "vi"}
-        aria-label="Tiếng Việt"
+        aria-label={t("header.vietnamese")}
       >
         VI
       </button>
@@ -36,7 +36,7 @@ export function LocaleToggle() {
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-pressed={locale === "en"}
-        aria-label="English"
+        aria-label={t("header.english")}
       >
         EN
       </button>
