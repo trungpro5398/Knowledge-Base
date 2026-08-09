@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 export function BrandLogo({
-  className = "",
+  className = "h-10 w-[178px]",
   priority = false,
 }: {
   className?: string;
@@ -9,7 +9,7 @@ export function BrandLogo({
 }) {
   return (
     <span
-      className={`inline-flex h-10 w-[178px] shrink-0 items-center overflow-hidden rounded-md bg-white ${className}`}
+      className={`inline-flex shrink-0 items-center overflow-hidden rounded-md bg-white ${className}`}
     >
       <Image
         src="/tet-education-group-logo.png"

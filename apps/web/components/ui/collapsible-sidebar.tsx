@@ -23,6 +23,8 @@ interface CollapsibleSidebarProps {
   className?: string;
   /** Responsive visibility, e.g. "hidden md:flex" */
   responsive?: string;
+  /** Keep the sidebar controls visible while the page content scrolls */
+  sticky?: boolean;
 }
 
 export function CollapsibleSidebar({
@@ -32,6 +34,7 @@ export function CollapsibleSidebar({
   expandedWidth = "w-64",
   className,
   responsive = "hidden md:flex",
+  sticky = false,
 }: CollapsibleSidebarProps) {
   const { t } = useLocale();
   const collapsedKey = `${STORAGE_PREFIX}${storageKey}`;
@@ -113,7 +116,8 @@ export function CollapsibleSidebar({
       className={cn(
         responsive,
         "shrink-0 items-stretch",
-        resizable && "min-w-0"
+        resizable && "min-w-0",
+        sticky && "sticky top-[5.5rem] h-[calc(100dvh-7.5rem)] self-start"
       )}
     >
       <aside
@@ -121,6 +125,7 @@ export function CollapsibleSidebar({
         className={cn(
           "overflow-hidden flex flex-col transition-[width] duration-200 ease-in-out",
           "bg-card/95 dark:bg-card/95 border-r border-border/50",
+          sticky && "h-full",
           !widthClass && "shrink-0",
           widthClass,
           className
@@ -163,7 +168,7 @@ export function CollapsibleSidebar({
       </aside>
 
       {/* Resize handle */}
-      {resizable && !isCollapsed && (
+      {resizable && !isCollapsed ? (
         <div
           onMouseDown={handleResizeStart}
           onKeyDown={(e) => {
@@ -191,10 +196,14 @@ export function CollapsibleSidebar({
           role="separator"
           aria-orientation="vertical"
           aria-label={t("sidebar.resize")}
+          aria-valuemin={MIN_WIDTH}
+          aria-valuemax={MAX_WIDTH}
+          aria-valuenow={width}
+          aria-valuetext={`${width}px`}
           tabIndex={0}
           className={cn(
             "w-1.5 shrink-0 cursor-col-resize flex items-center justify-center",
-            "hover:bg-primary/20 active:bg-primary/30 transition-colors",
+            "hover:bg-primary/20 active:bg-primary/30 transition-colors focus-visible:outline-none focus-visible:bg-primary/20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40",
             "group",
             isResizing && "bg-primary/25"
           )}
@@ -207,7 +216,7 @@ export function CollapsibleSidebar({
             aria-hidden="true"
           />
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

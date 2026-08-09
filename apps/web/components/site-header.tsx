@@ -37,8 +37,10 @@ export function SiteHeader({
           <button
             type="button"
             onClick={() => window.dispatchEvent(new Event("kb:open-search"))}
+            onPointerEnter={() => window.dispatchEvent(new Event("kb:preload-search"))}
+            onFocus={() => window.dispatchEvent(new Event("kb:preload-search"))}
             className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground sm:min-w-0 sm:px-3"
-            aria-label={t("header.viewDocs")}
+            aria-label={t("header.searchDocs")}
           >
             <Search className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">{t("header.searchDocs")}</span>
@@ -85,7 +87,7 @@ export function SiteHeader({
           >
             <Keyboard className="h-4 w-4" aria-hidden="true" />
           </button>
-          <div className="max-[374px]:hidden">
+          <div className="max-[319px]:hidden">
             <LocaleToggle />
           </div>
           <div className="max-[425px]:hidden">

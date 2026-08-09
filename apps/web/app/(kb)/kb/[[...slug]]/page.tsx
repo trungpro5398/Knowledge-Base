@@ -204,7 +204,7 @@ async function renderKbPage({ params }: KbPageProps) {
     return (
       <>
         <div className="flex gap-6 py-4 md:py-8">
-        <CollapsibleSidebar storageKey="kb" resizable responsive="hidden md:flex">
+        <CollapsibleSidebar storageKey="kb" resizable responsive="hidden md:flex" sticky>
           <KbSidebarContent spaces={spaces} spaceSlug={spaceSlug} tree={tree} />
         </CollapsibleSidebar>
         <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">
@@ -261,7 +261,7 @@ async function renderKbPage({ params }: KbPageProps) {
   return (
     <>
       <div className="flex gap-6 py-4 md:py-8">
-      <CollapsibleSidebar storageKey="kb" resizable responsive="hidden md:flex">
+      <CollapsibleSidebar storageKey="kb" resizable responsive="hidden md:flex" sticky>
         <KbSidebarContent spaces={spaces} spaceSlug={spaceSlug} tree={tree} />
       </CollapsibleSidebar>
       <main id="main-content" className="min-w-0 flex-1 px-4 md:px-0 animate-fade-in">

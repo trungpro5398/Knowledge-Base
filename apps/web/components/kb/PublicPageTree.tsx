@@ -28,7 +28,7 @@ function PublicTreeNode({
         prefetch={false}
         aria-current={isActive ? "page" : undefined}
         className={cn(
-          "group -ml-px flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[13px] transition-colors",
+          "group -ml-px flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
           isActive
             ? "bg-primary/10 font-medium text-primary"
             : "text-foreground/90 hover:bg-muted/50 hover:text-foreground"
@@ -40,7 +40,7 @@ function PublicTreeNode({
         />
         <span className="min-w-0 truncate">{node.title}</span>
       </Link>
-      {(node.children?.length ?? 0) > 0 && (
+      {(node.children?.length ?? 0) > 0 ? (
         <ul className="ml-1 mt-0.5 space-y-0">
           {node.children!.map((child) => (
             <PublicTreeNode
@@ -52,7 +52,7 @@ function PublicTreeNode({
             />
           ))}
         </ul>
-      )}
+      ) : null}
     </li>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Pathway_Extreme, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
@@ -18,6 +18,11 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
 });
 
+const pathway = Pathway_Extreme({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-display",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://kb.tet-edu.com"),
   title: "Kho Tài Liệu TET - Knowledge Base",
@@ -34,7 +39,7 @@ export default async function RootLayout({
 
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${jakarta.variable} font-sans antialiased`}>
+      <body className={`${jakarta.variable} ${pathway.variable} font-sans antialiased`}>
         <ErrorBoundary>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <LocaleProvider>

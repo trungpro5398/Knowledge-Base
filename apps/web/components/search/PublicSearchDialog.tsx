@@ -4,13 +4,20 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Command,
-  CommandDialog,
   CommandEmpty,
   CommandInput,
   CommandItem,
   CommandList,
 } from "cmdk";
 import { FileText, Loader2, Search } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+} from "@radix-ui/react-dialog";
 import { api } from "@/lib/api/client";
 import type { PaginatedResponse, PublicSearchResult } from "@/lib/api/types";
 import { useLocale } from "@/lib/i18n/locale-provider";
@@ -76,18 +83,23 @@ export function PublicSearchDialog({
   };
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <Command shouldFilter={false} className="rounded-lg border shadow-md">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal>
+        <DialogOverlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-fade-in" />
+        <DialogContent className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[61] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 overflow-hidden overscroll-contain focus:outline-none sm:top-[15vh]">
+          <DialogTitle className="sr-only">{t("publicSearch.ariaLabel")}</DialogTitle>
+          <DialogDescription className="sr-only">{t("publicSearch.hint")}</DialogDescription>
+          <Command shouldFilter={false} label={t("publicSearch.ariaLabel")} className="overflow-hidden rounded-xl border bg-card shadow-2xl">
         <CommandInput
           value={query}
           onValueChange={setQuery}
           placeholder={t("publicSearch.placeholder")}
           aria-label={t("publicSearch.ariaLabel")}
         />
-        <CommandList>
+        <CommandList aria-busy={searching} aria-live="polite">
           {searching ? (
-            <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground" role="status">
+              <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
               {t("publicSearch.searching")}
             </div>
           ) : searchError ? (
@@ -117,18 +129,20 @@ export function PublicSearchDialog({
                         ? `${result.organization_name} · ${result.space_name}`
                         : result.space_name}
                     </span>
-                    {result.content_snippet && (
+                    {result.content_snippet ? (
                       <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground/80">
                         {result.content_snippet}
                       </span>
-                    )}
+                    ) : null}
                   </span>
                 </CommandItem>
               ))}
             </>
           )}
         </CommandList>
-      </Command>
-    </CommandDialog>
+          </Command>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }

@@ -27,8 +27,7 @@ export function CommandProvider({
     }
   }, []);
 
-  const openDialog = useCallback(async () => {
-    previouslyFocused.current = document.activeElement as HTMLElement | null;
+  const loadDialog = useCallback(() => {
     if (dialogMode.current !== isLoggedIn) {
       dialogMode.current = isLoggedIn;
       dialogPromise.current = null;
@@ -39,10 +38,15 @@ export function CommandProvider({
         ? import("./command-menu").then((module) => module.CommandMenu)
         : import("@/components/search/PublicSearchDialog").then((module) => module.PublicSearchDialog);
     }
-    const LoadedDialog = await dialogPromise.current;
+    return dialogPromise.current;
+  }, [isLoggedIn]);
+
+  const openDialog = useCallback(async () => {
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
+    const LoadedDialog = await loadDialog();
     setDialog(() => LoadedDialog);
     setOpen(true);
-  }, [isLoggedIn]);
+  }, [loadDialog]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -59,14 +63,19 @@ export function CommandProvider({
 
   useEffect(() => {
     const openSearch = () => void openDialog();
+    const preloadSearch = () => void loadDialog();
     window.addEventListener("kb:open-search", openSearch);
-    return () => window.removeEventListener("kb:open-search", openSearch);
-  }, [openDialog]);
+    window.addEventListener("kb:preload-search", preloadSearch);
+    return () => {
+      window.removeEventListener("kb:open-search", openSearch);
+      window.removeEventListener("kb:preload-search", preloadSearch);
+    };
+  }, [loadDialog, openDialog]);
 
   return (
     <>
       {children}
-      {open && Dialog && <Dialog open onOpenChange={handleOpenChange} />}
+      {open && Dialog ? <Dialog open onOpenChange={handleOpenChange} /> : null}
     </>
   );
 }

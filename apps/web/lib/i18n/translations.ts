@@ -20,6 +20,15 @@ export const translations = {
     "header.themeToLight": "Chuyển sang giao diện sáng",
     "header.themeToDark": "Chuyển sang giao diện tối",
 
+    // Home
+    "home.title": "Kho tri thức dành cho TET",
+    "home.description": "Tài liệu vận hành, quy trình và quyết định nội bộ của TET.",
+    "home.tagline": "Luôn cập nhật, dễ tìm và dễ hiểu.",
+    "home.browse": "Duyệt tài liệu",
+    "home.accessHint": "Một số nội dung yêu cầu đăng nhập bằng email @tet-edu.com.",
+    "home.quickSearch": "Tìm nhanh tài liệu",
+    "home.quickSearchDescription": "Quy trình, hướng dẫn và quyết định đã xuất bản",
+
     // Sidebar
     "sidebar.menu": "Danh mục",
     "sidebar.spaces": "Kho tài liệu",
@@ -399,6 +408,15 @@ export const translations = {
     "header.english": "English",
     "header.themeToLight": "Switch to light theme",
     "header.themeToDark": "Switch to dark theme",
+
+    // Home
+    "home.title": "Knowledge Base for TET",
+    "home.description": "TET's internal operations, process, and decision documentation.",
+    "home.tagline": "Current, searchable, and easy to understand.",
+    "home.browse": "Browse documents",
+    "home.accessHint": "Some content requires sign-in with a @tet-edu.com email address.",
+    "home.quickSearch": "Quick document search",
+    "home.quickSearchDescription": "Published processes, guides, and decisions",
 
     // Sidebar
     "sidebar.menu": "Menu",

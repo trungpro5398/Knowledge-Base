@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Command,
-  CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
@@ -14,6 +13,14 @@ import {
 } from "cmdk";
 import { Search, FileText, Home, Plus, Moon, Sun, Folder, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+} from "@radix-ui/react-dialog";
 import { api } from "@/lib/api/client";
 import type { ApiResponse, PaginatedResponse, SearchResult, Space } from "@/lib/api/types";
 import { getRecentPages, addRecentPage } from "@/lib/recent-pages";
@@ -81,8 +88,13 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   );
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <Command className="rounded-lg border shadow-md">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal>
+        <DialogOverlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-fade-in" />
+        <DialogContent className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[61] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 overflow-hidden overscroll-contain focus:outline-none sm:top-[15vh]">
+          <DialogTitle className="sr-only">{t("command.searchAria")}</DialogTitle>
+          <DialogDescription className="sr-only">{t("command.placeholder")}</DialogDescription>
+          <Command label={t("command.searchAria")} className="overflow-hidden rounded-xl border bg-card shadow-2xl">
         <CommandInput
           placeholder={t("command.placeholder")}
           value={searchQuery}
@@ -190,7 +202,9 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             </CommandItem>
           </CommandGroup>
         </CommandList>
-      </Command>
-    </CommandDialog>
+          </Command>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }
