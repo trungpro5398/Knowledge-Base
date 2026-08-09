@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { AttachmentUpload } from "./AttachmentUpload";
 import { VersionHistoryModal } from "./version-history-modal";
@@ -51,10 +51,10 @@ export function EditorShell({
   const isDirty =
     contentHash(content) !== lastSavedContentHash.current || title !== lastSavedTitleRef.current;
 
-  const saveDraft = async (mode: "manual" | "auto" = "auto") => {
+  const saveDraft = useCallback(async (mode: "manual" | "auto" = "auto") => {
     const hash = contentHash(content);
     if (hash === lastSavedContentHash.current) {
-      const titleChanged = title !== initialTitle;
+      const titleChanged = title !== lastSavedTitleRef.current;
       if (titleChanged) {
         setSaving(true);
         try {
@@ -97,9 +97,9 @@ export function EditorShell({
     } finally {
       setSaving(false);
     }
-  };
+  }, [content, pageId, t, title]);
 
-  const publish = async () => {
+  const publish = useCallback(async () => {
     setPublishing(true);
     try {
       if (title !== lastSavedTitleRef.current) {
@@ -123,7 +123,7 @@ export function EditorShell({
     } finally {
       setPublishing(false);
     }
-  };
+  }, [content, pageId, t, title]);
 
   // Register keyboard shortcuts
   useEffect(() => {
@@ -153,7 +153,7 @@ export function EditorShell({
       unregisterShortcut("s");
       unregisterShortcut("Enter");
     };
-  }, [content, title, status]);
+  }, [publish, registerShortcut, saveDraft, status, unregisterShortcut]);
 
   useEffect(() => {
     if (!isDirty) return;

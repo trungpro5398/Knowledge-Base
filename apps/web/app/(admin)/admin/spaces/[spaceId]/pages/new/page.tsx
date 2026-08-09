@@ -5,10 +5,11 @@ export default async function NewPage({
   searchParams,
 }: {
   params: Promise<{ spaceId: string }>;
-  searchParams?: { parentId?: string };
+  searchParams?: Promise<{ parentId?: string }>;
 }) {
   const { spaceId } = await params;
-  const parentId = typeof searchParams?.parentId === "string" ? searchParams.parentId : undefined;
+  const query = await searchParams;
+  const parentId = typeof query?.parentId === "string" ? query.parentId : undefined;
   return (
     <div className="p-8">
       <NewPageForm spaceId={spaceId} parentId={parentId} />

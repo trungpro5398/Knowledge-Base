@@ -5,25 +5,12 @@ import Link from "next/link";
 import { Building2, ChevronDown, Search, X } from "lucide-react";
 import type { Space } from "@/lib/api/types";
 import { useLocale } from "@/lib/i18n/locale-provider";
+import { filterPublicSpaceGroups, groupPublicSpaces, normalizeSpaceSearch } from "@/lib/kb/space-groups";
 import { cn } from "@/lib/utils";
 
 interface PublicSpaceNavigatorProps {
   spaces: Space[];
   activeSpaceSlug: string;
-}
-
-interface SpaceGroup {
-  key: string;
-  name: string;
-  spaces: Space[];
-  isActive: boolean;
-}
-
-function normalizeSearchValue(value: string): string {
-  return value
-    .normalize("NFKD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLocaleLowerCase();
 }
 
 export function PublicSpaceNavigator({ spaces, activeSpaceSlug }: PublicSpaceNavigatorProps) {
@@ -32,50 +19,20 @@ export function PublicSpaceNavigator({ spaces, activeSpaceSlug }: PublicSpaceNav
   const [query, setQuery] = useState("");
 
   const groups = useMemo(() => {
-    const grouped = new Map<string, SpaceGroup>();
-    const collator = new Intl.Collator(locale, { sensitivity: "base" });
-
-    for (const space of spaces) {
-      const organizationName = space.organization_name?.trim() || t("viewer.standaloneLabel");
-      const key = space.organization_id
-        ? `organization:${space.organization_id}`
-        : `organization-name:${normalizeSearchValue(organizationName)}`;
-      const existing = grouped.get(key);
-      if (existing) {
-        existing.spaces.push(space);
-        existing.isActive ||= space.slug === activeSpaceSlug;
-      } else {
-        grouped.set(key, {
-          key,
-          name: organizationName,
-          spaces: [space],
-          isActive: space.slug === activeSpaceSlug,
-        });
-      }
-    }
-
-    return [...grouped.values()]
-      .map((group) => ({
-        ...group,
-        spaces: group.spaces.toSorted((a, b) => collator.compare(a.name, b.name)),
-      }))
-      .toSorted((a, b) => Number(b.isActive) - Number(a.isActive) || collator.compare(a.name, b.name));
+    return groupPublicSpaces(spaces, {
+      locale,
+      standaloneLabel: t("viewer.standaloneLabel"),
+      activeSpaceSlug,
+    });
   }, [activeSpaceSlug, locale, spaces, t]);
 
   const activeGroupKey = groups.find((group) => group.isActive)?.key;
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     () => new Set(activeGroupKey ? [activeGroupKey] : groups[0] ? [groups[0].key] : [])
   );
-  const normalizedQuery = normalizeSearchValue(query.trim());
+  const normalizedQuery = normalizeSpaceSearch(query.trim());
   const filteredGroups = useMemo(() => {
-    if (!normalizedQuery) return groups;
-    return groups.flatMap((group) => {
-      const organizationMatches = normalizeSearchValue(group.name).includes(normalizedQuery);
-      const matchingSpaces = organizationMatches
-        ? group.spaces
-        : group.spaces.filter((space) => normalizeSearchValue(space.name).includes(normalizedQuery));
-      return matchingSpaces.length > 0 ? [{ ...group, spaces: matchingSpaces }] : [];
-    });
+    return filterPublicSpaceGroups(groups, normalizedQuery);
   }, [groups, normalizedQuery]);
   const showFilter = groups.length > 1 || spaces.length > 5;
 

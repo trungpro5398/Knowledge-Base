@@ -101,7 +101,7 @@ export function PageRenderer({ content, html, pageTitle }: PageRendererProps) {
               typeof height === "string" ? Number.parseInt(height, 10) : typeof height === "number" ? height : undefined;
             return (
               <OptimizedImage
-                src={src ?? ""}
+                src={typeof src === "string" ? src : ""}
                 alt={alt ?? ""}
                 width={Number.isFinite(parsedWidth) ? parsedWidth : undefined}
                 height={Number.isFinite(parsedHeight) ? parsedHeight : undefined}

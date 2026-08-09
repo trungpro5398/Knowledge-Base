@@ -1,3 +1,15 @@
 packages:
   - "apps/*"
   - "packages/*"
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+overrides:
+  "ajv@>=8 <9": "^8.18.0"
+  "fast-uri@>=3 <4": "^3.1.5"
+  "nanoid@>=3 <4": "^3.3.17"
+  "picomatch@>=2 <3": "^2.3.2"
+  "picomatch@>=4 <5": "^4.0.4"
+  "postcss@>=8 <9": "^8.5.26"
+  sharp: "^0.35.0"

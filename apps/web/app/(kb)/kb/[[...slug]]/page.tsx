@@ -15,6 +15,7 @@ import { CopyLinkButton } from "@/components/ui/copy-link-button";
 import { KbContextHeader } from "@/components/kb/KbContextHeader";
 import { PageNavigation } from "@/components/kb/PageNavigation";
 import { KbUnavailable } from "@/components/kb/KbUnavailable";
+import { PublicLibraryDirectory } from "@/components/kb/PublicLibraryDirectory";
 import type { TreeNode } from "@/components/kb/PageTree";
 import type { Space } from "@/lib/api/types";
 import { slugToPath } from "@/lib/routing/slug";
@@ -194,12 +195,7 @@ async function renderKbPage({ params }: KbPageProps) {
 
   if (segments.length === 0) {
     const publicSpaces = await getPublicSpaces();
-    const defaultSpace = publicSpaces.find((space) => space.slug === "tet-prosys") ?? publicSpaces[0];
-    if (defaultSpace) {
-      const { redirect } = await import("next/navigation");
-      redirect(`/kb/${defaultSpace.slug}`);
-    }
-    return <KbWelcomeEmpty />;
+    return <PublicLibraryDirectory spaces={publicSpaces} />;
   }
 
   const spaceSlug = segments[0]!;
@@ -224,6 +220,9 @@ async function renderKbPage({ params }: KbPageProps) {
               spaceName={currentSpace?.name || spaceSlug}
               organizationName={currentSpace?.organization_name}
             />
+            <h1 className="mb-6 break-words text-balance text-2xl font-bold md:text-3xl">
+              {currentSpace?.name || spaceSlug}
+            </h1>
             {tree.length > 0 && startLinks.length > 0 && (
               <ReadThisFirst
                 spaceSlug={spaceSlug}

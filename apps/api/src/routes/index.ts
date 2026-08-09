@@ -25,7 +25,8 @@ export async function registerRoutes(fastify: FastifyInstance) {
       return reply.status(err.statusCode).send(payload);
     }
     if (statusCode && statusCode >= 400 && statusCode < 600) {
-      return reply.status(statusCode).send({ status: "error", message: err.message ?? "Request failed" });
+      const message = err instanceof Error ? err.message : "Request failed";
+      return reply.status(statusCode).send({ status: "error", message });
     }
     request.log.error(err);
     return reply.status(500).send({ status: "error", message: "Internal server error" });

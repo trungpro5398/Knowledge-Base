@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 
 export interface Shortcut {
   key: string;
@@ -47,15 +47,20 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [showHelp, setShowHelp] = useState(false);
 
-  const allShortcuts = [...DEFAULT_SHORTCUTS, ...shortcuts];
+  const allShortcuts = useMemo(() => [...DEFAULT_SHORTCUTS, ...shortcuts], [shortcuts]);
 
-  const registerShortcut = (shortcut: Shortcut) => {
+  const registerShortcut = useCallback((shortcut: Shortcut) => {
     setShortcuts((prev) => [...prev.filter((s) => s.key !== shortcut.key), shortcut]);
-  };
+  }, []);
 
-  const unregisterShortcut = (key: string) => {
+  const unregisterShortcut = useCallback((key: string) => {
     setShortcuts((prev) => prev.filter((s) => s.key !== key));
-  };
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({ shortcuts: allShortcuts, registerShortcut, unregisterShortcut, showHelp, setShowHelp }),
+    [allShortcuts, registerShortcut, showHelp, unregisterShortcut]
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -95,7 +100,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
 
   return (
     <ShortcutsContext.Provider
-      value={{ shortcuts: allShortcuts, registerShortcut, unregisterShortcut, showHelp, setShowHelp }}
+      value={contextValue}
     >
       {children}
     </ShortcutsContext.Provider>

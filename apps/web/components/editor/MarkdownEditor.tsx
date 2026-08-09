@@ -28,7 +28,7 @@ export function MarkdownEditor({
   const [local, setLocal] = useState(value);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const historyRef = useRef(new HistoryStack(50));
   const lastPushRef = useRef<number>(0);
