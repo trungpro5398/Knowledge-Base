@@ -12,6 +12,115 @@ export interface SpaceRow {
   organization_name?: string | null;
 }
 
+export interface SpaceBootstrapPageRow {
+  id: string;
+  parent_id: string | null;
+  slug: string;
+  path: string;
+  title: string;
+  status: string;
+  sort_order: number;
+}
+
+export interface SpaceBootstrapOrganizationRow {
+  id: string;
+  name: string;
+  icon: string | null;
+}
+
+export interface SpaceBootstrapRow {
+  space: SpaceRow;
+  role: "viewer" | "editor" | "admin";
+  pages: SpaceBootstrapPageRow[];
+  spaces: SpaceRow[];
+  organizations: SpaceBootstrapOrganizationRow[];
+}
+
+export async function getSpaceBootstrap(
+  spaceId: string,
+  userId: string
+): Promise<SpaceBootstrapRow | null> {
+  const { rows } = await pool.query<SpaceBootstrapRow>(
+    `SELECT
+       to_jsonb(target) - 'direct_role' - 'organization_role' - 'effective_role' AS space,
+       target.effective_role AS role,
+       COALESCE((
+         SELECT jsonb_agg(
+           jsonb_build_object(
+             'id', page.id,
+             'parent_id', page.parent_id,
+             'slug', page.slug,
+             'path', page.path::text,
+             'title', CASE
+               WHEN target.effective_role = 'viewer' THEN page.published_title
+               ELSE page.title
+             END,
+             'status', page.status,
+             'sort_order', page.sort_order
+           )
+           ORDER BY page.sort_order, page.path::text
+         )
+         FROM pages page
+         LEFT JOIN trash deleted ON deleted.page_id = page.id
+         WHERE page.space_id = target.id
+           AND deleted.page_id IS NULL
+           AND (
+             target.effective_role <> 'viewer'
+             OR (page.status = 'published' AND page.published_version_id IS NOT NULL)
+           )
+       ), '[]'::jsonb) AS pages,
+       COALESCE((
+         SELECT jsonb_agg(to_jsonb(available_space) ORDER BY available_space.name)
+         FROM spaces available_space
+         WHERE EXISTS (
+           SELECT 1 FROM memberships available_membership
+           WHERE available_membership.space_id = available_space.id
+             AND available_membership.user_id = $1
+         )
+         OR (
+           available_space.organization_id IS NOT NULL
+           AND EXISTS (
+             SELECT 1 FROM organization_memberships available_org_membership
+             WHERE available_org_membership.organization_id = available_space.organization_id
+               AND available_org_membership.user_id = $1
+           )
+         )
+       ), '[]'::jsonb) AS spaces,
+       COALESCE((
+         SELECT jsonb_agg(
+           jsonb_build_object('id', organization.id, 'name', organization.name, 'icon', organization.icon)
+           ORDER BY organization.name
+         )
+         FROM organizations organization
+         JOIN organization_memberships organization_membership
+           ON organization_membership.organization_id = organization.id
+          AND organization_membership.user_id = $1
+         WHERE organization.deleted_at IS NULL
+       ), '[]'::jsonb) AS organizations
+     FROM (
+       SELECT
+         s.*,
+         m.role AS direct_role,
+         om.role AS organization_role,
+         COALESCE(
+           m.role,
+           CASE
+             WHEN om.role IN ('admin', 'owner') THEN 'admin'
+             WHEN om.role = 'member' THEN 'viewer'
+           END
+         ) AS effective_role
+       FROM spaces s
+       LEFT JOIN memberships m ON m.space_id = s.id AND m.user_id = $1
+       LEFT JOIN organization_memberships om
+         ON om.organization_id = s.organization_id AND om.user_id = $1
+       WHERE s.id = $2
+         AND (m.user_id IS NOT NULL OR om.user_id IS NOT NULL)
+     ) target`,
+    [userId, spaceId]
+  );
+  return rows[0] ?? null;
+}
+
 export async function listSpacesForUser(userId: string): Promise<SpaceRow[]> {
   if (!pool) return [];
   const { rows } = await pool.query<SpaceRow>(
@@ -37,7 +146,11 @@ export async function listSpacesForUser(userId: string): Promise<SpaceRow[]> {
 export async function listPublicSpaces(): Promise<SpaceRow[]> {
   if (!pool) return [];
   const { rows } = await pool.query<SpaceRow>(
-    `SELECT s.*, o.name AS organization_name FROM spaces s
+    `SELECT
+       s.id, s.name, s.slug, s.icon, s.description, s.organization_id,
+       s.created_at, s.updated_at,
+       o.name AS organization_name
+     FROM spaces s
      LEFT JOIN organizations o ON o.id = s.organization_id AND o.deleted_at IS NULL
      WHERE EXISTS (
        SELECT 1
@@ -123,47 +236,46 @@ export async function getSpaceBySlug(slug: string): Promise<SpaceRow | null> {
   return rows[0] ?? null;
 }
 
-export async function createSpace(data: {
-  name: string;
-  slug: string;
-  icon?: string | null;
-  description?: string | null;
-  organization_id?: string | null;
-  createdBy: string;
-}): Promise<SpaceRow> {
-  if (!pool) throw new Error("Database not configured");
-  const { rows } = await pool.query<SpaceRow>(
-    `WITH created AS (
-       INSERT INTO spaces (name, slug, icon, description, organization_id)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *
-     ), member AS (
-       INSERT INTO memberships (user_id, space_id, role)
-       SELECT $6, created.id, 'admin'
-       FROM created
-     )
-     SELECT * FROM created`,
-    [data.name, data.slug, data.icon ?? null, data.description ?? null, data.organization_id ?? null, data.createdBy]
-  );
-  return rows[0]!;
+export type SpaceMutationStatus =
+  | "success"
+  | "space_not_found"
+  | "forbidden"
+  | "slug_conflict"
+  | "invalid_action";
+
+export interface SpaceMutationResult {
+  status: SpaceMutationStatus;
+  space: SpaceRow | null;
+  previous_slug?: string | null;
 }
 
-export async function updateSpace(
-  id: string,
-  data: { name: string; slug: string; description?: string | null }
-): Promise<SpaceRow> {
+export async function mutateSpace(data: {
+  action: "create" | "update" | "delete";
+  spaceId?: string | null;
+  name?: string | null;
+  slug?: string | null;
+  icon?: string | null;
+  description?: string | null;
+  organizationId?: string | null;
+  actorUserId: string;
+}): Promise<SpaceMutationResult> {
   if (!pool) throw new Error("Database not configured");
-  const { rows } = await pool.query<SpaceRow>(
-    `UPDATE spaces
-     SET name = $2,
-         slug = $3,
-         description = $4,
-         updated_at = NOW()
-     WHERE id = $1
-     RETURNING *`,
-    [id, data.name, data.slug, data.description ?? null]
+  const { rows } = await pool.query<{ result: SpaceMutationResult }>(
+    `SELECT tet_kb.mutate_space($1, $2, $3, $4, $5, $6, $7, $8) AS result`,
+    [
+      data.action,
+      data.spaceId ?? null,
+      data.name ?? null,
+      data.slug ?? null,
+      data.icon ?? null,
+      data.description ?? null,
+      data.organizationId ?? null,
+      data.actorUserId,
+    ]
   );
-  return rows[0]!;
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Space mutation returned no result");
+  return result;
 }
 
 export interface SpaceStats {
@@ -171,11 +283,6 @@ export interface SpaceStats {
   total_pages: number;
   published_pages: number;
   draft_pages: number;
-}
-
-export async function deleteSpace(id: string): Promise<void> {
-  if (!pool) throw new Error("Database not configured");
-  await pool.query("DELETE FROM spaces WHERE id = $1", [id]);
 }
 
 export async function getSpacesStats(userId: string): Promise<SpaceStats[]> {

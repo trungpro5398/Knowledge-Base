@@ -5,6 +5,7 @@ import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 import { OptimizedImage } from "./OptimizedImage";
 import { headingId, slugifyHeading } from "@/lib/kb/headings";
+import { rewriteLegacyAttachmentUrl } from "@/lib/attachments/public-url";
 
 interface PageRendererProps {
   content?: string;
@@ -24,6 +25,12 @@ function removeDuplicateHtmlTitle(html: string, pageTitle?: string): string {
   return html.replace(/<h1\b[^>]*>[\s\S]*?<\/h1>/i, "");
 }
 
+function rewriteLegacyAttachmentHtml(html: string): string {
+  return html.replace(/(src=["'])([^"']+)(["'])/gi, (_match, prefix, src, suffix) => {
+    return `${prefix}${rewriteLegacyAttachmentUrl(src)}${suffix}`;
+  });
+}
+
 function removeDuplicateMarkdownTitle(content: string, pageTitle?: string): string {
   if (!pageTitle) return content;
   const lines = content.split("\n");
@@ -39,7 +46,7 @@ function removeDuplicateMarkdownTitle(content: string, pageTitle?: string): stri
 
 export function PageRenderer({ content, html, pageTitle }: PageRendererProps) {
   if (html) {
-    return <div className="prose-kb" dangerouslySetInnerHTML={{ __html: removeDuplicateHtmlTitle(html, pageTitle) }} />;
+    return <div className="prose-kb" dangerouslySetInnerHTML={{ __html: rewriteLegacyAttachmentHtml(removeDuplicateHtmlTitle(html, pageTitle)) }} />;
   }
 
   const headingCounts = new Map<string, number>();
@@ -70,7 +77,7 @@ export function PageRenderer({ content, html, pageTitle }: PageRendererProps) {
               typeof height === "string" ? Number.parseInt(height, 10) : typeof height === "number" ? height : undefined;
             return (
               <OptimizedImage
-                src={typeof src === "string" ? src : ""}
+                src={typeof src === "string" ? rewriteLegacyAttachmentUrl(src) : ""}
                 alt={alt ?? ""}
                 width={Number.isFinite(parsedWidth) ? parsedWidth : undefined}
                 height={Number.isFinite(parsedHeight) ? parsedHeight : undefined}

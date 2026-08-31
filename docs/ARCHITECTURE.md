@@ -35,5 +35,6 @@
 - **Web**: Vercel, root `apps/web`
 - **API**: Vercel serverless Node function, root `apps/api`
 - **DB/Auth/Storage**: shared Supabase project `tet-crm`; Knowledge Base tables are isolated in schema `tet_kb`
+- **Database helpers**: internal RLS/Storage helpers live in non-exposed schema `tet_kb_private`; only the service-role API bridge remains in `tet_kb`
 - **CRM isolation**: CRM tables remain in their existing schema and are not changed by KB routes
 - **Rollback**: Fly configuration remains available until the Vercel API is smoke-tested in production

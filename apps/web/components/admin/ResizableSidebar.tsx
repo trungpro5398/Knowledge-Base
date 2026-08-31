@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_WIDTH_KEY = "kb-admin-sidebar-width";
@@ -30,6 +30,7 @@ export function ResizableSidebar({
     const [width, setWidth] = useState(DEFAULT_WIDTH);
     const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
     const [isResizing, setIsResizing] = useState(false);
+    const resizeCleanupRef = useRef<(() => void) | null>(null);
 
     // Load saved width from localStorage
     useEffect(() => {
@@ -42,8 +43,13 @@ export function ResizableSidebar({
         }
     }, []);
 
+    useEffect(() => () => {
+        resizeCleanupRef.current?.();
+    }, []);
+
     const handleMouseDown = (e: React.MouseEvent) => {
         e.preventDefault();
+        resizeCleanupRef.current?.();
         setIsResizing(true);
 
         const startX = e.clientX;
@@ -57,13 +63,18 @@ export function ResizableSidebar({
             setWidth(newWidth);
         };
 
-        const handleMouseUp = () => {
-            setIsResizing(false);
-            localStorage.setItem(SIDEBAR_WIDTH_KEY, latestWidth.toString());
+        const cleanup = () => {
             document.removeEventListener("mousemove", handleMouseMove);
             document.removeEventListener("mouseup", handleMouseUp);
+            resizeCleanupRef.current = null;
+        };
+        const handleMouseUp = () => {
+            cleanup();
+            setIsResizing(false);
+            localStorage.setItem(SIDEBAR_WIDTH_KEY, latestWidth.toString());
         };
 
+        resizeCleanupRef.current = cleanup;
         document.addEventListener("mousemove", handleMouseMove);
         document.addEventListener("mouseup", handleMouseUp);
     };

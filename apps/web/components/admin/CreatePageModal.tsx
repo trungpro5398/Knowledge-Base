@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, FileText, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, generateSlug } from "@/lib/utils";
 import { PAGE_TEMPLATES, type PageTemplate } from "@/lib/kb/templates";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
@@ -47,8 +47,10 @@ export function CreatePageModal({
             const content = template?.content || "";
 
             // Create the page
-            const response = await api.post<{ data: { id: string } }>(`/api/spaces/${spaceId}/pages`, {
+            const response = await api.post<{ data: { id: string } }>("/api/pages", {
+                space_id: spaceId,
                 title: title.trim(),
+                slug: generateSlug(title.trim()) || "untitled",
                 parent_id: parentId || null,
             });
 

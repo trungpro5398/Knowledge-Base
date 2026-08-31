@@ -1,9 +1,11 @@
 import type { PageRow } from "./pages.repo.js";
 
-export type PageNode = PageRow & { children: PageNode[] };
+type TreePage = Pick<PageRow, "id" | "parent_id" | "sort_order" | "path">;
 
-export function buildPagesTree(pages: PageRow[]): PageNode[] {
-  const childrenByParent = new Map<string | null, PageRow[]>();
+export type PageNode<T extends TreePage = PageRow> = T & { children: PageNode<T>[] };
+
+export function buildPagesTree<T extends TreePage>(pages: T[]): PageNode<T>[] {
+  const childrenByParent = new Map<string | null, T[]>();
   for (const page of pages) {
     const key = page.parent_id ?? null;
     const list = childrenByParent.get(key);
@@ -22,7 +24,7 @@ export function buildPagesTree(pages: PageRow[]): PageNode[] {
     );
   }
 
-  const build = (parentId: string | null): PageNode[] => {
+  const build = (parentId: string | null): PageNode<T>[] => {
     const children = childrenByParent.get(parentId) ?? [];
     return children.map((child) => ({
       ...child,

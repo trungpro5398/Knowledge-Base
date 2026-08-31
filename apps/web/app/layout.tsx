@@ -7,9 +7,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { CommandProvider } from "@/components/command/command-provider";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import { ShortcutsProvider } from "@/components/keyboard/shortcuts-provider";
-import { ShortcutsHelp } from "@/components/keyboard/shortcuts-help";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { getServerUser, hasSupabaseAuthCookie } from "@/lib/auth/supabase-server";
+import { hasSupabaseAuthCookie } from "@/lib/auth/supabase-server";
 import { signOut } from "@/lib/auth/actions";
 import { SkipLink } from "@/components/skip-link";
 
@@ -34,8 +33,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = (await hasSupabaseAuthCookie()) ? await getServerUser() : null;
-  const isLoggedIn = !!user;
+  // This only selects authenticated UI. Middleware and the API still verify
+  // the user before granting access, avoiding a duplicate Auth network call.
+  const isLoggedIn = await hasSupabaseAuthCookie();
 
   return (
     <html lang="vi" suppressHydrationWarning>
@@ -43,15 +43,14 @@ export default async function RootLayout({
         <ErrorBoundary>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <LocaleProvider>
-            <CommandProvider isLoggedIn={isLoggedIn}>
-              <ShortcutsProvider>
-              <SkipLink />
-              <SiteHeader isLoggedIn={isLoggedIn} signOutAction={signOut} />
-              {children}
-              <Toaster />
-              <ShortcutsHelp />
-              </ShortcutsProvider>
-            </CommandProvider>
+              <CommandProvider isLoggedIn={isLoggedIn}>
+                <ShortcutsProvider>
+                  <SkipLink />
+                  <SiteHeader isLoggedIn={isLoggedIn} signOutAction={signOut} />
+                  {children}
+                  <Toaster />
+                </ShortcutsProvider>
+              </CommandProvider>
             </LocaleProvider>
           </ThemeProvider>
         </ErrorBoundary>

@@ -61,6 +61,11 @@ export interface PageVersion {
   created_by: string;
 }
 
+export type PageVersionSummary = Pick<
+  PageVersion,
+  "id" | "page_id" | "summary" | "created_at" | "created_by"
+>;
+
 export interface PageTemplate {
   id: string;
   space_id: string;

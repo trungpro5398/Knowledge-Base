@@ -37,40 +37,53 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const { theme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [spaces, setSpaces] = useState<Space[]>([]);
   const [recentPages, setRecentPages] = useState<Array<{ id: string; title: string; path: string }>>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [spaces, setSpaces] = useState<Space[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    api
+      .get<ApiResponse<Space[]>>("/api/spaces", { signal: controller.signal })
+      .then((response) => {
+        if (!controller.signal.aborted) setSpaces(response.data ?? []);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setSpaces([]);
+      });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     if (open) {
       setRecentPages(getRecentPages());
-      // Load spaces
-      api
-        .get<ApiResponse<Space[]>>("/api/spaces")
-        .then((res) => setSpaces(res.data || []))
-        .catch(() => setSpaces([]));
     }
   }, [open]);
 
   useEffect(() => {
     if (searchQuery.trim().length > 1) {
       setIsSearching(true);
+      const controller = new AbortController();
       const timer = setTimeout(() => {
         api
           .get<PaginatedResponse<SearchResult>>(
-            `/api/search?q=${encodeURIComponent(searchQuery)}&limit=8`
+            `/api/search?q=${encodeURIComponent(searchQuery)}&limit=8`,
+            { signal: controller.signal }
           )
           .then((res) => {
+            if (controller.signal.aborted) return;
             setSearchResults(res.data || []);
             setIsSearching(false);
           })
           .catch(() => {
+            if (controller.signal.aborted) return;
             setSearchResults([]);
             setIsSearching(false);
           });
       }, 300);
       return () => {
         clearTimeout(timer);
+        controller.abort();
         setIsSearching(false);
       };
     } else {

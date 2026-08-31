@@ -83,10 +83,16 @@ export function CollapsibleSidebar({
   }, []);
 
   const latestWidthRef = useRef(width);
+  const resizeCleanupRef = useRef<(() => void) | null>(null);
   latestWidthRef.current = width;
+
+  useEffect(() => () => {
+    resizeCleanupRef.current?.();
+  }, []);
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
+    resizeCleanupRef.current?.();
     setIsResizing(true);
     const startX = e.clientX;
     const startW = width;
@@ -96,14 +102,19 @@ export function CollapsibleSidebar({
       const next = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, startW + delta));
       setWidth(next);
     };
+    const cleanup = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      resizeCleanupRef.current = null;
+    };
     const onUp = () => {
+      cleanup();
       setIsResizing(false);
       try {
         localStorage.setItem(widthKey, String(latestWidthRef.current));
       } catch {}
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
     };
+    resizeCleanupRef.current = cleanup;
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
   };

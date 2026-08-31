@@ -2,6 +2,16 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
 const REVALIDATE_SECRET = process.env.REVALIDATE_SECRET;
+const MAX_REVALIDATE_PATH_LENGTH = 1_024;
+
+function isSafeRevalidatePath(path: unknown): path is string {
+  return (
+    typeof path === "string" &&
+    path.startsWith("/") &&
+    !path.startsWith("//") &&
+    path.length <= MAX_REVALIDATE_PATH_LENGTH
+  );
+}
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -20,6 +30,16 @@ export async function POST(request: NextRequest) {
   }
 
   const { path, tag } = body;
+  if (!path && !tag) {
+    return NextResponse.json({ error: "path or tag is required" }, { status: 400 });
+  }
+  if (path && !isSafeRevalidatePath(path)) {
+    return NextResponse.json({ error: "Invalid path" }, { status: 400 });
+  }
+  if (tag && tag !== "kb") {
+    return NextResponse.json({ error: "Invalid tag" }, { status: 400 });
+  }
+
   if (path) {
     revalidatePath(path);
   }

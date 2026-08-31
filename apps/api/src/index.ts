@@ -10,7 +10,20 @@ import rbacPlugin from "./plugins/rbac.js";
 import { registerRoutes } from "./routes/index.js";
 import { recordRequest } from "./utils/metrics.js";
 
-export const fastify = Fastify({ loggerInstance: logger });
+// Version content is capped at 1 MB in the shared schema. Leave enough room
+// for JSON framing while rejecting oversized bodies before they consume memory.
+export const fastify = Fastify({
+  loggerInstance: logger,
+  bodyLimit: 1_100_000,
+  // Fastify assigns the top-level value after constructing Node's HTTP
+  // server. Pass it through at construction time as well so stalled bodies
+  // are actually rejected and multipart reservations are released.
+  requestTimeout: 65_000,
+  http: {
+    requestTimeout: 65_000,
+    connectionsCheckingInterval: 1_000,
+  },
+});
 
 fastify.addHook("onRequest", (request, _reply, done) => {
   request._startAt = process.hrtime.bigint();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api/client";
 import { Search, Loader2 } from "lucide-react";
@@ -13,20 +13,40 @@ export function SearchBar() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
   const [searching, setSearching] = useState(false);
+  const activeSearchRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => activeSearchRef.current?.abort(), []);
 
   const search = async () => {
-    if (!q.trim()) return;
+    const query = q.trim();
+    if (query.length < 2) {
+      setResults([]);
+      setOpen(false);
+      return;
+    }
+
+    activeSearchRef.current?.abort();
+    const controller = new AbortController();
+    activeSearchRef.current = controller;
     setSearching(true);
     setOpen(true);
     try {
       const res = await api.get<PaginatedResponse<SearchResult>>(
-        `/api/search?q=${encodeURIComponent(q)}&limit=10`
+        `/api/search?q=${encodeURIComponent(query)}&limit=10`,
+        { signal: controller.signal }
       );
-      setResults(res.data ?? []);
+      if (activeSearchRef.current === controller) {
+        setResults(res.data ?? []);
+      }
     } catch {
-      setResults([]);
+      if (!controller.signal.aborted && activeSearchRef.current === controller) {
+        setResults([]);
+      }
     } finally {
-      setSearching(false);
+      if (activeSearchRef.current === controller) {
+        activeSearchRef.current = null;
+        setSearching(false);
+      }
     }
   };
 
@@ -42,7 +62,15 @@ export function SearchBar() {
           type="search"
           name="search"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => {
+            activeSearchRef.current?.abort();
+            activeSearchRef.current = null;
+            setSearching(false);
+            const nextQuery = e.target.value;
+            setQ(nextQuery);
+            setResults([]);
+            setOpen(false);
+          }}
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), search())}
           placeholder={t("search.placeholder")}
           aria-label={t("search.ariaLabel")}

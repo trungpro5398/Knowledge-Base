@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -42,7 +42,7 @@ const statusClassNames: Record<PageStatus, string> = {
     archived: "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20",
 };
 
-export function PageActionsToolbar({
+export const PageActionsToolbar = memo(function PageActionsToolbar({
     pageId,
     spaceId,
     spaceSlug,
@@ -115,7 +115,7 @@ export function PageActionsToolbar({
                     <button
                         type="button"
                         onClick={onPublish}
-                        disabled={publishing || status === "published"}
+                        disabled={saving || publishing}
                         className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
                     >
                         <Send className="h-4 w-4" aria-hidden="true" />
@@ -211,4 +211,4 @@ export function PageActionsToolbar({
             </div>
         </div>
     );
-}
+});

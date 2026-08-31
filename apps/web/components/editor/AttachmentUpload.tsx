@@ -1,25 +1,41 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { memo, useState, useRef } from "react";
 import { Paperclip } from "lucide-react";
-import { createClient } from "@/lib/auth/supabase-browser";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
+import { ATTACHMENT_INPUT_ACCEPT, validateAttachmentFile } from "@/lib/attachments/validation";
 
 interface AttachmentUploadProps {
   pageId: string;
   onUploaded?: () => void;
 }
 
-export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) {
+export const AttachmentUpload = memo(function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const uploadInFlightRef = useRef(false);
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const validationError = validateAttachmentFile(file);
+    if (validationError) {
+      toast.error("Không thể tải tệp", { description: validationError });
+      e.target.value = "";
+      return;
+    }
+    if (uploadInFlightRef.current) {
+      toast.info("Một tệp đang được tải lên.");
+      e.target.value = "";
+      return;
+    }
+    uploadInFlightRef.current = true;
     setUploading(true);
     try {
+      const supabasePromise = import("@/lib/auth/supabase-browser").then(({ createClient }) =>
+        createClient()
+      );
       const pathRes = await api.post<{ data: { path: string } }>(
         `/api/pages/${pageId}/attachments/upload-path`,
         {
@@ -30,7 +46,7 @@ export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) 
       );
       const path = pathRes.data.path;
 
-      const supabase = createClient();
+      const supabase = await supabasePromise;
       const { error: uploadError } = await supabase.storage
         .from("attachments")
         .upload(path, file, { contentType: file.type, upsert: false });
@@ -50,6 +66,7 @@ export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) 
         description: err instanceof Error ? err.message : "Unknown error",
       });
     } finally {
+      uploadInFlightRef.current = false;
       setUploading(false);
     }
     e.target.value = "";
@@ -62,7 +79,7 @@ export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) 
         type="file"
         onChange={handleFile}
         className="hidden"
-        accept="image/*,.pdf,.txt,.md"
+        accept={ATTACHMENT_INPUT_ACCEPT}
         aria-hidden="true"
         tabIndex={-1}
       />
@@ -77,4 +94,4 @@ export function AttachmentUpload({ pageId, onUploaded }: AttachmentUploadProps) 
       </button>
     </div>
   );
-}
+});

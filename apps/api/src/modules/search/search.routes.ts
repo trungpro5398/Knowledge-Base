@@ -6,7 +6,10 @@ import { searchQuerySchema } from "@kb/shared";
 export async function searchRoutes(fastify: FastifyInstance, auth: AuthHandlers) {
   fastify.get(
     "/search",
-    { preHandler: [auth.authenticate] },
+    {
+      preHandler: [auth.authenticate],
+      config: { rateLimit: { max: 60, timeWindow: "1 minute" } },
+    },
     async (request, reply) => {
       const parsed = searchQuerySchema.safeParse(request.query);
       if (!parsed.success) {

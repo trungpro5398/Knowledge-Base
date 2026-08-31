@@ -1,22 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api, apiClient } from "@/lib/api/client";
 import { Users, UserPlus, Shield, Eye, FileEdit, Trash2, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { ApiResponse } from "@/lib/api/types";
 
-interface Member {
+export interface Member {
   user_id: string;
   space_id: string;
   role: "viewer" | "editor" | "admin";
   created_at: string;
   user_email: string;
-  user_name?: string;
+  user_name?: string | null;
 }
 
 interface MembersListProps {
   spaceId: string;
+  initialMembers?: Member[];
 }
 
 interface UserSearchResult {
@@ -43,28 +44,32 @@ const roleIcons = {
   admin: Shield,
 };
 
-export function MembersList({ spaceId }: MembersListProps) {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
+export function MembersList({ spaceId, initialMembers }: MembersListProps) {
+  const [members, setMembers] = useState<Member[]>(() => initialMembers ?? []);
+  const [loading, setLoading] = useState(initialMembers === undefined);
   const [showAddForm, setShowAddForm] = useState(false);
 
-  const loadMembers = async () => {
+  const loadMembers = useCallback(async (signal?: AbortSignal) => {
     try {
       setLoading(true);
-      const res = await api.get<ApiResponse<Member[]>>(`/api/spaces/${spaceId}/members`);
+      const res = await api.get<ApiResponse<Member[]>>(`/api/spaces/${spaceId}/members`, { signal });
+      if (signal?.aborted) return;
       setMembers(res.data ?? []);
     } catch (error) {
+      if (signal?.aborted) return;
       toast.error("Không thể tải danh sách người có quyền");
       console.error(error);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
-  };
+  }, [spaceId]);
 
   useEffect(() => {
-    loadMembers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spaceId]);
+    if (initialMembers !== undefined) return;
+    const controller = new AbortController();
+    void loadMembers(controller.signal);
+    return () => controller.abort();
+  }, [initialMembers, loadMembers]);
 
   const handleRemoveMember = async (userId: string, userEmail: string) => {
     if (!confirm(`Xác nhận xóa ${userEmail} khỏi kho tài liệu?`)) return;
@@ -185,42 +190,53 @@ function AddMemberForm({ spaceId, onSuccess }: { spaceId: string; onSuccess: () 
   const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState("");
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => () => {
+    if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+  }, []);
 
   useEffect(() => {
-    let isCancelled = false;
+    const normalizedQuery = query.trim();
+    if (selectedUser || normalizedQuery.length < 2) {
+      setSuggestions([]);
+      setSearching(false);
+      return;
+    }
+
+    const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
         setSearching(true);
         const params = new URLSearchParams({
-          limit: "50",
+          limit: "10",
           spaceId,
+          q: normalizedQuery,
         });
-        if (query.trim()) {
-          params.set("q", query.trim());
-        }
         const res = await api.get<ApiResponse<UserSearchResult[]>>(
-          `/api/users/search?${params.toString()}`
+          `/api/users/search?${params.toString()}`,
+          { signal: controller.signal }
         );
-        if (!isCancelled) {
+        if (!controller.signal.aborted) {
           setSuggestions(res.data ?? []);
         }
       } catch (searchError) {
-        if (!isCancelled) {
+        if (!controller.signal.aborted) {
           setSuggestions([]);
           console.error(searchError);
         }
       } finally {
-        if (!isCancelled) {
+        if (!controller.signal.aborted) {
           setSearching(false);
         }
       }
     }, 220);
 
     return () => {
-      isCancelled = true;
       clearTimeout(timer);
+      controller.abort();
     };
-  }, [query, spaceId]);
+  }, [query, selectedUser, spaceId]);
 
   const resolveTargetUser = (): UserSearchResult | null => {
     if (selectedUser) return selectedUser;
@@ -283,9 +299,16 @@ function AddMemberForm({ spaceId, onSuccess }: { spaceId: string; onSuccess: () 
               setSelectedUser(null);
               setShowSuggestions(true);
             }}
-            onFocus={() => setShowSuggestions(true)}
+            onFocus={() => {
+              if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+              setShowSuggestions(true);
+            }}
             onBlur={() => {
-              setTimeout(() => setShowSuggestions(false), 120);
+              if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+              blurTimerRef.current = setTimeout(() => {
+                setShowSuggestions(false);
+                blurTimerRef.current = undefined;
+              }, 120);
             }}
             placeholder="Tìm theo tên hoặc email..."
             className="w-full pl-9"

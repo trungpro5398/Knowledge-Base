@@ -16,12 +16,3 @@ export async function getTemplatesBySpaceId(spaceId: string): Promise<TemplateRo
   );
   return rows;
 }
-
-export async function getTemplateById(id: string): Promise<TemplateRow | null> {
-  if (!pool) return null;
-  const { rows } = await pool.query<TemplateRow>(
-    "SELECT id, space_id, name, content_md, created_at FROM page_templates WHERE id = $1",
-    [id]
-  );
-  return rows[0] ?? null;
-}

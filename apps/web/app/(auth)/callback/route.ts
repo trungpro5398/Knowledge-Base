@@ -2,14 +2,23 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { getSupabaseEnv } from "@/lib/auth/env";
 import { isAllowedTetEmail } from "@/lib/auth/domain";
+import { safeRedirectPath } from "@/lib/auth/redirect";
+
+const isProd = process.env.NODE_ENV === "production";
+
+function toCookieOpts(opts?: Record<string, unknown>) {
+  return {
+    path: (opts?.path as string) ?? "/",
+    ...opts,
+    secure: (opts?.secure as boolean) ?? isProd,
+    sameSite: (opts?.sameSite as "lax" | "strict" | "none") ?? "lax",
+  };
+}
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const requestedNext = searchParams.get("next") ?? "/admin";
-  const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//")
-    ? requestedNext
-    : "/admin";
+  const next = safeRedirectPath(searchParams.get("next"));
   const { url, key } = getSupabaseEnv();
 
   if (code) {
@@ -40,12 +49,12 @@ export async function GET(request: Request) {
         await supabase.auth.signOut();
         const domainErrorRedirect = NextResponse.redirect(`${origin}/login?error=domain`);
         collected.forEach(({ name, value, options }) => {
-          domainErrorRedirect.cookies.set(name, value, { path: "/", ...options });
+          domainErrorRedirect.cookies.set(name, value, toCookieOpts(options));
         });
         return domainErrorRedirect;
       }
       collected.forEach(({ name, value, options }) => {
-        responseRedirect.cookies.set(name, value, { path: "/", ...options });
+        responseRedirect.cookies.set(name, value, toCookieOpts(options));
       });
       return responseRedirect;
     }

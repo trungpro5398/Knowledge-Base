@@ -1,59 +1,80 @@
 import * as pagesRepo from "../pages/pages.repo.js";
 import * as searchRepo from "../search/search.repo.js";
 import * as spacesRepo from "../spaces/spaces.repo.js";
-import { TtlCache } from "../../utils/ttl-cache.js";
 import { config } from "../../config/env.js";
+import { TtlCache } from "../../utils/ttl-cache.js";
 import { buildPagesTree, type PageNode } from "../pages/pages-tree.js";
+import type { PageRow, PageVersionRow, PublicTreePageRow } from "../pages/pages.repo.js";
 
-const DEFAULT_TTL_MS = Math.max(0, config.publicCacheTtlMs);
+const SIGNED_URL_TTL_MS = Math.min(Math.max(0, config.publicCacheTtlMs), 240_000);
 const MAX_ENTRIES = Math.max(1, config.publicCacheMaxEntries || 200);
-
-const treeCache = new TtlCache<{
-  tree: PageNode[];
-  pageTitleByPath: Map<string, string>;
-  etag: string;
-}>({ defaultTtlMs: DEFAULT_TTL_MS, maxEntries: MAX_ENTRIES });
-
-const pageCache = new TtlCache<Awaited<ReturnType<typeof pagesRepo.getPageByPath>>>({
-  defaultTtlMs: DEFAULT_TTL_MS,
+const signedAttachmentUrlCache = new TtlCache<string>({
+  defaultTtlMs: SIGNED_URL_TTL_MS,
   maxEntries: MAX_ENTRIES,
 });
-const publicSpacesCache = new TtlCache<Awaited<ReturnType<typeof spacesRepo.listPublicSpaces>>>({
-  defaultTtlMs: DEFAULT_TTL_MS,
-  maxEntries: 1,
-});
-const publicSearchCache = new TtlCache<Awaited<ReturnType<typeof searchRepo.searchPublic>>>({
-  defaultTtlMs: DEFAULT_TTL_MS,
-  maxEntries: MAX_ENTRIES,
-});
+const inflightSignedAttachmentUrls = new Map<string, Promise<string | null>>();
 
-const inflightTree = new Map<
-  string,
-  Promise<{ tree: PageNode[]; pageTitleByPath: Map<string, string>; etag: string }>
->();
-const inflightPage = new Map<string, Promise<Awaited<ReturnType<typeof pagesRepo.getPageByPath>>>>();
-let inflightPublicSpaces: Promise<Awaited<ReturnType<typeof spacesRepo.listPublicSpaces>>> | null = null;
-const inflightPublicSearch = new Map<
-  string,
-  Promise<Awaited<ReturnType<typeof searchRepo.searchPublic>>>
->();
+export type PublicPageTreeNode = Pick<
+  PageRow,
+  "id" | "parent_id" | "slug" | "path" | "title" | "status" | "sort_order"
+> & { children: PublicPageTreeNode[] };
+
+export type PublicPage = Pick<
+  PageRow,
+  "id" | "parent_id" | "slug" | "path" | "title" | "status" | "sort_order"
+> & {
+  version?: Pick<
+    PageVersionRow,
+    "id" | "page_id" | "content_md" | "content_json" | "summary" | "rendered_html" | "toc_json" | "created_at"
+  >;
+};
+
+export function toPublicTree(nodes: PageNode<PublicTreePageRow>[]): PublicPageTreeNode[] {
+  return nodes.map((node) => ({
+    id: node.id,
+    parent_id: node.parent_id,
+    slug: node.slug,
+    path: node.path,
+    title: node.title,
+    status: node.status,
+    sort_order: node.sort_order,
+    children: toPublicTree(node.children),
+  }));
+}
+
+export function toPublicPage(
+  page: Awaited<ReturnType<typeof pagesRepo.getPageByPath>>
+): PublicPage | null {
+  if (!page) return null;
+  const version = page.version;
+  return {
+    id: page.id,
+    parent_id: page.parent_id,
+    slug: page.slug,
+    path: page.path,
+    title: page.title,
+    status: page.status,
+    sort_order: page.sort_order,
+    version: version
+      ? {
+          id: version.id,
+          page_id: version.page_id,
+          // Published HTML is the canonical, sanitized render. Avoid sending
+          // the near-duplicate markdown payload unless a legacy row needs the
+          // client-side fallback renderer.
+          content_md: version.rendered_html ? null : version.content_md,
+          content_json: version.content_json,
+          summary: version.summary,
+          rendered_html: version.rendered_html,
+          toc_json: version.toc_json,
+          created_at: version.created_at,
+        }
+      : undefined,
+  };
+}
 
 export async function getPublicSpacesCached() {
-  if (DEFAULT_TTL_MS <= 0) return spacesRepo.listPublicSpaces();
-  const key = "public-spaces";
-  const cached = publicSpacesCache.get(key);
-  if (cached) return cached;
-  if (inflightPublicSpaces) return inflightPublicSpaces;
-
-  inflightPublicSpaces = spacesRepo.listPublicSpaces().then((spaces) => {
-    publicSpacesCache.set(key, spaces);
-    return spaces;
-  });
-  try {
-    return await inflightPublicSpaces;
-  } finally {
-    inflightPublicSpaces = null;
-  }
+  return spacesRepo.listPublicSpaces();
 }
 
 export async function searchPublicCached(params: {
@@ -62,31 +83,44 @@ export async function searchPublicCached(params: {
   limit: number;
   offset: number;
 }) {
-  if (DEFAULT_TTL_MS <= 0) return searchRepo.searchPublic(params);
-  const key = [
-    params.q.trim().toLocaleLowerCase("vi"),
-    params.spaceSlug?.trim().toLocaleLowerCase("vi") ?? "",
-    params.limit,
-    params.offset,
-  ].join(":");
-  const cached = publicSearchCache.get(key);
+  return searchRepo.searchPublic(params);
+}
+
+/**
+ * Reauthorize publication on every request, then cache only the expensive
+ * signed-URL minting step. A cached bearer URL is never returned unless the
+ * current database state still allows the attachment.
+ */
+export async function getPublicAttachmentUrlCached(
+  path: string,
+  authorize: () => Promise<string | null>,
+  sign: (authorizedPath: string) => Promise<string | null>
+): Promise<string | null> {
+  const authorizedPath = await authorize();
+  if (!authorizedPath || authorizedPath !== path) return null;
+  if (SIGNED_URL_TTL_MS <= 0) return sign(authorizedPath);
+
+  const key = `attachment-signature:${authorizedPath}`;
+  const cached = signedAttachmentUrlCache.get(key);
   if (cached) return cached;
-  const inflight = inflightPublicSearch.get(key);
+  const inflight = inflightSignedAttachmentUrls.get(key);
   if (inflight) return inflight;
 
-  const promise = searchRepo.searchPublic(params).then((result) => {
-    publicSearchCache.set(key, result);
-    return result;
+  const promise = sign(authorizedPath).then((url) => {
+    if (url) signedAttachmentUrlCache.set(key, url, SIGNED_URL_TTL_MS);
+    return url;
   });
-  inflightPublicSearch.set(key, promise);
+  inflightSignedAttachmentUrls.set(key, promise);
   try {
     return await promise;
   } finally {
-    inflightPublicSearch.delete(key);
+    if (inflightSignedAttachmentUrls.get(key) === promise) {
+      inflightSignedAttachmentUrls.delete(key);
+    }
   }
 }
 
-function buildTitleMap(tree: PageNode[]): Map<string, string> {
+function buildTitleMap(tree: PublicPageTreeNode[]): Map<string, string> {
   const map = new Map<string, string>();
   const stack = [...tree];
   while (stack.length > 0) {
@@ -110,84 +144,30 @@ function computeTreeEtagFromPages(pages: { updated_at: Date }[]): string {
 
 export async function getPublishedTreeCached(
   spaceId: string,
-  ttlMs = DEFAULT_TTL_MS
+  _ttlMs?: number
 ) {
-  if (ttlMs <= 0) {
-    const pages = await pagesRepo.getPagesTree(spaceId, { publishedOnly: true });
-    const tree = buildPagesTree(pages);
-    return {
-      tree,
-      pageTitleByPath: buildTitleMap(tree),
-      etag: computeTreeEtagFromPages(pages),
-    };
-  }
-
-  const key = `tree:${spaceId}`;
-  const cached = treeCache.get(key);
-  if (cached) return cached;
-  const inflight = inflightTree.get(key);
-  if (inflight) return inflight;
-
-  const promise = (async () => {
-    const pages = await pagesRepo.getPagesTree(spaceId, { publishedOnly: true });
-    const tree = buildPagesTree(pages);
-    const pageTitleByPath = buildTitleMap(tree);
-    const value = { tree, pageTitleByPath, etag: computeTreeEtagFromPages(pages) };
-    treeCache.set(key, value, ttlMs);
-    return value;
-  })();
-
-  inflightTree.set(key, promise);
-  try {
-    return await promise;
-  } finally {
-    inflightTree.delete(key);
-  }
+  const pages = await pagesRepo.getPublishedPagesTree(spaceId);
+  const tree = toPublicTree(buildPagesTree(pages));
+  return {
+    tree,
+    pageTitleByPath: buildTitleMap(tree),
+    etag: computeTreeEtagFromPages(pages),
+  };
 }
 
 export async function getPublishedPageByPathCached(
   spaceId: string,
   path: string,
-  ttlMs = DEFAULT_TTL_MS
+  _ttlMs?: number
 ) {
-  if (ttlMs <= 0) {
-    return pagesRepo.getPageByPath(spaceId, path);
-  }
-  const key = `page:${spaceId}:${path}`;
-  const cached = pageCache.get(key);
-  if (cached) return cached;
-  const inflight = inflightPage.get(key);
-  if (inflight) return inflight;
-
-  const promise = (async () => {
-    const page = await pagesRepo.getPageByPath(spaceId, path);
-    if (page) {
-      pageCache.set(key, page, ttlMs);
-    }
-    return page;
-  })();
-
-  inflightPage.set(key, promise);
-  try {
-    return await promise;
-  } finally {
-    inflightPage.delete(key);
-  }
+  return pagesRepo.getPageByPath(spaceId, path);
 }
 
-export function invalidatePublishedSpace(spaceId: string): void {
-  treeCache.delete(`tree:${spaceId}`);
-  const prefix = `page:${spaceId}:`;
-  for (const key of pageCache.keys()) {
-    if (key.startsWith(prefix)) {
-      pageCache.delete(key);
-    }
-  }
-  publicSpacesCache.clear();
-  publicSearchCache.clear();
+export function invalidatePublishedSpace(_spaceId: string): void {
+  // Public authorization-sensitive reads intentionally bypass process-local
+  // caches. There is nothing instance-local to invalidate.
 }
 
-export function invalidatePublishedPage(spaceId: string, path: string): void {
-  pageCache.delete(`page:${spaceId}:${path}`);
-  publicSearchCache.clear();
+export function invalidatePublishedPage(_spaceId: string, _path: string): void {
+  // Kept as a stable service boundary for callers; see above.
 }

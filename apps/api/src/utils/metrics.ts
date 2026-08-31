@@ -15,6 +15,9 @@ type RouteStats = {
 
 const routes = new Map<string, RouteStats>();
 const total: RouteStats = { count: 0, errorCount: 0, totalMs: 0, maxMs: 0 };
+const MAX_ROUTE_STATS = 300;
+const UNMATCHED_ROUTE = "<unmatched>";
+const OVERFLOW_ROUTE = "<other>";
 
 function updateStats(stats: RouteStats, statusCode: number, durationMs: number) {
   stats.count += 1;
@@ -28,12 +31,19 @@ export function recordRequest(
   reply: FastifyReply,
   durationMs: number
 ): void {
-  // Use routeOptions.url (new API) instead of routerPath (deprecated)
-  const route = (request.routeOptions?.url as string | undefined) ?? request.url;
-  const key = `${request.method} ${route}`;
+  // Do not use raw URLs for unknown routes: a scanner could otherwise make
+  // this process retain an unbounded number of unique metric keys.
+  const route = (request.routeOptions?.url as string | undefined) ?? UNMATCHED_ROUTE;
+  let key = `${request.method} ${route}`;
   let stats = routes.get(key);
   if (!stats) {
-    stats = { count: 0, errorCount: 0, totalMs: 0, maxMs: 0 };
+    // Reserve one slot for a single cross-method overflow bucket so this map
+    // can never grow beyond MAX_ROUTE_STATS.
+    if (routes.size >= MAX_ROUTE_STATS - 1) {
+      key = OVERFLOW_ROUTE;
+      stats = routes.get(key);
+    }
+    if (!stats) stats = { count: 0, errorCount: 0, totalMs: 0, maxMs: 0 };
     routes.set(key, stats);
   }
   updateStats(stats, reply.statusCode, durationMs);

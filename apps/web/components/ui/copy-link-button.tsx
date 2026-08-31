@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useLocale } from "@/lib/i18n/locale-provider";
@@ -13,6 +13,11 @@ interface CopyLinkButtonProps {
 export function CopyLinkButton({ url, className = "" }: CopyLinkButtonProps) {
   const { t } = useLocale();
   const [copied, setCopied] = useState(false);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => () => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+  }, []);
 
   const handleCopy = async () => {
     const linkToCopy = url || window.location.href;
@@ -20,7 +25,11 @@ export function CopyLinkButton({ url, className = "" }: CopyLinkButtonProps) {
       await navigator.clipboard.writeText(linkToCopy);
       setCopied(true);
       toast.success(t("copy.success"));
-      setTimeout(() => setCopied(false), 2000);
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = setTimeout(() => {
+        setCopied(false);
+        resetTimerRef.current = undefined;
+      }, 2000);
     } catch (err) {
       toast.error(t("copy.failed"));
     }

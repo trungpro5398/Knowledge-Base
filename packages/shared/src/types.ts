@@ -20,6 +20,7 @@ export interface Page {
   title: string;
   status: PageStatus;
   current_version_id: string | null;
+  published_version_id: string | null;
   created_by: string;
   updated_by: string;
   created_at: string;

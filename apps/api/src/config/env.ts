@@ -22,8 +22,6 @@ export const config = {
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean),
-  webRevalidateUrl: process.env.WEB_REVALIDATE_URL || "",
-  revalidateSecret: process.env.REVALIDATE_SECRET || "",
   publicCacheTtlMs: parseIntOr(process.env.PUBLIC_CACHE_TTL_MS, 15000),
   publicCacheMaxEntries: parseIntOr(process.env.PUBLIC_CACHE_MAX_ENTRIES, 200),
   internalCacheTtlMs: parseIntOr(process.env.INTERNAL_CACHE_TTL_MS, 5000),

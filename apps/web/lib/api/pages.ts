@@ -8,8 +8,14 @@ export async function getPagesTree(spaceId: string): Promise<PageNode[]> {
   return res.data;
 }
 
-export async function getTemplates(spaceId: string): Promise<PageTemplate[]> {
-  const res = await apiClient<ApiResponse<PageTemplate[]>>(`/api/spaces/${spaceId}/templates`);
+export async function getTemplates(
+  spaceId: string,
+  signal?: AbortSignal
+): Promise<PageTemplate[]> {
+  const res = await apiClient<ApiResponse<PageTemplate[]>>(
+    `/api/spaces/${spaceId}/templates`,
+    { signal }
+  );
   return res.data;
 }
 

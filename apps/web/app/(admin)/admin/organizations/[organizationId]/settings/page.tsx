@@ -1,45 +1,9 @@
 import { getServerAccessToken } from "@/lib/auth/supabase-server";
-import { serverApiGet } from "@/lib/api/server";
 import { OrganizationMembersList } from "@/components/organizations/OrganizationMembersList";
 import { DeleteOrganizationSection } from "@/components/organizations/DeleteOrganizationSection";
+import { getOrganizationBootstrap } from "@/lib/api/organization-bootstrap";
 import { Settings } from "lucide-react";
-import type { ApiResponse } from "@/lib/api/types";
 import { redirect } from "next/navigation";
-
-interface Organization {
-  id: string;
-  name: string;
-  slug: string;
-  icon: string | null;
-  description: string | null;
-}
-
-async function getOrganization(
-  organizationId: string,
-  token: string
-): Promise<Organization | null> {
-  try {
-    const res = await serverApiGet<ApiResponse<Organization>>(
-      `/api/organizations/${organizationId}`,
-      token
-    );
-    return res.data;
-  } catch {
-    return null;
-  }
-}
-
-async function getSpaceCount(organizationId: string, token: string): Promise<number> {
-  try {
-    const res = await serverApiGet<{ data: unknown[] }>(
-      `/api/organizations/${organizationId}/spaces`,
-      token
-    );
-    return res.data?.length ?? 0;
-  } catch {
-    return 0;
-  }
-}
 
 export default async function OrganizationSettingsPage({
   params,
@@ -48,15 +12,15 @@ export default async function OrganizationSettingsPage({
 }) {
   const { organizationId } = await params;
   const token = await getServerAccessToken();
+  const bootstrap = await getOrganizationBootstrap(organizationId, token, {
+    includeMembers: true,
+  });
 
-  const [organization, spaceCount] = await Promise.all([
-    getOrganization(organizationId, token),
-    getSpaceCount(organizationId, token),
-  ]);
-
-  if (!organization) {
+  if (!bootstrap) {
     redirect("/admin");
   }
+  const { organization, role, members, spaces } = bootstrap;
+  const canManageMembers = role === "admin" || role === "owner";
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -73,14 +37,25 @@ export default async function OrganizationSettingsPage({
           Nhóm quản lý dùng để quản lý thành viên và quyền cho các kho tài liệu thuộc nhóm này.
         </p>
 
-        <section>
-          <OrganizationMembersList organizationId={organizationId} />
-        </section>
-        <DeleteOrganizationSection
-          organizationId={organizationId}
-          organizationName={organization.name}
-          spaceCount={spaceCount}
-        />
+        {canManageMembers ? (
+          <section>
+            <OrganizationMembersList
+              organizationId={organizationId}
+              initialMembers={members}
+            />
+          </section>
+        ) : (
+          <p className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+            Chỉ admin hoặc owner mới có thể xem và quản lý danh sách thành viên.
+          </p>
+        )}
+        {role === "owner" ? (
+          <DeleteOrganizationSection
+            organizationId={organizationId}
+            organizationName={organization.name}
+            spaceCount={spaces.length}
+          />
+        ) : null}
       </div>
     </div>
   );

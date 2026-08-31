@@ -11,7 +11,10 @@ function getJWKS() {
   }
   const now = Date.now();
   if (!jwks || now - jwksCreatedAt > JWKS_CACHE_TTL_MS) {
-    jwks = createRemoteJWKSet(new URL(config.supabaseJwksUrl));
+    jwks = createRemoteJWKSet(new URL(config.supabaseJwksUrl), {
+      timeoutDuration: 5_000,
+      cooldownDuration: 30_000,
+    });
     jwksCreatedAt = now;
   }
   return jwks;

@@ -12,8 +12,8 @@ Tài liệu vận hành, quy trình và quyết định nội bộ. Built with N
 
 ### Prerequisites
 
-- Node.js 18+
-- pnpm 9+
+- Node.js 22.13+
+- pnpm 11.16+
 - Supabase account
 
 ### Setup
@@ -32,7 +32,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 # Local: http://localhost:3001 | Production: https://knowledge-base-api-alpha.vercel.app
 NEXT_PUBLIC_API_URL=http://localhost:3001
-# Optional: for /api/revalidate webhook (same as API REVALIDATE_SECRET)
+# Optional: protects the manual /api/revalidate webhook
 # REVALIDATE_SECRET=your-secret
 ```
 
@@ -41,12 +41,9 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 PORT=3001
 SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_ANON_KEY=xxx
-SUPABASE_SECRET_KEY=xxx
+SUPABASE_SECRET_KEY=your-server-secret
 # The API calls Supabase server-side through PostgREST/RPC; no DB pooler URL is needed.
 CORS_ORIGINS=http://localhost:3000
-# Optional: event-driven revalidate when publish
-WEB_REVALIDATE_URL=https://your-app.vercel.app/api/revalidate
-REVALIDATE_SECRET=your-secret
 ```
 
 ### Run

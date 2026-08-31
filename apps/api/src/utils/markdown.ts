@@ -73,14 +73,23 @@ function plainHeadingText(value: string): string {
     .trim();
 }
 
-const processor = unified()
-  .use(remarkParse)
-  .use(remarkGfm)
-  .use(remarkRehype)
-  .use(applyHeadingIds)
-  .use(rehypeHighlight)
-  .use(rehypeSanitize)
-  .use(rehypeStringify);
+// Highlighting is disproportionately expensive and can expand a very large
+// code document several-fold. Preserve it for normal documentation while
+// keeping unusually large publishes bounded and responsive.
+const MAX_HIGHLIGHTED_MARKDOWN_CHARS = 250_000;
+
+function createProcessor(highlight: boolean) {
+  const pipeline = unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkRehype)
+    .use(applyHeadingIds);
+  if (highlight) pipeline.use(rehypeHighlight);
+  return pipeline.use(rehypeSanitize).use(rehypeStringify);
+}
+
+const highlightedProcessor = createProcessor(true);
+const largeDocumentProcessor = createProcessor(false);
 
 function extractToc(md: string): TocItem[] {
   const toc: TocItem[] = [];
@@ -103,6 +112,9 @@ function extractToc(md: string): TocItem[] {
 export async function compileMarkdown(md: string): Promise<CompileResult> {
   const content = md ?? "";
   const toc = extractToc(content);
+  const processor = content.length <= MAX_HIGHLIGHTED_MARKDOWN_CHARS
+    ? highlightedProcessor
+    : largeDocumentProcessor;
   const file = await processor.process(content);
   const html = String(file);
   return { html, toc };

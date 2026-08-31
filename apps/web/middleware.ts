@@ -3,6 +3,16 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "@/lib/auth/env";
 
 export async function middleware(request: NextRequest) {
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some(({ name }) => /^sb-.*-auth-token(?:\.\d+)?$/.test(name));
+  if (!hasAuthCookie) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("redirect", request.nextUrl.pathname);
+    return NextResponse.redirect(url);
+  }
+
   const response = NextResponse.next({ request });
   const { url, key } = getSupabaseEnv();
   const supabase = createServerClient(
@@ -35,7 +45,7 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (request.nextUrl.pathname.startsWith("/admin") && !user) {
+  if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", request.nextUrl.pathname);

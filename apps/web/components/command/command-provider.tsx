@@ -44,9 +44,18 @@ export function CommandProvider({
   const openDialog = useCallback(async () => {
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     const LoadedDialog = await loadDialog();
+    if (dialogMode.current !== isLoggedIn) return;
     setDialog(() => LoadedDialog);
     setOpen(true);
-  }, [loadDialog]);
+  }, [isLoggedIn, loadDialog]);
+
+  useEffect(() => {
+    if (dialogMode.current === null || dialogMode.current === isLoggedIn) return;
+    dialogMode.current = isLoggedIn;
+    dialogPromise.current = null;
+    setDialog(null);
+    setOpen(false);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -75,7 +84,11 @@ export function CommandProvider({
   return (
     <>
       {children}
-      {open && Dialog ? <Dialog open onOpenChange={handleOpenChange} /> : null}
+      {/* Keep the lazy dialog mounted after first use so its bounded local
+          state avoids refetching spaces on every reopen. */}
+      {Dialog && dialogMode.current === isLoggedIn
+        ? <Dialog open={open} onOpenChange={handleOpenChange} />
+        : null}
     </>
   );
 }

@@ -1,4 +1,5 @@
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001").trim();
+const API_REQUEST_TIMEOUT_MS = 15_000;
 
 export class ApiError extends Error {
   constructor(
@@ -56,39 +57,61 @@ export async function apiClient<T = unknown>(
     fetchOptions.cache = 'no-store';
   }
 
-  let res: Response;
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), API_REQUEST_TIMEOUT_MS);
+  const signal = init.signal
+    ? AbortSignal.any([init.signal, timeoutController.signal])
+    : timeoutController.signal;
   try {
-    res = await fetch(`${API_URL}${path}`, fetchOptions);
+    const res = await fetch(`${API_URL}${path}`, { ...fetchOptions, signal });
+
+    // Handle empty responses (204 No Content)
+    if (res.status === 204) {
+      return undefined as T;
+    }
+
+    let data: unknown;
+    try {
+      data = await res.json();
+    } catch (error) {
+      // An empty or non-JSON error response can still be mapped from its HTTP
+      // status. Network/abort errors while reading the body must propagate to
+      // the timeout and connection handling below.
+      if (error instanceof SyntaxError) {
+        data = {};
+      } else {
+        throw error;
+      }
+    }
+
+    if (!res.ok) {
+      const errorMessage =
+        (res.status >= 500
+          ? "Máy chủ đang bận. Dữ liệu chưa được thay đổi; vui lòng thử lại sau ít phút."
+          : (data as { message?: string }).message ||
+            (res.status === 401
+              ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+              : res.status === 403
+                ? "Bạn không có quyền thực hiện thao tác này."
+                : res.statusText || "Không thể hoàn tất thao tác."));
+      const errors = (data as { errors?: unknown[] }).errors;
+      throw new ApiError(errorMessage, res.status, errors);
+    }
+
+    return data as T;
   } catch (error) {
+    if (error instanceof ApiError) throw error;
     if (init.signal?.aborted) throw error;
+    if (timeoutController.signal.aborted) {
+      throw new ApiError("Máy chủ phản hồi quá lâu. Vui lòng thử lại.", 0);
+    }
     throw new ApiError(
       "Không thể kết nối máy chủ. Kiểm tra kết nối mạng rồi thử lại.",
       0
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  // Handle empty responses (204 No Content)
-  if (res.status === 204) {
-    return undefined as T;
-  }
-
-  const data = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    const errorMessage =
-      (res.status >= 500
-        ? "Máy chủ đang bận. Dữ liệu chưa được thay đổi; vui lòng thử lại sau ít phút."
-        : (data as { message?: string }).message ||
-          (res.status === 401
-            ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
-            : res.status === 403
-              ? "Bạn không có quyền thực hiện thao tác này."
-              : res.statusText || "Không thể hoàn tất thao tác."));
-    const errors = (data as { errors?: unknown[] }).errors;
-    throw new ApiError(errorMessage, res.status, errors);
-  }
-
-  return data as T;
 }
 
 // Convenience methods

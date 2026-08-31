@@ -29,9 +29,3 @@ export async function listTrash(userId: string): Promise<TrashRow[]> {
   );
   return rows;
 }
-
-export async function isInTrash(pageId: string): Promise<boolean> {
-  if (!pool) return false;
-  const { rows } = await pool.query("SELECT 1 FROM trash WHERE page_id = $1", [pageId]);
-  return rows.length > 0;
-}

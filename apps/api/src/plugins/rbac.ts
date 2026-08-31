@@ -28,7 +28,8 @@ async function getMemberRole(userId: string, spaceId: string): Promise<Role | nu
 
 async function getPageAccess(
   userId: string,
-  pageId: string
+  pageId: string,
+  includeTrashed = false
 ): Promise<{ spaceId: string; role: Role | null; path: string; status: string } | null> {
   const { rows } = await pool.query<{
     space_id: string;
@@ -41,11 +42,13 @@ async function getPageAccess(
             m.role AS direct_role, om.role AS organization_role
      FROM pages p
      JOIN spaces s ON s.id = p.space_id
+     LEFT JOIN trash t ON t.page_id = p.id
      LEFT JOIN memberships m ON m.space_id = p.space_id AND m.user_id = $1
      LEFT JOIN organization_memberships om
        ON om.organization_id = s.organization_id AND om.user_id = $1
-     WHERE p.id = $2`,
-    [userId, pageId]
+     WHERE p.id = $2
+       AND ($3::boolean OR t.page_id IS NULL)`,
+    [userId, pageId, includeTrashed]
   );
   const row = rows[0];
   if (!row) return null;
@@ -74,7 +77,7 @@ async function checkRole(
     reply.status(403).send({ status: "error", message: `Requires ${minRole} role or higher` });
     return false;
   }
-  (request as any).spaceRole = role;
+  request.spaceRole = role;
   return true;
 }
 
@@ -99,7 +102,7 @@ async function rbacPlugin(fastify: FastifyInstance) {
     };
   });
 
-  fastify.decorate("requirePageRole", (minRole: Role) => {
+  fastify.decorate("requirePageRole", (minRole: Role, options?: { includeTrashed?: boolean }) => {
     return async (request: FastifyRequest, reply: FastifyReply) => {
       const userId = request.user?.id;
       if (!userId) {
@@ -111,7 +114,7 @@ async function rbacPlugin(fastify: FastifyInstance) {
         reply.status(400).send({ status: "error", message: "Page ID required" });
         return;
       }
-      const access = await getPageAccess(userId, pageId);
+      const access = await getPageAccess(userId, pageId, options?.includeTrashed === true);
       if (!access) {
         reply.status(404).send({ status: "error", message: "Page not found" });
         return;
@@ -124,7 +127,11 @@ async function rbacPlugin(fastify: FastifyInstance) {
         reply.status(403).send({ status: "error", message: `Requires ${minRole} role or higher` });
         return;
       }
-      (request as any).spaceRole = access.role;
+      if (access.status !== "published" && !hasMinRole(access.role, "editor")) {
+        reply.status(403).send({ status: "error", message: "Draft pages require editor access" });
+        return;
+      }
+      request.spaceRole = access.role;
       request.pageMeta = { spaceId: access.spaceId, path: access.path, status: access.status };
     };
   });

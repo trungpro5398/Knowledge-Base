@@ -1,9 +1,11 @@
 "use client";
 
 import {
+  useCallback,
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -32,26 +34,26 @@ export function useLocale() {
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("vi");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     try {
       const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
-      if (stored === "vi" || stored === "en") setLocaleState(stored);
+      if (stored === "vi" || stored === "en") {
+        setLocaleState(stored);
+        document.documentElement.lang = stored;
+      }
     } catch {}
   }, []);
 
-  useEffect(() => {
-    if (!mounted) return;
+  const setLocale = useCallback((nextLocale: Locale) => {
+    setLocaleState(nextLocale);
     try {
-      localStorage.setItem(STORAGE_KEY, locale);
-      document.documentElement.lang = locale === "vi" ? "vi" : "en";
+      localStorage.setItem(STORAGE_KEY, nextLocale);
+      document.documentElement.lang = nextLocale;
     } catch {}
-  }, [mounted, locale]);
+  }, []);
 
-  const setLocale = (l: Locale) => setLocaleState(l);
-  const t = (key: TranslationKey, params?: TranslationParams) => {
+  const t = useCallback((key: TranslationKey, params?: TranslationParams) => {
     let str = (translations[locale][key] as string) ?? key;
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
@@ -59,10 +61,12 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       });
     }
     return str;
-  };
+  }, [locale]);
+
+  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
 
   return (
-    <LocaleContext.Provider value={{ locale, setLocale, t }}>
+    <LocaleContext.Provider value={value}>
       {children}
     </LocaleContext.Provider>
   );

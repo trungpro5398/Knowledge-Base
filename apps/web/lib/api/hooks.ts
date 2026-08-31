@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "./client";
-import type { ApiResponse, Space, PageNode, Page, PageVersion } from "./types";
+import type { ApiResponse, Space, PageNode, Page, PageVersion, PageVersionSummary } from "./types";
 
 export function useSpaces() {
   return useQuery({
@@ -77,7 +77,7 @@ export function useCreateVersion(pageId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { content_md?: string; summary?: string }) => {
-      return api.post<ApiResponse<PageVersion>>(`/api/pages/${pageId}/versions`, data);
+      return api.post<ApiResponse<PageVersionSummary>>(`/api/pages/${pageId}/versions`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pages", pageId] });
@@ -115,10 +115,24 @@ export function useVersionHistory(pageId: string) {
   return useQuery({
     queryKey: ["pages", pageId, "versions"],
     queryFn: async () => {
-      const res = await api.get<ApiResponse<PageVersion[]>>(`/api/pages/${pageId}/versions`);
+      const res = await api.get<ApiResponse<PageVersionSummary[]>>(`/api/pages/${pageId}/versions`);
       return res.data || [];
     },
     enabled: !!pageId,
+  });
+}
+
+export function usePageVersion(pageId: string, versionId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["pages", pageId, "versions", versionId],
+    queryFn: async () => {
+      const res = await api.get<ApiResponse<PageVersion>>(
+        `/api/pages/${pageId}/versions/${versionId}`
+      );
+      return res.data;
+    },
+    enabled: !!pageId && !!versionId,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

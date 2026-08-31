@@ -6,6 +6,17 @@ type QueryResult<T = any> = {
   rowCount: number;
 };
 type PendingQuery = { sql: string; params: unknown[] };
+const SUPABASE_REQUEST_TIMEOUT_MS = 10_000;
+
+export function createFetchWithTimeout(timeoutMs = SUPABASE_REQUEST_TIMEOUT_MS): typeof fetch {
+  return async (input, init) => {
+    const timeout = AbortSignal.timeout(timeoutMs);
+    const signal = init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout;
+    return fetch(input, { ...init, signal });
+  };
+}
+
+export const supabaseFetchWithTimeout = createFetchWithTimeout();
 
 function isReadQuery(sql: string): boolean {
   const normalized = sql.trim();
@@ -26,6 +37,7 @@ function getClient(): SupabaseClient<any, any, "tet_kb"> {
     _client = createClient(config.supabaseUrl, config.supabaseServiceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
       db: { schema: "tet_kb" },
+      global: { fetch: supabaseFetchWithTimeout },
     });
   }
   return _client;

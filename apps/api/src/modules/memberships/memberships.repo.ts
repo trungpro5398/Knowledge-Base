@@ -9,7 +9,29 @@ export interface MembershipRow {
 
 export interface MembershipWithUser extends MembershipRow {
   user_email: string;
-  user_name?: string;
+  user_name?: string | null;
+}
+
+interface SpaceMembersBootstrapRow {
+  members: MembershipWithUser[];
+}
+
+export type MembershipMutationStatus =
+  | "success"
+  | "space_not_found"
+  | "forbidden"
+  | "member_not_found"
+  | "last_admin"
+  | "invalid_action"
+  | "invalid_role";
+
+export interface MembershipMutationResult {
+  status: MembershipMutationStatus;
+  membership: MembershipRow | null;
+}
+
+interface MembershipMutationRpcRow {
+  result: MembershipMutationResult;
 }
 
 export interface SearchUsersOptions {
@@ -20,158 +42,151 @@ export interface SearchUsersOptions {
   pageId?: string;
 }
 
-export async function getMembershipsBySpace(spaceId: string): Promise<MembershipWithUser[]> {
-  if (!pool) return [];
-  const { rows } = await pool.query<MembershipWithUser>(
-    `SELECT 
-      m.user_id,
-      m.space_id,
-      m.role,
-      m.created_at,
-      u.email as user_email,
-      u.raw_user_meta_data->>'name' as user_name
-    FROM memberships m
-    JOIN auth.users u ON u.id = m.user_id
-    WHERE m.space_id = $1
-    ORDER BY m.created_at ASC`,
-    [spaceId]
-  );
-  return rows;
+export type SearchUsersStatus =
+  | "success"
+  | "forbidden"
+  | "organization_forbidden"
+  | "space_forbidden"
+  | "page_forbidden"
+  | "page_not_found";
+
+export interface SearchUsersResult {
+  status: SearchUsersStatus;
+  users: Array<{ id: string; email: string; name?: string | null }>;
 }
 
-export async function addMembership(
+export async function getMembershipsForAdmin(
   spaceId: string,
-  userId: string,
-  role: "viewer" | "editor" | "admin"
-): Promise<MembershipRow> {
-  if (!pool) throw new Error("Database not configured");
-  const { rows } = await pool.query<MembershipRow>(
-    `INSERT INTO memberships (user_id, space_id, role)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (user_id, space_id) 
-     DO UPDATE SET role = EXCLUDED.role
-     RETURNING *`,
-    [userId, spaceId, role]
-  );
-  return rows[0]!;
-}
-
-export async function updateMembershipRole(
-  spaceId: string,
-  userId: string,
-  role: "viewer" | "editor" | "admin"
-): Promise<MembershipRow> {
-  if (!pool) throw new Error("Database not configured");
-  const { rows } = await pool.query<MembershipRow>(
-    `UPDATE memberships 
-     SET role = $3
-     WHERE space_id = $1 AND user_id = $2
-     RETURNING *`,
-    [spaceId, userId, role]
-  );
-  if (rows.length === 0) {
-    throw new Error("Membership not found");
-  }
-  return rows[0]!;
-}
-
-export async function removeMembership(spaceId: string, userId: string): Promise<void> {
-  if (!pool) throw new Error("Database not configured");
-  await pool.query(
-    `DELETE FROM memberships 
-     WHERE space_id = $1 AND user_id = $2`,
+  userId: string
+): Promise<MembershipWithUser[] | null> {
+  if (!pool) return null;
+  const { rows } = await pool.query<SpaceMembersBootstrapRow>(
+    `SELECT COALESCE((
+       SELECT jsonb_agg(
+         jsonb_build_object(
+           'user_id', membership.user_id,
+           'space_id', membership.space_id,
+           'role', membership.role,
+           'created_at', membership.created_at,
+           'user_email', auth_user.email,
+           'user_name', auth_user.raw_user_meta_data->>'name'
+         )
+         ORDER BY membership.created_at, membership.user_id
+       )
+       FROM memberships membership
+       JOIN auth.users auth_user ON auth_user.id = membership.user_id
+       WHERE membership.space_id = target.space_id
+     ), '[]'::jsonb) AS members
+     FROM (
+       SELECT
+         space.id AS space_id,
+         COALESCE(
+           direct_membership.role,
+           CASE
+             WHEN organization_membership.role IN ('admin', 'owner') THEN 'admin'
+             WHEN organization_membership.role = 'member' THEN 'viewer'
+           END
+         ) AS effective_role
+       FROM spaces space
+       LEFT JOIN memberships direct_membership
+         ON direct_membership.space_id = space.id
+        AND direct_membership.user_id = $2
+       LEFT JOIN organization_memberships organization_membership
+         ON organization_membership.organization_id = space.organization_id
+        AND organization_membership.user_id = $2
+       WHERE space.id = $1
+     ) target
+     WHERE target.effective_role = 'admin'`,
     [spaceId, userId]
   );
+  return rows[0]?.members ?? null;
 }
 
-export async function getUserByEmail(email: string): Promise<{ id: string; email: string; name?: string } | null> {
-  if (!pool) return null;
-  const { rows } = await pool.query<{ id: string; email: string; name?: string }>(
-    `SELECT id, email, raw_user_meta_data->>'name' as name
-     FROM auth.users
-     WHERE email = $1
-     LIMIT 1`,
-    [email.toLowerCase().trim()]
+export async function upsertMembershipForAdmin(
+  spaceId: string,
+  targetUserId: string,
+  role: "viewer" | "editor" | "admin",
+  adminUserId: string
+): Promise<MembershipMutationResult> {
+  return mutateMembership("upsert", spaceId, targetUserId, role, adminUserId);
+}
+
+export async function upsertMembershipByEmailForAdmin(
+  spaceId: string,
+  targetEmail: string,
+  role: "viewer" | "editor" | "admin",
+  adminUserId: string
+): Promise<MembershipMutationResult> {
+  if (!pool) throw new Error("Database not configured");
+  const { rows } = await pool.query<MembershipMutationRpcRow>(
+    `SELECT tet_kb.add_space_member_by_email($1, $2, $3, $4) AS result`,
+    [spaceId, targetEmail, role, adminUserId]
   );
-  return rows[0] ?? null;
+  if (!rows[0]?.result) throw new Error("Space email membership mutation returned no result");
+  return rows[0].result;
 }
 
-export async function searchUsers({
+export async function updateMembershipRoleForAdmin(
+  spaceId: string,
+  targetUserId: string,
+  role: "viewer" | "editor" | "admin",
+  adminUserId: string
+): Promise<MembershipMutationResult> {
+  return mutateMembership("update", spaceId, targetUserId, role, adminUserId);
+}
+
+export async function removeMembershipForAdmin(
+  spaceId: string,
+  targetUserId: string,
+  adminUserId: string
+): Promise<MembershipMutationStatus> {
+  const result = await mutateMembership("remove", spaceId, targetUserId, null, adminUserId);
+  return result.status;
+}
+
+async function mutateMembership(
+  action: "upsert" | "update" | "remove",
+  spaceId: string,
+  targetUserId: string,
+  role: "viewer" | "editor" | "admin" | null,
+  adminUserId: string
+): Promise<MembershipMutationResult> {
+  if (!pool) throw new Error("Database not configured");
+  const { rows } = await pool.query<MembershipMutationRpcRow>(
+    `SELECT tet_kb.mutate_space_membership($1, $2, $3, $4, $5) AS result`,
+    [action, spaceId, targetUserId, role, adminUserId]
+  );
+  if (!rows[0]?.result) throw new Error("Membership mutation returned no result");
+  return rows[0].result;
+}
+
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
+}
+
+export async function searchUsersForAdmin({
   query = "",
   limit = 20,
   organizationId,
   spaceId,
   pageId,
-}: SearchUsersOptions): Promise<Array<{ id: string; email: string; name?: string }>> {
-  if (!pool) return [];
+}: SearchUsersOptions, actorUserId: string): Promise<SearchUsersResult> {
+  if (!pool) throw new Error("Database not configured");
   const normalizedQuery = query.trim();
-  const searchTerm = `%${normalizedQuery}%`;
+  const searchTerm = `%${escapeLike(normalizedQuery)}%`;
 
-  const { rows } = await pool.query<{ id: string; email: string; name?: string }>(
-    `SELECT
-       u.id,
-       u.email,
-       u.raw_user_meta_data->>'name' as name
-     FROM auth.users u
-     WHERE
-       ($1::text = '' OR u.email ILIKE $2 OR COALESCE(u.raw_user_meta_data->>'name', '') ILIKE $2)
-       AND (
-         $3::uuid IS NULL OR NOT EXISTS (
-           SELECT 1
-           FROM organization_memberships om
-           WHERE om.organization_id = $3 AND om.user_id = u.id
-         )
-       )
-       AND (
-         $3::uuid IS NULL OR NOT EXISTS (
-           SELECT 1
-           FROM memberships m
-           JOIN spaces s ON s.id = m.space_id
-           WHERE s.organization_id = $3 AND m.user_id = u.id
-         )
-       )
-       AND (
-         $3::uuid IS NULL OR NOT EXISTS (
-           SELECT 1
-           FROM watchers w
-           JOIN pages p ON p.id = w.page_id
-           JOIN spaces s ON s.id = p.space_id
-           WHERE s.organization_id = $3 AND w.user_id = u.id
-         )
-       )
-       AND (
-         $4::uuid IS NULL OR NOT EXISTS (
-           SELECT 1
-           FROM memberships m
-           WHERE m.space_id = $4 AND m.user_id = u.id
-         )
-       )
-       AND (
-         $4::uuid IS NULL OR NOT EXISTS (
-           SELECT 1
-           FROM watchers w
-           JOIN pages p ON p.id = w.page_id
-           WHERE p.space_id = $4 AND w.user_id = u.id
-         )
-       )
-       AND (
-         $5::uuid IS NULL OR NOT EXISTS (
-           SELECT 1
-           FROM watchers w
-           WHERE w.page_id = $5 AND w.user_id = u.id
-         )
-       )
-       AND (
-         $5::uuid IS NULL OR NOT EXISTS (
-           SELECT 1
-           FROM pages p
-           JOIN memberships m ON m.space_id = p.space_id
-           WHERE p.id = $5 AND m.user_id = u.id
-         )
-       )
-     ORDER BY lower(u.email) ASC
-     LIMIT $6`,
-    [normalizedQuery, searchTerm, organizationId ?? null, spaceId ?? null, pageId ?? null, limit]
+  const { rows } = await pool.query<{ result: SearchUsersResult }>(
+    `SELECT tet_kb.search_users_for_admin($1, $2, $3, $4, $5, $6) AS result`,
+    [
+      searchTerm,
+      limit,
+      organizationId ?? null,
+      spaceId ?? null,
+      pageId ?? null,
+      actorUserId,
+    ]
   );
-  return rows;
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Admin user search returned no result");
+  return result;
 }

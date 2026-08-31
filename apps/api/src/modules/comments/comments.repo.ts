@@ -11,28 +11,77 @@ export interface CommentRow {
   updated_at: Date;
 }
 
-export async function listByPage(pageId: string): Promise<CommentRow[]> {
-  if (!pool) return [];
-  const { rows } = await pool.query<CommentRow>(
-    "SELECT * FROM comments WHERE page_id = $1 ORDER BY created_at ASC",
-    [pageId]
-  );
-  return rows;
+export interface ListedCommentRow extends CommentRow {
+  created_at_text: string;
 }
 
-export async function create(data: {
+export type CommentAccessStatus =
+  | "success"
+  | "page_not_found"
+  | "not_member"
+  | "requires_editor"
+  | "published_version_not_found"
+  | "invalid_version"
+  | "viewer_version_forbidden"
+  | "invalid_parent"
+  | "viewer_parent_forbidden"
+  | "invalid_content"
+  | "invalid_cursor";
+
+export interface ListCommentsResult {
+  status: CommentAccessStatus;
+  comments: ListedCommentRow[];
+  has_more: boolean;
+}
+
+export interface CreateCommentResult {
+  status: CommentAccessStatus;
+  comment: CommentRow | null;
+}
+
+export async function listByPageForMember(
+  pageId: string,
+  actorUserId: string,
+  options: {
+    cursor?: { createdAt: string; id: string };
+    limit: number;
+  }
+): Promise<ListCommentsResult> {
+  if (!pool) throw new Error("Database not configured");
+  const { rows } = await pool.query<{ result: ListCommentsResult }>(
+    `SELECT tet_kb.list_comments_for_member($1, $2, $3, $4, $5) AS result`,
+    [
+      pageId,
+      actorUserId,
+      options.limit,
+      options.cursor?.createdAt ?? null,
+      options.cursor?.id ?? null,
+    ]
+  );
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Comment list returned no result");
+  return result;
+}
+
+export async function createForMember(data: {
   pageId: string;
   versionId?: string | null;
   parentId?: string | null;
   content: string;
   authorId: string;
-}): Promise<CommentRow> {
+}): Promise<CreateCommentResult> {
   if (!pool) throw new Error("Database not configured");
-  const { rows } = await pool.query<CommentRow>(
-    `INSERT INTO comments (page_id, version_id, parent_id, content, author_id)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING *`,
-    [data.pageId, data.versionId ?? null, data.parentId ?? null, data.content, data.authorId]
+  const { rows } = await pool.query<{ result: CreateCommentResult }>(
+    `SELECT tet_kb.create_comment_for_member($1, $2, $3, $4, $5) AS result`,
+    [
+      data.pageId,
+      data.authorId,
+      data.versionId ?? null,
+      data.parentId ?? null,
+      data.content,
+    ]
   );
-  return rows[0]!;
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Comment creation returned no result");
+  return result;
 }

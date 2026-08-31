@@ -1,5 +1,4 @@
 import { pool } from "../../db/pool.js";
-import { ValidationError } from "../../utils/errors.js";
 
 export interface PageRow {
   id: string;
@@ -11,6 +10,7 @@ export interface PageRow {
   status: string;
   sort_order: number;
   current_version_id: string | null;
+  published_version_id: string | null;
   created_by: string;
   updated_by: string;
   created_at: Date;
@@ -29,6 +29,127 @@ export interface PageVersionRow {
   created_at: Date;
 }
 
+export type PublicTreePageRow = Pick<
+  PageRow,
+  "id" | "parent_id" | "slug" | "path" | "title" | "status" | "sort_order" | "updated_at"
+>;
+
+export type PageVersionSummaryRow = Pick<
+  PageVersionRow,
+  "id" | "page_id" | "summary" | "created_by" | "created_at"
+>;
+
+export type CreatePageStatus =
+  | "success"
+  | "not_member"
+  | "requires_editor"
+  | "invalid_parent"
+  | "path_conflict";
+
+export interface CreatePageResult {
+  status: CreatePageStatus;
+  page: (PageRow & { version?: PageVersionRow }) | null;
+}
+
+export type UpdatePageStatus =
+  | "success"
+  | "page_not_found"
+  | "not_member"
+  | "requires_editor"
+  | "invalid_title"
+  | "invalid_slug"
+  | "invalid_sort_order"
+  | "invalid_parent"
+  | "cyclic_parent"
+  | "path_conflict";
+
+export interface UpdatePageResult {
+  status: UpdatePageStatus;
+  page: PageRow | null;
+  affects_published?: boolean;
+  path_changed?: boolean;
+}
+
+export type ReorderPagesStatus =
+  | "success"
+  | "not_member"
+  | "requires_editor"
+  | "invalid_updates"
+  | "page_not_found"
+  | "invalid_parent"
+  | "cyclic_parent"
+  | "path_conflict";
+
+export interface ReorderPagesResult {
+  status: ReorderPagesStatus;
+  affected_count?: number;
+  path_changed_count?: number;
+  affects_published?: boolean;
+}
+
+export type SavePageVersionStatus =
+  | "success"
+  | "page_not_found"
+  | "not_member"
+  | "requires_editor"
+  | "invalid_content"
+  | "invalid_summary";
+
+export interface SavePageVersionResult {
+  status: SavePageVersionStatus;
+  version: PageVersionSummaryRow | null;
+  reused_autosave?: boolean;
+}
+
+export type PublishPageStatus =
+  | "success"
+  | "page_not_found"
+  | "source_not_found"
+  | "source_changed"
+  | "not_member"
+  | "requires_editor"
+  | "invalid_rendered_output";
+
+export interface PublishSourceResult {
+  status: PublishPageStatus;
+  source: { content_md: string | null; content_hash: string } | null;
+}
+
+export interface PublishPageResult {
+  status: PublishPageStatus;
+  page: PageRow | null;
+}
+
+export type PageTrashAction = "trash" | "restore" | "purge";
+
+export type PageTrashMutationStatus =
+  | "success"
+  | "page_not_found"
+  | "not_member"
+  | "requires_editor"
+  | "not_in_trash"
+  | "invalid_action";
+
+export interface PageTrashMutationResult {
+  status: PageTrashMutationStatus;
+  page: Pick<PageRow, "space_id" | "status" | "path"> | null;
+  affects_published?: boolean;
+  affected_count?: number;
+  queued_object_count?: number;
+}
+
+function pageColumns(version: "current" | "published" = "current"): string {
+  const title = version === "published" ? "p.published_title AS title" : "p.title";
+  const currentVersion = version === "published"
+    ? "p.published_version_id AS current_version_id"
+    : "p.current_version_id";
+  const updatedAt = version === "published" ? "p.published_updated_at AS updated_at" : "p.updated_at";
+  return `
+    p.id, p.space_id, p.parent_id, p.slug, p.path::text AS path,
+    ${title}, p.status, p.sort_order, ${currentVersion},
+    p.published_version_id, p.created_by, p.updated_by, p.created_at, ${updatedAt}`;
+}
+
 export async function getPagesTree(
   spaceId: string,
   options?: { publishedOnly?: boolean }
@@ -36,11 +157,29 @@ export async function getPagesTree(
   if (!pool) return [];
   const publishedOnly = options?.publishedOnly === true;
   const { rows } = await pool.query<PageRow>(
-    `SELECT p.* FROM pages p
+    `SELECT ${publishedOnly ? pageColumns("published") : "p.*"} FROM pages p
      LEFT JOIN trash t ON t.page_id = p.id
      WHERE p.space_id = $1
      AND t.page_id IS NULL
-     ${publishedOnly ? "AND p.status = 'published'" : ""}`,
+     ${publishedOnly ? "AND p.status = 'published' AND p.published_version_id IS NOT NULL" : ""}`,
+    [spaceId]
+  );
+  return rows;
+}
+
+export async function getPublishedPagesTree(spaceId: string): Promise<PublicTreePageRow[]> {
+  if (!pool) return [];
+  const { rows } = await pool.query<PublicTreePageRow>(
+    `SELECT
+       p.id, p.parent_id, p.slug, p.path::text AS path,
+       p.published_title AS title, p.status, p.sort_order,
+       p.published_updated_at AS updated_at
+     FROM pages p
+     LEFT JOIN trash t ON t.page_id = p.id
+     WHERE p.space_id = $1
+       AND p.status = 'published'
+       AND p.published_version_id IS NOT NULL
+       AND t.page_id IS NULL`,
     [spaceId]
   );
   return rows;
@@ -49,7 +188,7 @@ export async function getPagesTree(
 export async function getPublishedTreeEtag(spaceId: string): Promise<string> {
   if (!pool) return "0:0";
   const { rows } = await pool.query<{ count: string; max_updated: Date | null }>(
-    `SELECT COUNT(*)::text as count, MAX(p.updated_at) as max_updated
+    `SELECT COUNT(*)::text as count, MAX(p.published_updated_at) as max_updated
      FROM pages p
      LEFT JOIN trash t ON t.page_id = p.id
      WHERE p.space_id = $1
@@ -106,11 +245,19 @@ function mapPageWithVersion(row: PageWithVersionRow): PageRow & { version?: Page
   return { ...page, version };
 }
 
-export async function getPageById(id: string, includeTrashed = false): Promise<(PageRow & { version?: PageVersionRow }) | null> {
+export async function getPageById(
+  id: string,
+  includeTrashed = false,
+  version: "current" | "published" = "current"
+): Promise<(PageRow & { version?: PageVersionRow }) | null> {
   if (!pool) return null;
+  const versionColumn = version === "published" ? "published_version_id" : "current_version_id";
+  const publishedOnly = version === "published"
+    ? "AND p.status = 'published' AND p.published_version_id IS NOT NULL"
+    : "";
   const { rows } = await pool.query<PageWithVersionRow>(
-    `SELECT 
-       p.*,
+    `SELECT
+       ${pageColumns(version)},
        pv.id as version_id,
        pv.page_id as version_page_id,
        pv.content_md,
@@ -121,9 +268,10 @@ export async function getPageById(id: string, includeTrashed = false): Promise<(
        pv.created_by as version_created_by,
        pv.created_at as version_created_at
      FROM pages p
-     LEFT JOIN page_versions pv ON pv.id = p.current_version_id
+     LEFT JOIN page_versions pv ON pv.id = p.${versionColumn}
      LEFT JOIN trash t ON t.page_id = p.id
      WHERE p.id = $1
+     ${publishedOnly}
      ${includeTrashed ? "" : "AND t.page_id IS NULL"}`,
     [id]
   );
@@ -132,14 +280,30 @@ export async function getPageById(id: string, includeTrashed = false): Promise<(
   return mapPageWithVersion(row);
 }
 
+export async function getPageMetadataById(
+  id: string,
+  includeTrashed = false
+): Promise<PageRow | null> {
+  if (!pool) return null;
+  const { rows } = await pool.query<PageRow>(
+    `SELECT ${pageColumns()}
+     FROM pages p
+     LEFT JOIN trash t ON t.page_id = p.id
+     WHERE p.id = $1
+     ${includeTrashed ? "" : "AND t.page_id IS NULL"}`,
+    [id]
+  );
+  return rows[0] ?? null;
+}
+
 export async function getPageByPath(spaceId: string, path: string): Promise<(PageRow & { version?: PageVersionRow }) | null> {
   if (!pool) return null;
   const { rows } = await pool.query<PageWithVersionRow>(
-    `SELECT 
-       p.*,
+    `SELECT
+       ${pageColumns("published")},
        pv.id as version_id,
        pv.page_id as version_page_id,
-       pv.content_md,
+       CASE WHEN pv.rendered_html IS NULL THEN pv.content_md ELSE NULL END AS content_md,
        pv.content_json,
        pv.summary,
        pv.rendered_html,
@@ -147,9 +311,10 @@ export async function getPageByPath(spaceId: string, path: string): Promise<(Pag
        pv.created_by as version_created_by,
        pv.created_at as version_created_at
      FROM pages p
-     LEFT JOIN page_versions pv ON pv.id = p.current_version_id
+     LEFT JOIN page_versions pv ON pv.id = p.published_version_id
      LEFT JOIN trash t ON t.page_id = p.id
      WHERE p.space_id = $1 AND p.path = $2 AND p.status = 'published'
+     AND p.published_version_id IS NOT NULL
      AND t.page_id IS NULL`,
     [spaceId, path]
   );
@@ -158,250 +323,103 @@ export async function getPageByPath(spaceId: string, path: string): Promise<(Pag
   return mapPageWithVersion(row);
 }
 
-export async function createPage(data: {
+export async function createPageForEditor(data: {
   spaceId: string;
   parentId: string | null;
   title: string;
   slug: string;
-  createdBy: string;
-}): Promise<PageRow> {
+  templateId: string | null;
+  actorUserId: string;
+}): Promise<CreatePageResult> {
   if (!pool) throw new Error("Database not configured");
-  const { rows } = await pool.query<PageRow>(
-    `WITH parent AS (
-       SELECT path::text AS path_text FROM pages WHERE id = $2
-     ),
-     max_sort AS (
-       SELECT COALESCE(MAX(sort_order), -1) + 1 AS sort_order
-       FROM pages
-       WHERE space_id = $1 AND (parent_id IS NOT DISTINCT FROM $2)
-     )
-     INSERT INTO pages (space_id, parent_id, slug, path, title, status, sort_order, created_by, updated_by)
-     SELECT
-       $1,
-       $2,
-       $3,
-       CASE
-         WHEN $2 IS NULL THEN $3
-         WHEN (SELECT path_text FROM parent) IS NULL OR (SELECT path_text FROM parent) = '' THEN $3
-         ELSE (SELECT path_text FROM parent) || '.' || $3
-       END::ltree,
-       $4,
-       'draft',
-       (SELECT sort_order FROM max_sort),
-       $5,
-       $5
-     RETURNING *`,
-    [data.spaceId, data.parentId, data.slug, data.title, data.createdBy]
+  const { rows } = await pool.query<{ result: CreatePageResult }>(
+    `SELECT tet_kb.create_page_for_editor($1, $2, $3, $4, $5, $6) AS result`,
+    [
+      data.spaceId,
+      data.parentId,
+      data.title,
+      data.slug,
+      data.templateId,
+      data.actorUserId,
+    ]
   );
-  return rows[0]!;
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Page creation returned no result");
+  return result;
 }
 
-export async function updatePage(
+export async function updatePageForEditor(
   id: string,
-  data: { title?: string; slug?: string; parent_id?: string | null; status?: string; sort_order?: number }
-): Promise<PageRow | null> {
-  if (!pool) return null;
-
-  const updates: string[] = [];
-  const values: unknown[] = [];
-  let i = 1;
-
-  if (data.title !== undefined) {
-    updates.push(`title = $${i++}`);
-    values.push(data.title);
-  }
-  if (data.slug !== undefined) {
-    updates.push(`slug = $${i++}`);
-    values.push(data.slug);
-  }
-  if (data.parent_id !== undefined) {
-    updates.push(`parent_id = $${i++}`);
-    values.push(data.parent_id);
-  }
-  if (data.status !== undefined) {
-    updates.push(`status = $${i++}`);
-    values.push(data.status);
-  }
-  if (data.sort_order !== undefined) {
-    updates.push(`sort_order = $${i++}`);
-    values.push(data.sort_order);
-  }
-
-  if (updates.length === 0) return getPageById(id) as Promise<PageRow | null>;
-
-  updates.push(`updated_at = NOW()`);
-  values.push(id);
-
-  const { rows } = await pool.query<PageRow>(
-    `UPDATE pages SET ${updates.join(", ")} WHERE id = $${i} RETURNING *`,
-    values
+  actorUserId: string,
+  data: { title?: string; slug?: string; parent_id?: string | null; sort_order?: number }
+): Promise<UpdatePageResult> {
+  if (!pool) throw new Error("Database not configured");
+  const titleSet = Object.prototype.hasOwnProperty.call(data, "title");
+  const slugSet = Object.prototype.hasOwnProperty.call(data, "slug");
+  const parentSet = Object.prototype.hasOwnProperty.call(data, "parent_id");
+  const sortSet = Object.prototype.hasOwnProperty.call(data, "sort_order");
+  const { rows } = await pool.query<{ result: UpdatePageResult }>(
+    `SELECT tet_kb.update_page_for_editor(
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+    ) AS result`,
+    [
+      id,
+      actorUserId,
+      data.title ?? null,
+      titleSet,
+      data.slug ?? null,
+      slugSet,
+      data.parent_id ?? null,
+      parentSet,
+      data.sort_order ?? null,
+      sortSet,
+    ]
   );
-  return rows[0] ?? null;
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Page update returned no result");
+  return result;
 }
 
-export async function reorderPages(
+export async function reorderPagesForEditor(
   spaceId: string,
+  actorUserId: string,
   updates: Array<{ id: string; sort_order: number; parent_id?: string | null }>
-): Promise<void> {
-  if (!pool || updates.length === 0) return;
-
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
-
-    const updatesWithParent = updates.filter((update) =>
-      Object.prototype.hasOwnProperty.call(update, "parent_id")
-    );
-    const allIds = new Set<string>();
-    for (const update of updates) allIds.add(update.id);
-    for (const update of updatesWithParent) {
-      if (update.parent_id) allIds.add(update.parent_id);
-    }
-
-    const ids = Array.from(allIds);
-    const pageRows = ids.length
-      ? await client.query<{ id: string; parent_id: string | null; path: string; slug: string }>(
-          `SELECT id, parent_id, path, slug FROM pages WHERE id = ANY($1::uuid[])`,
-          [ids]
-        )
-      : { rows: [] };
-
-    const pagesById = new Map<string, { id: string; parent_id: string | null; path: string; slug: string }>();
-    for (const row of pageRows.rows) {
-      pagesById.set(row.id, row);
-    }
-
-    for (const update of updates) {
-      if (!pagesById.has(update.id)) {
-        throw new ValidationError("Page not found");
-      }
-    }
-
-    const changedParents = updatesWithParent
-      .map((update) => {
-        const current = pagesById.get(update.id);
-        return current
-          ? {
-              update,
-              current,
-              currentParent: current.parent_id ?? null,
-              nextParent: update.parent_id ?? null,
-            }
-          : null;
-      })
-      .filter((item): item is NonNullable<typeof item> => !!item)
-      .filter((item) => item.currentParent !== item.nextParent);
-
-    const isDescendantPath = (path: string, ancestor: string) =>
-      path === ancestor || path.startsWith(`${ancestor}.`);
-
-    const pathDepth = (path: string) => path.split(".").filter(Boolean).length;
-
-    const rootsToMove = changedParents.filter((item) =>
-      !changedParents.some(
-        (other) => other.update.id !== item.update.id && isDescendantPath(item.current.path, other.current.path)
-      )
-    );
-
-    rootsToMove.sort((a, b) => pathDepth(a.current.path) - pathDepth(b.current.path));
-
-    const newPathById = new Map<string, string>();
-
-    for (const { update, current } of rootsToMove) {
-      const nextParentId = update.parent_id ?? null;
-      if (nextParentId === current.id) {
-        throw new ValidationError("Không thể đặt trang làm cha của chính nó");
-      }
-
-      let parentPath: string | null = null;
-      if (nextParentId) {
-        parentPath = newPathById.get(nextParentId) ?? pagesById.get(nextParentId)?.path ?? null;
-        if (!parentPath) {
-          throw new ValidationError("Parent page not found");
-        }
-        if (isDescendantPath(parentPath, current.path)) {
-          throw new ValidationError("Không thể kéo trang vào chính nó hoặc trang con");
-        }
-      }
-
-      const newPath = parentPath ? `${parentPath}.${current.slug}` : current.slug;
-
-      await client.query(
-        `UPDATE pages
-         SET path = CASE
-           WHEN id = $1 THEN $2::ltree
-           ELSE $2::ltree || subpath(path, nlevel($3::ltree))
-         END,
-         updated_at = NOW()
-         WHERE space_id = $4 AND path <@ $3::ltree`,
-        [current.id, newPath, current.path, spaceId]
-      );
-
-      newPathById.set(current.id, newPath);
-    }
-
-    if (updates.length > 0) {
-      const values: unknown[] = [];
-      const rowsSql = updates
-        .map((update, index) => {
-          const parentIdProvided = Object.prototype.hasOwnProperty.call(update, "parent_id");
-          const base = index * 4;
-          values.push(
-            update.id,
-            update.sort_order,
-            parentIdProvided ? update.parent_id ?? null : null,
-            parentIdProvided
-          );
-          return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
-        })
-        .join(", ");
-
-      values.push(spaceId);
-      const spaceParam = values.length;
-
-      await client.query(
-        `UPDATE pages AS p
-         SET sort_order = u.sort_order::int,
-             parent_id = CASE WHEN u.parent_id_set::boolean THEN u.parent_id::uuid ELSE p.parent_id END,
-             updated_at = NOW()
-         FROM (VALUES ${rowsSql}) AS u(id, sort_order, parent_id, parent_id_set)
-         WHERE p.id = u.id::uuid AND p.space_id = $${spaceParam}`,
-        values
-      );
-    }
-
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+): Promise<ReorderPagesResult> {
+  if (!pool) throw new Error("Database not configured");
+  const { rows } = await pool.query<{ result: ReorderPagesResult }>(
+    `SELECT tet_kb.reorder_pages_for_editor($1, $2, $3::jsonb) AS result`,
+    [spaceId, actorUserId, JSON.stringify(updates)]
+  );
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Page reorder returned no result");
+  return result;
 }
 
-export async function createVersion(data: {
+export async function savePageVersionForEditor(data: {
   pageId: string;
   contentMd?: string | null;
   contentJson?: Record<string, unknown> | null;
   summary?: string | null;
-  createdBy: string;
-}): Promise<PageVersionRow> {
+  draftUpdate: boolean;
+  actorUserId: string;
+}): Promise<SavePageVersionResult> {
   if (!pool) throw new Error("Database not configured");
-  const { rows } = await pool.query<PageVersionRow>(
-    `INSERT INTO page_versions (page_id, content_md, content_json, summary, created_by)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING *`,
-    [data.pageId, data.contentMd ?? null, data.contentJson ? JSON.stringify(data.contentJson) : null, data.summary ?? null, data.createdBy]
+  const { rows } = await pool.query<{ result: SavePageVersionResult }>(
+    `SELECT tet_kb.save_page_version_for_editor(
+      $1, $2, $3, $4::jsonb, $5, $6
+    ) AS result`,
+    [
+      data.pageId,
+      data.actorUserId,
+      data.contentMd ?? null,
+      data.contentJson ? JSON.stringify(data.contentJson) : null,
+      data.summary ?? null,
+      data.draftUpdate,
+    ]
   );
-  return rows[0]!;
-}
-
-export async function setCurrentVersion(pageId: string, versionId: string): Promise<void> {
-  if (!pool) return;
-  await pool.query(
-    "UPDATE pages SET current_version_id = $1, updated_at = NOW() WHERE id = $2",
-    [versionId, pageId]
-  );
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Page version save returned no result");
+  return result;
 }
 
 export async function getVersionById(versionId: string): Promise<PageVersionRow | null> {
@@ -413,85 +431,74 @@ export async function getVersionById(versionId: string): Promise<PageVersionRow 
   return rows[0] ?? null;
 }
 
-export async function updateVersionRendered(
+export async function getPublishSourceForEditor(
+  pageId: string,
   versionId: string,
-  renderedHtml: string,
-  tocJson: { id: string; text: string; level: number }[]
-): Promise<void> {
-  if (!pool) return;
-  await pool.query(
-    "UPDATE page_versions SET rendered_html = $1, toc_json = $2 WHERE id = $3",
-    [renderedHtml, JSON.stringify(tocJson), versionId]
+  actorUserId: string
+): Promise<PublishSourceResult> {
+  if (!pool) throw new Error("Database not configured");
+  const { rows } = await pool.query<{ result: PublishSourceResult }>(
+    `SELECT tet_kb.get_publish_source_for_editor($1, $2, $3) AS result`,
+    [pageId, versionId, actorUserId]
   );
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Publish source returned no result");
+  return result;
 }
 
-export async function listVersions(pageId: string): Promise<PageVersionRow[]> {
+export async function publishPageVersionForEditor(data: {
+  pageId: string;
+  sourceVersionId: string;
+  sourceContentHash: string;
+  renderedHtml: string;
+  tocJson: { id: string; text: string; level: number }[];
+  actorUserId: string;
+}): Promise<PublishPageResult> {
+  if (!pool) throw new Error("Database not configured");
+  const { rows } = await pool.query<{ result: PublishPageResult }>(
+    `SELECT tet_kb.publish_page_version_for_editor(
+      $1, $2, $3, $4, $5::jsonb, $6
+    ) AS result`,
+    [
+      data.pageId,
+      data.sourceVersionId,
+      data.sourceContentHash,
+      data.renderedHtml,
+      JSON.stringify(data.tocJson),
+      data.actorUserId,
+    ]
+  );
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Page publish returned no result");
+  return result;
+}
+
+const VERSION_HISTORY_LIMIT = 100;
+
+export async function listVersions(pageId: string): Promise<PageVersionSummaryRow[]> {
   if (!pool) return [];
-  const { rows } = await pool.query<PageVersionRow>(
-    "SELECT * FROM page_versions WHERE page_id = $1 ORDER BY created_at DESC",
-    [pageId]
+  const { rows } = await pool.query<PageVersionSummaryRow>(
+    `SELECT id, page_id, summary, created_by, created_at
+     FROM page_versions
+     WHERE page_id = $1
+     ORDER BY created_at DESC
+     LIMIT $2`,
+    [pageId, VERSION_HISTORY_LIMIT]
   );
   return rows;
 }
 
-export async function softDeletePage(pageId: string, userId: string): Promise<void> {
-  if (!pool) return;
-  await pool.query("INSERT INTO trash (page_id, deleted_by) VALUES ($1, $2) ON CONFLICT (page_id) DO UPDATE SET deleted_at = NOW(), deleted_by = $2", [pageId, userId]);
-}
-
-export async function softDeleteSubtree(pageId: string, userId: string): Promise<number> {
-  if (!pool) return 0;
-  const { rowCount } = await pool.query(
-    `WITH target AS (
-       SELECT id, space_id, path FROM pages WHERE id = $1
-     ),
-     subtree AS (
-       SELECT p.id
-       FROM pages p
-       JOIN target t ON p.space_id = t.space_id
-       WHERE p.path <@ t.path
-     )
-     INSERT INTO trash (page_id, deleted_by)
-     SELECT id, $2 FROM subtree
-     ON CONFLICT (page_id)
-     DO UPDATE SET deleted_at = NOW(), deleted_by = $2`,
-    [pageId, userId]
+export async function mutatePageTrash(
+  action: PageTrashAction,
+  pageId: string,
+  actorUserId: string
+): Promise<PageTrashMutationResult> {
+  if (!pool) throw new Error("Database not configured");
+  const { rows } = await pool.query<{ result: PageTrashMutationResult }>(
+    `SELECT tet_kb.mutate_page_trash($1, $2, $3) AS result`,
+    [action, pageId, actorUserId]
   );
-  return rowCount ?? 0;
-}
-
-export async function restoreFromTrash(pageId: string): Promise<void> {
-  if (!pool) return;
-  await pool.query("DELETE FROM trash WHERE page_id = $1", [pageId]);
-}
-
-export async function restoreSubtree(pageId: string): Promise<number> {
-  if (!pool) return 0;
-  const { rowCount } = await pool.query(
-    `WITH target AS (
-       SELECT id, space_id, path FROM pages WHERE id = $1
-     )
-     DELETE FROM trash t
-     USING pages p, target ta
-     WHERE t.page_id = p.id
-       AND p.space_id = ta.space_id
-       AND p.path <@ ta.path`,
-    [pageId]
-  );
-  return rowCount ?? 0;
-}
-
-export async function deletePageSubtree(pageId: string): Promise<number> {
-  if (!pool) return 0;
-  const { rowCount } = await pool.query(
-    `WITH target AS (
-       SELECT id, space_id, path FROM pages WHERE id = $1
-     )
-     DELETE FROM pages p
-     USING target t
-     WHERE p.space_id = t.space_id
-       AND p.path <@ t.path`,
-    [pageId]
-  );
-  return rowCount ?? 0;
+  const result = rows[0]?.result;
+  if (!result) throw new Error("Page trash mutation returned no result");
+  return result;
 }

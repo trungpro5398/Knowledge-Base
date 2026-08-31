@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LogIn } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
-import { createClient } from "@/lib/auth/supabase-browser";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
 export function LoginForm() {
@@ -21,27 +20,9 @@ export function LoginForm() {
     }
   }, [t]);
 
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleLogin = () => {
     setLoading(true);
     setError("");
-
-    const supabase = createClient();
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/callback`,
-        queryParams: {
-          hd: "tet-edu.com",
-          prompt: "select_account",
-        },
-      },
-    });
-
-    if (oauthError) {
-      setError(oauthError.message || t("auth.loginFailed"));
-      setLoading(false);
-    }
   };
 
   return (
@@ -64,7 +45,8 @@ export function LoginForm() {
               <p className="text-sm text-muted-foreground">{t("auth.loginSubtitle")}</p>
             </div>
           </div>
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form action="/api/auth/login" method="get" onSubmit={handleLogin} className="space-y-5">
+            <input type="hidden" name="next" value="/admin" />
             <p className="text-sm text-muted-foreground">{t("auth.googleOnly")}</p>
             {error && (
               <p id="login-error" className="text-xs text-destructive" role="status" aria-live="polite">

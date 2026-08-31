@@ -1,14 +1,22 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { useState, useCallback, useDeferredValue, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import { Undo2, Redo2 } from "lucide-react";
-import { createClient } from "@/lib/auth/supabase-browser";
 import { api } from "@/lib/api/client";
 import { MarkdownToolbar } from "./markdown-toolbar";
 import { HistoryStack } from "@/lib/editor/history-stack";
+import { publicAttachmentUrl } from "@/lib/attachments/public-url";
+import { validateAttachmentFile } from "@/lib/attachments/validation";
+
+const MarkdownPreview = dynamic(
+  () => import("./MarkdownPreview").then((module) => module.MarkdownPreview),
+  {
+    ssr: false,
+    loading: () => <div className="animate-pulse text-muted-foreground">Loading preview…</div>,
+  }
+);
 
 interface MarkdownEditorProps {
   value: string;
@@ -26,17 +34,38 @@ export function MarkdownEditor({
   pageId,
 }: MarkdownEditorProps) {
   const [local, setLocal] = useState(value);
+  const deferredLocal = useDeferredValue(local);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const cursorTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const historyRef = useRef(new HistoryStack(50));
+  const [history] = useState(() => {
+    const stack = new HistoryStack(50);
+    stack.initialize(value);
+    return stack;
+  });
+  const lastEmittedValueRef = useRef(value);
+  const sourcePageIdRef = useRef(pageId);
   const lastPushRef = useRef<number>(0);
+  const uploadInFlightRef = useRef(false);
 
   useEffect(() => {
+    // Parent echoes are caused by this editor's own onChange call. Resetting
+    // history for those values discarded undo state and added work per keypress.
+    if (sourcePageIdRef.current === pageId && value === lastEmittedValueRef.current) return;
+    sourcePageIdRef.current = pageId;
     setLocal(value);
-    historyRef.current.initialize(value);
-  }, [value]);
+    history.initialize(value);
+    lastEmittedValueRef.current = value;
+    lastPushRef.current = 0;
+  }, [history, pageId, value]);
+
+  useEffect(() => () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (cursorTimerRef.current) clearTimeout(cursorTimerRef.current);
+  }, []);
 
   const triggerSave = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -45,35 +74,47 @@ export function MarkdownEditor({
     }, debounceMs);
   }, [onDebouncedSave, debounceMs]);
 
+  const updateContent = useCallback((nextValue: string) => {
+    setLocal(nextValue);
+    lastEmittedValueRef.current = nextValue;
+    onChange(nextValue);
+  }, [onChange]);
+
+  const focusCursorAt = useCallback((position: number) => {
+    if (cursorTimerRef.current) clearTimeout(cursorTimerRef.current);
+    cursorTimerRef.current = setTimeout(() => {
+      textareaRef.current?.focus();
+      textareaRef.current?.setSelectionRange(position, position);
+      cursorTimerRef.current = undefined;
+    }, 0);
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const v = e.target.value;
-    setLocal(v);
-    onChange(v);
+    updateContent(v);
     triggerSave();
 
     // Push to history stack (debounced - every 2 seconds)
     const now = Date.now();
     if (now - lastPushRef.current > 2000) {
-      historyRef.current.push(v);
+      history.push(v);
       lastPushRef.current = now;
     }
   };
 
   const handleUndo = useCallback(() => {
-    const prev = historyRef.current.undo();
+    const prev = history.undo();
     if (prev !== null) {
-      setLocal(prev);
-      onChange(prev);
+      updateContent(prev);
     }
-  }, [onChange]);
+  }, [history, updateContent]);
 
   const handleRedo = useCallback(() => {
-    const next = historyRef.current.redo();
+    const next = history.redo();
     if (next !== null) {
-      setLocal(next);
-      onChange(next);
+      updateContent(next);
     }
-  }, [onChange]);
+  }, [history, updateContent]);
 
   const insertAtCursor = useCallback((text: string) => {
     if (!textareaRef.current) return;
@@ -81,16 +122,12 @@ export function MarkdownEditor({
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const newValue = local.substring(0, start) + text + local.substring(end);
-    setLocal(newValue);
-    onChange(newValue);
+    updateContent(newValue);
     triggerSave();
     
     // Set cursor position after inserted text
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + text.length, start + text.length);
-    }, 0);
-  }, [local, onChange, triggerSave]);
+    focusCursorAt(start + text.length);
+  }, [focusCursorAt, local, triggerSave, updateContent]);
 
   const insertWithWrap = useCallback((before: string, after: string = "") => {
     if (!textareaRef.current) return;
@@ -100,26 +137,35 @@ export function MarkdownEditor({
     const selectedText = local.substring(start, end);
     const replacement = before + selectedText + after;
     const newValue = local.substring(0, start) + replacement + local.substring(end);
-    setLocal(newValue);
-    onChange(newValue);
+    updateContent(newValue);
     triggerSave();
     
     // Set cursor position
     const newCursorPos = selectedText ? start + replacement.length : start + before.length;
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
-  }, [local, onChange, triggerSave]);
+    focusCursorAt(newCursorPos);
+  }, [focusCursorAt, local, triggerSave, updateContent]);
 
   const uploadFile = useCallback(async (file: File) => {
     if (!pageId) {
       toast.error("Cannot upload: no pageId");
       return;
     }
-    
+    const validationError = validateAttachmentFile(file);
+    if (validationError) {
+      toast.error("Upload failed", { description: validationError });
+      return;
+    }
+    if (uploadInFlightRef.current) {
+      toast.info("An upload is already in progress");
+      return;
+    }
+
+    uploadInFlightRef.current = true;
     setUploading(true);
     try {
+      const supabasePromise = import("@/lib/auth/supabase-browser").then(({ createClient }) =>
+        createClient()
+      );
       // Get upload path from API
       const pathRes = await api.post<{ data: { path: string } }>(
         `/api/pages/${pageId}/attachments/upload-path`,
@@ -132,7 +178,7 @@ export function MarkdownEditor({
       const path = pathRes.data.path;
 
       // Upload directly to Supabase Storage
-      const supabase = createClient();
+      const supabase = await supabasePromise;
       const { error: uploadError } = await supabase.storage
         .from("attachments")
         .upload(path, file, { contentType: file.type, upsert: false });
@@ -146,16 +192,23 @@ export function MarkdownEditor({
         size_bytes: file.size,
       });
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // The bucket stays private. Store an access-checked public proxy URL,
+      // while using a temporary signed URL for the draft preview.
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from("attachments")
-        .getPublicUrl(path);
+        .createSignedUrl(path, 3600);
+      const attachmentUrl = publicAttachmentUrl(path);
+      if (signedUrlData?.signedUrl && !signedUrlError) {
+        setPreviewUrls((current) => ({ ...current, [attachmentUrl]: signedUrlData.signedUrl }));
+      } else {
+        console.warn("Attachment uploaded but its temporary preview URL is unavailable", signedUrlError);
+      }
 
       // Insert markdown
       if (file.type.startsWith("image/")) {
-        insertAtCursor(`\n![${file.name}](${publicUrl})\n`);
+        insertAtCursor(`\n![${file.name}](${attachmentUrl})\n`);
       } else {
-        insertAtCursor(`\n[${file.name}](${publicUrl})\n`);
+        insertAtCursor(`\n[${file.name}](${attachmentUrl})\n`);
       }
       
       toast.success("File uploaded");
@@ -163,6 +216,7 @@ export function MarkdownEditor({
       console.error(err);
       toast.error("Upload failed", { description: err instanceof Error ? err.message : "Unknown error" });
     } finally {
+      uploadInFlightRef.current = false;
       setUploading(false);
     }
   }, [pageId, insertAtCursor]);
@@ -243,7 +297,7 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={handleUndo}
-            disabled={!historyRef.current.canUndo()}
+            disabled={!history.canUndo()}
             className="p-2 rounded-md hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             title="Undo (⌘Z)"
             aria-label="Undo"
@@ -253,7 +307,7 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={handleRedo}
-            disabled={!historyRef.current.canRedo()}
+            disabled={!history.canRedo()}
             className="p-2 rounded-md hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             title="Redo (⌘⇧Z)"
             aria-label="Redo"
@@ -291,7 +345,7 @@ export function MarkdownEditor({
           spellCheck={false}
         />
         <div className="p-4 border rounded-lg overflow-auto prose-kb text-sm max-w-none">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{local}</ReactMarkdown>
+          <MarkdownPreview content={deferredLocal} previewUrls={previewUrls} />
         </div>
       </div>
     </div>

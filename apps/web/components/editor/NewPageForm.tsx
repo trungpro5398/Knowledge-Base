@@ -31,7 +31,15 @@ export function NewPageForm({ spaceId, parentId }: NewPageFormProps) {
   const slugPreview = slug || derivedSlug || "duong-dan-trang";
 
   useEffect(() => {
-    getTemplates(spaceId).then(setTemplates).catch(() => setTemplates([]));
+    const controller = new AbortController();
+    getTemplates(spaceId, controller.signal)
+      .then((nextTemplates) => {
+        if (!controller.signal.aborted) setTemplates(nextTemplates);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setTemplates([]);
+      });
+    return () => controller.abort();
   }, [spaceId]);
 
   const handleTitleChange = (newTitle: string) => {

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "./supabase-server";
+import { safeRedirectPath } from "./redirect";
 
 export async function signInWithPassword(formData: {
   email: string;
@@ -19,7 +20,7 @@ export async function signInWithPassword(formData: {
   if (error) {
     return { error: error.message };
   }
-  redirect(formData.redirectTo ?? "/admin");
+  redirect(safeRedirectPath(formData.redirectTo));
 }
 
 export async function signOut() {

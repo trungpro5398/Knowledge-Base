@@ -7,11 +7,15 @@ declare module "fastify" {
   interface FastifyRequest {
     user?: { id: string; email?: string };
     pageMeta?: { spaceId: string; path: string; status: string };
+    spaceRole?: "viewer" | "editor" | "admin";
   }
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     requireSpaceRole: (role: "viewer" | "editor" | "admin") => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
-    requirePageRole: (role: "viewer" | "editor" | "admin") => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requirePageRole: (
+      role: "viewer" | "editor" | "admin",
+      options?: { includeTrashed?: boolean }
+    ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }
 

@@ -1,27 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getServerAccessToken } from "@/lib/auth/supabase-server";
-import { serverApiGet } from "@/lib/api/server";
-import type { ApiResponse, PageNode } from "@/lib/api/types";
+import { getSpaceBootstrap } from "@/lib/api/space-bootstrap";
 
 async function getFirstPageId(spaceId: string, token: string): Promise<string | null> {
-  try {
-    const res = await serverApiGet<ApiResponse<PageNode[]>>(
-      `/api/spaces/${spaceId}/pages/tree`,
-      token
-    );
-    const tree = res.data;
-    if (tree.length === 0) return null;
-    // Get first page (depth-first)
-    const getFirst = (nodes: PageNode[]): PageNode | null => {
-      if (nodes.length === 0) return null;
-      return nodes[0]!;
-    };
-    const first = getFirst(tree);
-    return first?.id ?? null;
-  } catch {
-    return null;
-  }
+  const bootstrap = await getSpaceBootstrap(spaceId, token);
+  return bootstrap?.tree[0]?.id ?? null;
 }
 
 export default async function SpacePage({
@@ -42,7 +26,7 @@ export default async function SpacePage({
   return (
     <div className="flex items-center justify-center h-full p-8">
       <div className="text-center max-w-md">
-          <h2 className="text-xl font-semibold mb-2">Chưa có tài liệu nào</h2>
+        <h2 className="text-xl font-semibold mb-2">Chưa có tài liệu nào</h2>
         <p className="text-muted-foreground mb-4">
           Tạo tài liệu đầu tiên để bắt đầu xây nội dung cho kho này.
         </p>

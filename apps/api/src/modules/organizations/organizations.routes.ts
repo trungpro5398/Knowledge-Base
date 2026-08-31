@@ -13,11 +13,30 @@ export async function organizationsRoutes(fastify: FastifyInstance, auth: AuthHa
     description: z.string().trim().max(500).optional(),
   });
 
+  fastify.get("/admin/dashboard", { preHandler: [authenticate] }, async (request) => {
+    const data = await organizationsService.getAdminDashboard(request.user!.id);
+    return { data };
+  });
+
   // List user's organizations
   fastify.get("/organizations", { preHandler: [authenticate] }, async (request) => {
     const userId = request.user!.id;
     const organizations = await organizationsService.listOrganizations(userId);
     return { data: organizations };
+  });
+
+  fastify.get("/organizations/:id/bootstrap", { preHandler: [authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    if (!z.string().uuid().safeParse(id).success) {
+      return reply.status(400).send({ status: "error", message: "Invalid organization ID" });
+    }
+    const includeMembers = (request.query as { members?: string }).members === "1";
+    const data = await organizationsService.getOrganizationBootstrap(
+      id,
+      request.user!.id,
+      includeMembers
+    );
+    return { data };
   });
 
   // Get organization by ID
@@ -55,6 +74,22 @@ export async function organizationsRoutes(fastify: FastifyInstance, auth: AuthHa
     return reply.status(201).send({ data: organization });
   });
 
+  fastify.post("/organizations/with-space", { preHandler: [authenticate] }, async (request, reply) => {
+    const parsed = createOrganizationSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        status: "error",
+        message: parsed.error.errors[0]?.message ?? "Thông tin kho tài liệu chưa hợp lệ",
+        errors: parsed.error.errors,
+      });
+    }
+    const data = await organizationsService.createOrganizationWithInitialSpace(
+      parsed.data,
+      request.user!.id
+    );
+    return reply.status(201).send({ data });
+  });
+
   // Delete organization
   fastify.delete("/organizations/:id", { preHandler: [authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
@@ -66,20 +101,30 @@ export async function organizationsRoutes(fastify: FastifyInstance, auth: AuthHa
   // Organization memberships routes
   const addOrgMemberSchema = z.object({
     userId: z.string().uuid().optional(),
-    email: z.string().email().optional(),
+    email: z.string().trim().email().max(320).optional(),
     role: z.enum(["member", "admin", "owner"]),
+  }).refine((value) => Boolean(value.userId) !== Boolean(value.email), {
+    message: "Provide exactly one of userId or email",
   });
 
   const updateOrgRoleSchema = z.object({
     role: z.enum(["member", "admin", "owner"]),
+  });
+  const organizationParamsSchema = z.object({ organizationId: z.string().uuid() });
+  const organizationMemberParamsSchema = organizationParamsSchema.extend({
+    userId: z.string().uuid(),
   });
 
   // List organization members
   fastify.get(
     "/organizations/:organizationId/members",
     { preHandler: [authenticate] },
-    async (request) => {
-      const { organizationId } = request.params as { organizationId: string };
+    async (request, reply) => {
+      const parsedParams = organizationParamsSchema.safeParse(request.params);
+      if (!parsedParams.success) {
+        return reply.status(400).send({ status: "error", message: "Invalid organization ID" });
+      }
+      const { organizationId } = parsedParams.data;
       const userId = request.user!.id;
       const members = await orgMembershipsService.listOrganizationMembers(organizationId, userId);
       return { data: members };
@@ -91,7 +136,11 @@ export async function organizationsRoutes(fastify: FastifyInstance, auth: AuthHa
     "/organizations/:organizationId/members",
     { preHandler: [authenticate] },
     async (request, reply) => {
-      const { organizationId } = request.params as { organizationId: string };
+      const parsedParams = organizationParamsSchema.safeParse(request.params);
+      if (!parsedParams.success) {
+        return reply.status(400).send({ status: "error", message: "Invalid organization ID" });
+      }
+      const { organizationId } = parsedParams.data;
       const userId = request.user!.id;
       const parsed = addOrgMemberSchema.safeParse(request.body);
       if (!parsed.success) {
@@ -102,24 +151,9 @@ export async function organizationsRoutes(fastify: FastifyInstance, auth: AuthHa
         });
       }
 
-      let targetUserId: string;
-      if (parsed.data.userId) {
-        targetUserId = parsed.data.userId;
-      } else if (parsed.data.email) {
-        // Get user by email
-        const { getUserByEmail } = await import("../memberships/memberships.service.js");
-        const user = await getUserByEmail(parsed.data.email);
-        targetUserId = user.id;
-      } else {
-        return reply.status(400).send({
-          status: "error",
-          message: "userId or email is required",
-        });
-      }
-
       const member = await orgMembershipsService.addOrganizationMember(
         organizationId,
-        targetUserId,
+        { userId: parsed.data.userId, email: parsed.data.email },
         parsed.data.role,
         userId
       );
@@ -132,10 +166,11 @@ export async function organizationsRoutes(fastify: FastifyInstance, auth: AuthHa
     "/organizations/:organizationId/members/:userId",
     { preHandler: [authenticate] },
     async (request, reply) => {
-      const { organizationId, userId: targetUserId } = request.params as {
-        organizationId: string;
-        userId: string;
-      };
+      const parsedParams = organizationMemberParamsSchema.safeParse(request.params);
+      if (!parsedParams.success) {
+        return reply.status(400).send({ status: "error", message: "Invalid member ID" });
+      }
+      const { organizationId, userId: targetUserId } = parsedParams.data;
       const userId = request.user!.id;
       const parsed = updateOrgRoleSchema.safeParse(request.body);
       if (!parsed.success) {
@@ -160,10 +195,11 @@ export async function organizationsRoutes(fastify: FastifyInstance, auth: AuthHa
     "/organizations/:organizationId/members/:userId",
     { preHandler: [authenticate] },
     async (request, reply) => {
-      const { organizationId, userId: targetUserId } = request.params as {
-        organizationId: string;
-        userId: string;
-      };
+      const parsedParams = organizationMemberParamsSchema.safeParse(request.params);
+      if (!parsedParams.success) {
+        return reply.status(400).send({ status: "error", message: "Invalid member ID" });
+      }
+      const { organizationId, userId: targetUserId } = parsedParams.data;
       const userId = request.user!.id;
       await orgMembershipsService.removeOrganizationMember(organizationId, targetUserId, userId);
       return reply.status(204).send();

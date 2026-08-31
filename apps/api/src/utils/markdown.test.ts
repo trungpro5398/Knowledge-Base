@@ -18,3 +18,11 @@ test("compileMarkdown keeps Vietnamese, formatted and duplicate heading anchors 
     assert.match(result.html, new RegExp(`id="${item.id}"`));
   }
 });
+
+test("compileMarkdown skips syntax highlighting for oversized documents", async () => {
+  const code = "const value = 123;\n".repeat(14_000);
+  const result = await compileMarkdown(`\`\`\`js\n${code}\`\`\``);
+
+  assert.doesNotMatch(result.html, /<span/);
+  assert.ok(result.html.length < code.length * 1.2);
+});

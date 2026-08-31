@@ -1,16 +1,11 @@
 import * as membershipsRepo from "./memberships.repo.js";
-import * as spacesRepo from "../spaces/spaces.repo.js";
-import * as organizationsRepo from "../organizations/organizations.repo.js";
 import { invalidateSpacesForUser } from "../spaces/spaces-user-cache.js";
 import { NotFoundError, ValidationError, ForbiddenError } from "../../utils/errors.js";
 
 export async function listMembers(spaceId: string, userId: string) {
-  // Check if user is admin of the space
-  const role = await spacesRepo.getMemberRole(spaceId, userId);
-  if (role !== "admin") {
-    throw new ForbiddenError("Chỉ admin mới được xem danh sách members");
-  }
-  return membershipsRepo.getMembershipsBySpace(spaceId);
+  const members = await membershipsRepo.getMembershipsForAdmin(spaceId, userId);
+  if (!members) throw new NotFoundError("Space not found");
+  return members;
 }
 
 export async function addMember(
@@ -19,27 +14,37 @@ export async function addMember(
   role: "viewer" | "editor" | "admin",
   adminUserId: string
 ) {
-  // Check if admin user is admin of the space
-  const adminRole = await spacesRepo.getMemberRole(spaceId, adminUserId);
-  if (adminRole !== "admin") {
-    throw new ForbiddenError("Chỉ admin mới được thêm members");
-  }
-
-  // Prevent removing last admin
-  if (role !== "admin") {
-    const members = await membershipsRepo.getMembershipsBySpace(spaceId);
-    const adminCount = members.filter((m) => m.role === "admin").length;
-    if (adminCount === 1 && members.some((m) => m.user_id === targetUserId && m.role === "admin")) {
-      throw new ValidationError("Không thể xóa admin cuối cùng của space");
-    }
-  }
-
-  const membership = await membershipsRepo.addMembership(spaceId, targetUserId, role);
+  const result = await membershipsRepo.upsertMembershipForAdmin(
+    spaceId,
+    targetUserId,
+    role,
+    adminUserId
+  );
+  assertMembershipMutation(result.status, "thêm");
   // Invalidate cache for the new member so they see the space immediately
   invalidateSpacesForUser(targetUserId);
   // Also invalidate cache for admin user in case they're viewing the list
   invalidateSpacesForUser(adminUserId);
-  return membership;
+  return result.membership!;
+}
+
+export async function addMemberByEmail(
+  spaceId: string,
+  targetEmail: string,
+  role: "viewer" | "editor" | "admin",
+  adminUserId: string
+) {
+  const result = await membershipsRepo.upsertMembershipByEmailForAdmin(
+    spaceId,
+    targetEmail,
+    role,
+    adminUserId
+  );
+  assertMembershipMutation(result.status, "thêm");
+  const targetUserId = result.membership!.user_id;
+  invalidateSpacesForUser(targetUserId);
+  invalidateSpacesForUser(adminUserId);
+  return result.membership!;
 }
 
 export async function updateMemberRole(
@@ -48,45 +53,44 @@ export async function updateMemberRole(
   role: "viewer" | "editor" | "admin",
   adminUserId: string
 ) {
-  // Check if admin user is admin of the space
-  const adminRole = await spacesRepo.getMemberRole(spaceId, adminUserId);
-  if (adminRole !== "admin") {
-    throw new ForbiddenError("Chỉ admin mới được sửa role của members");
-  }
-
-  // Prevent removing last admin
-  if (role !== "admin") {
-    const members = await membershipsRepo.getMembershipsBySpace(spaceId);
-    const adminCount = members.filter((m) => m.role === "admin").length;
-    if (adminCount === 1 && members.some((m) => m.user_id === targetUserId && m.role === "admin")) {
-      throw new ValidationError("Không thể xóa admin cuối cùng của space");
-    }
-  }
-
-  const membership = await membershipsRepo.updateMembershipRole(spaceId, targetUserId, role);
+  const result = await membershipsRepo.updateMembershipRoleForAdmin(
+    spaceId,
+    targetUserId,
+    role,
+    adminUserId
+  );
+  assertMembershipMutation(result.status, "sửa role của");
   // Invalidate cache for the updated member
   invalidateSpacesForUser(targetUserId);
-  return membership;
+  return result.membership!;
 }
 
 export async function removeMember(spaceId: string, targetUserId: string, adminUserId: string) {
-  // Check if admin user is admin of the space
-  const adminRole = await spacesRepo.getMemberRole(spaceId, adminUserId);
-  if (adminRole !== "admin") {
-    throw new ForbiddenError("Chỉ admin mới được xóa members");
-  }
-
-  // Prevent removing last admin
-  const members = await membershipsRepo.getMembershipsBySpace(spaceId);
-  const adminCount = members.filter((m) => m.role === "admin").length;
-  const targetMember = members.find((m) => m.user_id === targetUserId);
-  if (targetMember?.role === "admin" && adminCount === 1) {
-    throw new ValidationError("Không thể xóa admin cuối cùng của space");
-  }
-
-  await membershipsRepo.removeMembership(spaceId, targetUserId);
+  const status = await membershipsRepo.removeMembershipForAdmin(
+    spaceId,
+    targetUserId,
+    adminUserId
+  );
+  assertMembershipMutation(status, "xóa");
   // Invalidate cache for the removed member so they don't see the space anymore
   invalidateSpacesForUser(targetUserId);
+}
+
+function assertMembershipMutation(
+  status: membershipsRepo.MembershipMutationStatus,
+  action: string
+): void {
+  if (status === "success") return;
+  if (status === "space_not_found" || status === "member_not_found") {
+    throw new NotFoundError("Space member not found");
+  }
+  if (status === "forbidden") {
+    throw new ForbiddenError(`Chỉ admin mới được ${action} members`);
+  }
+  if (status === "invalid_action" || status === "invalid_role") {
+    throw new ValidationError("Thao tác hoặc role không hợp lệ");
+  }
+  throw new ValidationError("Không thể xóa admin cuối cùng của space");
 }
 
 interface SearchUsersInput {
@@ -102,38 +106,41 @@ export async function searchUsers(input: SearchUsersInput, requesterUserId: stri
   const limit = input.limit ?? 20;
   const hasContext = Boolean(input.organizationId || input.spaceId || input.pageId);
 
-  // Keep old anti-enumeration behavior when caller has no specific context.
-  if (!hasContext && query.length < 2) {
-    return [];
+  // This endpoint returns data from auth.users and is only used by member
+  // management UI. A free-text search without an admin-owned target lets any
+  // authenticated user enumerate colleague names and email addresses.
+  if (!hasContext) {
+    throw new ForbiddenError("Cần context organization, space hoặc page để tìm user");
   }
 
-  if (input.organizationId) {
-    const role = await organizationsRepo.getUserRoleInOrganization(requesterUserId, input.organizationId);
-    if (role !== "admin" && role !== "owner") {
-      throw new ForbiddenError("Chỉ admin/owner mới được tìm user để thêm vào organization");
-    }
+  if (query.length < 2) {
+    throw new ValidationError("Cần ít nhất 2 ký tự để tìm user");
   }
 
-  if (input.spaceId) {
-    const role = await spacesRepo.getMemberRole(input.spaceId, requesterUserId);
-    if (role !== "admin") {
-      throw new ForbiddenError("Chỉ admin mới được tìm user để thêm vào space");
-    }
+  const result = await membershipsRepo.searchUsersForAdmin(
+    {
+      query,
+      limit,
+      organizationId: input.organizationId,
+      spaceId: input.spaceId,
+      pageId: input.pageId,
+    },
+    requesterUserId
+  );
+  if (result.status === "page_not_found") {
+    throw new NotFoundError("Page not found");
   }
-
-  return membershipsRepo.searchUsers({
-    query,
-    limit,
-    organizationId: input.organizationId,
-    spaceId: input.spaceId,
-    pageId: input.pageId,
-  });
-}
-
-export async function getUserByEmail(email: string) {
-  const user = await membershipsRepo.getUserByEmail(email);
-  if (!user) {
-    throw new NotFoundError("User không tồn tại");
+  if (result.status === "organization_forbidden") {
+    throw new ForbiddenError("Chỉ admin/owner mới được tìm user để thêm vào organization");
   }
-  return user;
+  if (result.status === "space_forbidden") {
+    throw new ForbiddenError("Chỉ admin mới được tìm user để thêm vào space");
+  }
+  if (result.status === "page_forbidden") {
+    throw new ForbiddenError("Chỉ admin mới được tìm user theo page");
+  }
+  if (result.status === "forbidden") {
+    throw new ForbiddenError("Cần context organization, space hoặc page để tìm user");
+  }
+  return result.users;
 }

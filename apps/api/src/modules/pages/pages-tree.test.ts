@@ -13,6 +13,7 @@ function page(id: string, parentId: string | null, sortOrder: number, path: stri
     title: id,
     status: "published",
     current_version_id: null,
+    published_version_id: null,
     created_by: "user",
     updated_by: "user",
     created_at: new Date(0),

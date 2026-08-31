@@ -1,9 +1,9 @@
 import * as spacesRepo from "./spaces.repo.js";
-import * as organizationsRepo from "../organizations/organizations.repo.js";
 import { getPublicSpacesCached, invalidatePublishedSpace } from "../public/public-cache.js";
 import { NotFoundError, ValidationError, ForbiddenError } from "../../utils/errors.js";
 import { getSpaceBySlugCached, invalidateSpaceCache } from "./spaces-cache.js";
 import { getSpacesForUserCached, getSpacesStatsCached, invalidateSpacesForUser } from "./spaces-user-cache.js";
+import { buildPagesTree } from "../pages/pages-tree.js";
 
 export async function listSpaces(userId: string) {
   return getSpacesForUserCached(userId);
@@ -27,16 +27,32 @@ export async function getSpace(id: string, userId: string) {
   return space;
 }
 
+export async function getSpaceBootstrap(id: string, userId: string) {
+  const bootstrap = await spacesRepo.getSpaceBootstrap(id, userId);
+  if (!bootstrap) throw new NotFoundError("Space not found");
+  return {
+    space: bootstrap.space,
+    role: bootstrap.role,
+    tree: buildPagesTree(bootstrap.pages),
+    spaces: bootstrap.spaces,
+    organizations: bootstrap.organizations,
+  };
+}
+
 export async function deleteSpace(spaceId: string, userId: string) {
-  const space = await spacesRepo.getSpaceForUser(spaceId, userId);
-  if (!space) throw new NotFoundError("Space not found");
-  const role = await spacesRepo.getMemberRole(spaceId, userId);
-  if (role !== "admin") {
-    throw new (await import("../../utils/errors.js")).ForbiddenError(
-      "Chỉ admin mới được xóa space"
-    );
+  const result = await spacesRepo.mutateSpace({
+    action: "delete",
+    spaceId,
+    actorUserId: userId,
+  });
+  if (result.status === "space_not_found") throw new NotFoundError("Space not found");
+  if (result.status === "forbidden") {
+    throw new ForbiddenError("Chỉ admin mới được xóa space");
   }
-  await spacesRepo.deleteSpace(spaceId);
+  if (result.status !== "success" || !result.space) {
+    throw new Error(`Unexpected space deletion result: ${result.status}`);
+  }
+  const space = result.space;
   invalidateSpaceCache(spaceId, space.slug);
   invalidatePublishedSpace(spaceId);
   invalidateSpacesForUser(userId);
@@ -46,20 +62,25 @@ export async function createSpace(
   data: { name: string; slug: string; icon?: string | null; description?: string | null; organization_id?: string | null },
   userId: string
 ) {
-  if (data.organization_id) {
-    const role = await organizationsRepo.getUserRoleInOrganization(userId, data.organization_id);
-    if (role !== "admin" && role !== "owner") {
-      throw new ForbiddenError("Chỉ admin/owner của organization mới được tạo space");
-    }
-  }
-
-  const existing = await spacesRepo.getSpaceBySlug(data.slug);
-  if (existing) throw new ValidationError("Space slug already exists");
-
-  const space = await spacesRepo.createSpace({
-    ...data,
-    createdBy: userId,
+  const result = await spacesRepo.mutateSpace({
+    action: "create",
+    name: data.name,
+    slug: data.slug,
+    icon: data.icon,
+    description: data.description,
+    organizationId: data.organization_id,
+    actorUserId: userId,
   });
+  if (result.status === "forbidden") {
+    throw new ForbiddenError("Chỉ admin/owner của organization mới được tạo space");
+  }
+  if (result.status === "slug_conflict") {
+    throw new ValidationError("Space slug already exists");
+  }
+  if (result.status !== "success" || !result.space) {
+    throw new Error(`Unexpected space creation result: ${result.status}`);
+  }
+  const space = result.space;
 
   invalidateSpaceCache(space.id, space.slug);
   invalidateSpacesForUser(userId);
@@ -71,21 +92,26 @@ export async function updateSpace(
   data: { name: string; slug: string; description?: string | null },
   userId: string
 ) {
-  const current = await spacesRepo.getSpaceForUser(spaceId, userId);
-  if (!current) throw new NotFoundError("Space not found");
-
-  const role = await spacesRepo.getMemberRole(spaceId, userId);
-  if (role !== "admin") {
+  const result = await spacesRepo.mutateSpace({
+    action: "update",
+    spaceId,
+    name: data.name,
+    slug: data.slug,
+    description: data.description,
+    actorUserId: userId,
+  });
+  if (result.status === "space_not_found") throw new NotFoundError("Space not found");
+  if (result.status === "forbidden") {
     throw new ForbiddenError("Chỉ admin mới được chỉnh sửa kho tài liệu");
   }
-
-  const existing = await spacesRepo.getSpaceBySlug(data.slug);
-  if (existing && existing.id !== spaceId) {
+  if (result.status === "slug_conflict") {
     throw new ValidationError("Space slug already exists");
   }
-
-  const updated = await spacesRepo.updateSpace(spaceId, data);
-  invalidateSpaceCache(spaceId, current.slug);
+  if (result.status !== "success" || !result.space || !result.previous_slug) {
+    throw new Error(`Unexpected space update result: ${result.status}`);
+  }
+  const updated = result.space;
+  invalidateSpaceCache(spaceId, result.previous_slug);
   invalidateSpaceCache(spaceId, updated.slug);
   invalidatePublishedSpace(spaceId);
   invalidateSpacesForUser(userId);

@@ -34,6 +34,7 @@ interface RenderData {
   tree: TreeNode[];
   breadcrumb: { title: string; path: string }[];
   space: { name: string; organization_name?: string | null };
+  spaces: Space[];
 }
 
 type StartLink = { label: string; path: string };
@@ -44,7 +45,7 @@ class PublicApiError extends Error {}
 async function fetchPublic(input: string): Promise<Response> {
   try {
     return await fetch(input, {
-      next: { revalidate: 60 },
+      cache: "no-store",
       signal: AbortSignal.timeout(10_000),
     });
   } catch {
@@ -63,6 +64,8 @@ async function readPublicJson(response: Response): Promise<unknown> {
 function getPageDescription(content: string | null, fallback: string): string {
   if (!content) return fallback;
   const plainText = content
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&(?:[a-zA-Z]+|#\d+|#x[\da-fA-F]+);/g, " ")
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
@@ -175,7 +178,7 @@ export async function generateMetadata({ params }: KbPageProps): Promise<Metadat
   if (!data) notFound();
   const title = `${data.page.title} | ${data.space.name}`;
   const description = getPageDescription(
-    data.version.content_md,
+    data.version.content_md ?? data.version.rendered_html,
     `Tài liệu ${data.page.title} trong ${data.space.name}.`
   );
   return {
@@ -243,14 +246,12 @@ async function renderKbPage({ params }: KbPageProps) {
 
   const pathParts = segments.slice(1);
   const path = slugToPath(pathParts);
-  const [data, spaces] = await Promise.all([
-    getRenderData(spaceSlug, path),
-    getPublicSpaces(),
-  ]);
+  const data = await getRenderData(spaceSlug, path);
 
   if (!data) notFound();
 
   const { page, version, breadcrumb, space } = data;
+  const spaces = data.spaces;
   const tree = data.tree;
   const apiToc = version.toc
     .filter((item) => item.level >= 2)

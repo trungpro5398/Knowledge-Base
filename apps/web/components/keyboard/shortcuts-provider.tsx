@@ -1,6 +1,12 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from "react";
+import dynamic from "next/dynamic";
+
+const ShortcutsHelp = dynamic(
+  () => import("./shortcuts-help").then((module) => module.ShortcutsHelp),
+  { ssr: false }
+);
 
 export interface Shortcut {
   key: string;
@@ -103,6 +109,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
       value={contextValue}
     >
       {children}
+      {showHelp ? <ShortcutsHelp /> : null}
     </ShortcutsContext.Provider>
   );
 }

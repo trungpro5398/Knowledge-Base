@@ -1,5 +1,4 @@
 import * as orgMembershipsRepo from "./organization-memberships.repo.js";
-import * as organizationsRepo from "./organizations.repo.js";
 import { invalidateSpacesForUser } from "../spaces/spaces-user-cache.js";
 import { NotFoundError, ValidationError, ForbiddenError } from "../../utils/errors.js";
 
@@ -9,45 +8,32 @@ function invalidateOrganizationsForUser(userId: string): void {
 }
 
 export async function listOrganizationMembers(organizationId: string, userId: string) {
-  // Check if user is admin/owner of the organization
-  const role = await organizationsRepo.getUserRoleInOrganization(userId, organizationId);
-  if (role !== "admin" && role !== "owner") {
-    throw new ForbiddenError("Chỉ admin/owner mới được xem danh sách members");
-  }
-  return orgMembershipsRepo.getOrganizationMemberships(organizationId);
+  const members = await orgMembershipsRepo.getOrganizationMembershipsForAdmin(
+    organizationId,
+    userId
+  );
+  if (!members) throw new NotFoundError("Organization not found");
+  return members;
 }
 
 export async function addOrganizationMember(
   organizationId: string,
-  targetUserId: string,
+  target: { userId?: string; email?: string },
   role: "member" | "admin" | "owner",
   adminUserId: string
 ) {
-  // Check if admin user is admin/owner of the organization
-  const adminRole = await organizationsRepo.getUserRoleInOrganization(adminUserId, organizationId);
-  if (adminRole !== "admin" && adminRole !== "owner") {
-    throw new ForbiddenError("Chỉ admin/owner mới được thêm members");
-  }
-
-  // Only owner can add other owners
-  if (role === "owner" && adminRole !== "owner") {
-    throw new ForbiddenError("Chỉ owner mới được thêm owner khác");
-  }
-
-  // Prevent removing last owner
-  if (role !== "owner") {
-    const members = await orgMembershipsRepo.getOrganizationMemberships(organizationId);
-    const ownerCount = members.filter((m) => m.role === "owner").length;
-    if (ownerCount === 1 && members.some((m) => m.user_id === targetUserId && m.role === "owner")) {
-      throw new ValidationError("Không thể xóa owner cuối cùng của organization");
-    }
-  }
-
-  const membership = await orgMembershipsRepo.addOrganizationMembership(organizationId, targetUserId, role);
+  const result = await orgMembershipsRepo.upsertOrganizationMembershipForAdmin(
+    organizationId,
+    target,
+    role,
+    adminUserId
+  );
+  assertOrganizationMembershipMutation(result.status, "thêm");
+  const targetUserId = result.membership!.user_id;
   // Invalidate cache for the new member so they see the organization and its spaces immediately
   invalidateSpacesForUser(targetUserId);
   invalidateOrganizationsForUser(targetUserId);
-  return membership;
+  return result.membership!;
 }
 
 export async function updateOrganizationMemberRole(
@@ -56,35 +42,17 @@ export async function updateOrganizationMemberRole(
   role: "member" | "admin" | "owner",
   adminUserId: string
 ) {
-  // Check if admin user is admin/owner of the organization
-  const adminRole = await organizationsRepo.getUserRoleInOrganization(adminUserId, organizationId);
-  if (adminRole !== "admin" && adminRole !== "owner") {
-    throw new ForbiddenError("Chỉ admin/owner mới được sửa role của members");
-  }
-
-  // Only owner can promote to owner
-  if (role === "owner" && adminRole !== "owner") {
-    throw new ForbiddenError("Chỉ owner mới được promote user thành owner");
-  }
-
-  // Prevent removing last owner
-  if (role !== "owner") {
-    const members = await orgMembershipsRepo.getOrganizationMemberships(organizationId);
-    const ownerCount = members.filter((m) => m.role === "owner").length;
-    if (ownerCount === 1 && members.some((m) => m.user_id === targetUserId && m.role === "owner")) {
-      throw new ValidationError("Không thể xóa owner cuối cùng của organization");
-    }
-  }
-
-  const membership = await orgMembershipsRepo.updateOrganizationMembershipRole(
+  const result = await orgMembershipsRepo.updateOrganizationMembershipRoleForAdmin(
     organizationId,
     targetUserId,
-    role
+    role,
+    adminUserId
   );
+  assertOrganizationMembershipMutation(result.status, "sửa role của");
   // Invalidate cache for the updated member
   invalidateSpacesForUser(targetUserId);
   invalidateOrganizationsForUser(targetUserId);
-  return membership;
+  return result.membership!;
 }
 
 export async function removeOrganizationMember(
@@ -92,22 +60,33 @@ export async function removeOrganizationMember(
   targetUserId: string,
   adminUserId: string
 ) {
-  // Check if admin user is admin/owner of the organization
-  const adminRole = await organizationsRepo.getUserRoleInOrganization(adminUserId, organizationId);
-  if (adminRole !== "admin" && adminRole !== "owner") {
-    throw new ForbiddenError("Chỉ admin/owner mới được xóa members");
-  }
-
-  // Prevent removing last owner
-  const members = await orgMembershipsRepo.getOrganizationMemberships(organizationId);
-  const ownerCount = members.filter((m) => m.role === "owner").length;
-  const targetMember = members.find((m) => m.user_id === targetUserId);
-  if (targetMember?.role === "owner" && ownerCount === 1) {
-    throw new ValidationError("Không thể xóa owner cuối cùng của organization");
-  }
-
-  await orgMembershipsRepo.removeOrganizationMembership(organizationId, targetUserId);
+  const status = await orgMembershipsRepo.removeOrganizationMembershipForAdmin(
+    organizationId,
+    targetUserId,
+    adminUserId
+  );
+  assertOrganizationMembershipMutation(status, "xóa");
   // Invalidate cache for the removed member so they don't see the organization/spaces anymore
   invalidateSpacesForUser(targetUserId);
   invalidateOrganizationsForUser(targetUserId);
+}
+
+export function assertOrganizationMembershipMutation(
+  status: orgMembershipsRepo.OrganizationMembershipMutationStatus,
+  action: string
+): void {
+  if (status === "success") return;
+  if (status === "organization_not_found" || status === "member_not_found") {
+    throw new NotFoundError("Organization membership not found");
+  }
+  if (status === "forbidden") {
+    throw new ForbiddenError(`Chỉ admin/owner mới được ${action} members`);
+  }
+  if (status === "owner_required") {
+    throw new ForbiddenError("Chỉ owner mới được thêm hoặc thay đổi owner");
+  }
+  if (status === "last_owner") {
+    throw new ValidationError("Không thể xóa owner cuối cùng của organization");
+  }
+  throw new ValidationError("Thao tác hoặc role không hợp lệ");
 }
